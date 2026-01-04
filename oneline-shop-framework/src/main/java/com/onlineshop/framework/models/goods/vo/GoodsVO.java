@@ -1,0 +1,25 @@
+package com.onlineshop.framework.models.goods.vo;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ *
+ *
+ * @author : Tomatos
+ * @date : 2026/1/1
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class GoodsVO {
+    private Long id;
+    private String name;
+    private String info;
+    private Long price;
+    private String img;
+}
+

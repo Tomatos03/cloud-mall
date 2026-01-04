@@ -1,0 +1,28 @@
+server:
+  port: 7001
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/online_shop
+    username: Tomatos
+    password: 20030503
+  data:
+    redis:
+      password: zjlljz
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+auth:
+  white-list:
+    - '/web/common/**'
+    - '/web/banner/**'
+    - '/web/category/**'
+    - '/web/user/login'
+    - '/web/user/register'
+    - '/web/goods/**'
+
+jwt:
+  secret: mySecretKeyForJwtToken123456789012345678901234567890  # 请替换为更安全的密钥
+  expire: 86400000  # 24小时（毫秒）
