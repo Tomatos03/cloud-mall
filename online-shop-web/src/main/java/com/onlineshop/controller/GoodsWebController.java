@@ -1,11 +1,11 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.goods.IGoodsService;
-import com.onlineshop.framework.models.goods.dto.GoodsSearchDTO;
-import com.onlineshop.framework.models.goods.vo.GoodsCardVO;
-import com.onlineshop.framework.models.goods.vo.GoodsDetailVO;
-import com.onlineshop.framework.models.goods.vo.GoodsVO;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
+import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
+import com.onlineshop.framework.models.goods.spu.vo.GoodsDetailVO;
+import com.onlineshop.framework.models.goods.spu.vo.GoodsVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

@@ -2,10 +2,10 @@ package com.onlineshop.framework.models.order.strategy.impl;
 
 import com.onlineshop.framework.models.order.dto.TradeShopDTO;
 import com.onlineshop.framework.models.order.dto.TradeShopItemDTO;
-import com.onlineshop.framework.models.goods.Goods;
+import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.cart.CartType;
 import com.onlineshop.framework.models.order.enums.OrderStatus;
-import com.onlineshop.framework.models.goods.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

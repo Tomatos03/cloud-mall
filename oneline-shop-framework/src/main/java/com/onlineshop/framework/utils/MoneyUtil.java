@@ -21,6 +21,11 @@ public class MoneyUtil {
         return formatYuanString(moneyStr);
     }
 
+    public static Long yuanToFen(Long yuan) {
+        Objects.requireNonNull(yuan);
+        return yuan * 100;
+    }
+
     private static String formatYuanString(String moneyStr) {
         int length = moneyStr.length();
         if (length <= 2) {

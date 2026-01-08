@@ -33,6 +33,11 @@ public final class UserContextHolder {
                       .getId();
     }
 
+    public static String getUserName() {
+        return Objects.requireNonNull(getUserContext())
+                      .getUsername();
+    }
+
     /**
      * 获取当前用户信息
      *

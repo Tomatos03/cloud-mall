@@ -1,8 +1,8 @@
 package com.onlineshop.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.goods.Goods;
-import com.onlineshop.framework.models.goods.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.Goods;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

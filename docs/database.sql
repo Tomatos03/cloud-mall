@@ -1,21 +1,47 @@
 create table address
 (
-    id          bigint auto_increment comment '地址ID'
+    id           bigint auto_increment comment '地址ID'
         primary key,
-    user_id     bigint                                not null comment '用户ID',
-    receiver    varchar(100)                          not null comment '收货人名字',
-    region_code int                                   null comment '地区代码',
-    detail      varchar(255)                          not null comment '详细地址',
-    zip_code    varchar(6)                            not null comment '邮编(6位数字)',
-    phone       varchar(11)                           not null comment '联系电话(11位手机号)',
-    is_default  bit       default b'0'                not null comment '是否为默认地址',
-    created_at  timestamp default current_timestamp() null comment '创建时间',
-    updated_at  timestamp default current_timestamp() null on update current_timestamp() comment '更新时间'
+    user_id      bigint                                not null comment '用户ID',
+    receiver     varchar(100)                          not null comment '收货人名字',
+    region_code  int                                   null comment '地区代码',
+    detail       varchar(255)                          not null comment '详细地址',
+    full_address varchar(255)                          not null comment '完整地址',
+    zip_code     varchar(6)                            not null comment '邮编(6位数字)',
+    phone        varchar(11)                           not null comment '联系电话(11位手机号)',
+    is_default   bit       default b'0'                not null comment '是否为默认地址',
+    created_at   timestamp default current_timestamp() null comment '创建时间',
+    updated_at   timestamp default current_timestamp() null on update current_timestamp() comment '更新时间'
 )
     comment '地址管理' collate = utf8mb4_uca1400_ai_ci;
 
 create index idx_user_id
     on address (user_id);
+
+create table audit_log
+(
+    id             bigint auto_increment comment '审核记录ID'
+        primary key,
+    target_type    varchar(50)                          not null comment '被审核对象类型: GOODS / SKU / OTHER',
+    target_id      bigint                               not null comment '被审核对象ID',
+    status         tinyint  default 0                   not null comment '审核状态: 0-未提交, 1-待审核, 2-通过, 3-拒绝',
+    reason         varchar(255)                         null comment '审核备注/拒绝原因',
+    applicant_id   bigint                               not null comment '申请人ID',
+    applicant_name varchar(255)                         null comment '申请人姓名',
+    auditor_id     bigint                               null comment '审核人ID',
+    auditor_name   varchar(255)                         null comment '审核人姓名',
+    extra_info     longtext collate utf8mb4_bin         null comment '扩展信息: 可存储SKU组合/商品规格等JSON'
+        check (json_valid(`extra_info`)),
+    create_time    datetime default current_timestamp() null comment '申请时间',
+    audit_time     datetime                             null comment '审核时间'
+)
+    comment '通用审核表';
+
+create index idx_status
+    on audit_log (status);
+
+create index idx_target
+    on audit_log (target_type, target_id);
 
 create table banner
 (
@@ -108,6 +134,52 @@ create index idx_goods_id
 create index idx_order_id
     on goods_comment (order_id);
 
+create table goods_sku
+(
+    id          bigint auto_increment comment 'sku id'
+        primary key,
+    goods_id    bigint                               not null comment '所属商品(spu)',
+    price       bigint                               not null comment '售价(分)',
+    inventory   bigint                               not null comment '库存',
+    sales       bigint   default 0                   not null comment '销量',
+    status      tinyint  default 1                   not null comment '状态, 1-上架, 0-下架',
+    create_time datetime default current_timestamp() not null,
+    update_time datetime default current_timestamp() not null on update current_timestamp()
+)
+    comment '商品SKU表';
+
+create index idx_goods_id
+    on goods_sku (goods_id);
+
+create table goods_sku_spec
+(
+    sku_id        bigint not null comment 'sku id',
+    spec_id       bigint not null comment '规格id',
+    spec_value_id bigint not null comment '规格值id',
+    primary key (sku_id, spec_id)
+)
+    comment 'SKU规格关联表';
+
+create index idx_sku_id
+    on goods_sku_spec (sku_id);
+
+create index idx_spec_value_id
+    on goods_sku_spec (spec_value_id);
+
+create table goods_unit
+(
+    id          bigint auto_increment comment '单位id'
+        primary key,
+    name        varchar(20)                          not null comment '单位名称，如 件/个/瓶',
+    status      tinyint  default 1                   not null comment '状态：1启用 0禁用',
+    sort        int      default 0                   not null comment '排序值，越小越靠前',
+    create_time datetime default current_timestamp() not null comment '创建时间',
+    update_time datetime default current_timestamp() not null on update current_timestamp() comment '更新时间',
+    constraint uk_unit_name
+        unique (name)
+)
+    comment '商品单位表';
+
 create table notice
 (
     id      int auto_increment comment 'id'
@@ -115,6 +187,20 @@ create table notice
     content varchar(255) null comment '内容'
 )
     comment '公告管理';
+
+create table order_address
+(
+    id          bigint auto_increment comment '订单地址快照ID'
+        primary key,
+    order_id    bigint                                not null comment '订单ID',
+    receiver    varchar(100)                          not null comment '收货人',
+    region_code int                                   null comment '地区代码',
+    detail      varchar(255)                          not null comment '详细地址',
+    zip_code    varchar(6)                            not null comment '邮编',
+    phone       varchar(11)                           not null comment '联系电话',
+    created_at  timestamp default current_timestamp() null comment '快照创建时间'
+)
+    comment '订单地址快照';
 
 create table order_item
 (
@@ -125,7 +211,7 @@ create table order_item
     goods_name     varchar(255)                             null comment '商品名称',
     goods_img      varchar(255)                             null comment '商品主图',
     goods_price    bigint                                   null comment '下单时商品单价（分）',
-    quantity       bigint                                   null comment '购买数量',
+    quantity       int                                      null comment '购买数量',
     total_price    bigint                                   null comment '明细小计（分）',
     comment_status tinyint     default 0                    not null comment '评论状态：0-未评价 1-已评价',
     create_time    datetime(3) default current_timestamp(3) null comment '创建时间'
@@ -134,22 +220,54 @@ create table order_item
 
 create table orders
 (
-    id           bigint auto_increment comment 'id'
+    id          bigint auto_increment comment 'id'
         primary key,
-    parent_id    bigint                                   not null comment '父订单id',
-    no           varchar(255)                             null comment '订单号',
-    user_id      bigint                                   null comment '用户id',
-    store_id     bigint                                   null comment '商家id',
-    num          bigint                                   null comment '商品数量',
-    total_price  bigint                                   null comment '订单总价',
-    user_name    varchar(255)                             null comment '下单用户名',
-    user_address varchar(255)                             null comment '下单地址',
-    user_phone   varchar(255)                             null comment '下单电话',
-    status       varchar(255)                             null comment '状态',
-    order_type   varchar(20) default 'NORMAL'             null comment '订单类型：PARENT-父订单, SUB-子订单, NORMAL-普通订单（单店铺）',
-    create_time  datetime(3) default current_timestamp(3) null comment '下单时间'
+    parent_id   bigint                                   null comment '父订单id',
+    no          varchar(255)                             null comment '订单号',
+    user_id     bigint                                   null comment '用户id',
+    store_id    bigint                                   null comment '商家id',
+    quantity    int                                      null comment '商品数量',
+    total_price bigint                                   null comment '订单总价',
+    user_name   varchar(255)                             null comment '下单用户名',
+    address     varchar(255)                             null comment '下单地址',
+    phone       varchar(255)                             null comment '下单电话',
+    status      varchar(255)                             null comment '状态',
+    order_type  varchar(20) default 'NORMAL'             null comment '订单类型：PARENT-父订单, SUB-子订单, NORMAL-普通订单（单店铺）',
+    create_time datetime(3) default current_timestamp(3) null comment '下单时间'
 )
     comment '订单管理';
+
+create table spec
+(
+    id          bigint auto_increment comment '规格id'
+        primary key,
+    name        varchar(50)                          not null comment '规格名，如 颜色、尺码',
+    sort        int      default 0                   not null comment '排序',
+    status      tinyint  default 1                   not null comment '状态 1启用 0禁用',
+    create_time datetime default current_timestamp() not null,
+    update_time datetime default current_timestamp() not null on update current_timestamp(),
+    constraint uk_spec_name
+        unique (name)
+)
+    comment '规格名表';
+
+create table spec_value
+(
+    id          bigint auto_increment comment '规格值id'
+        primary key,
+    spec_id     bigint                               not null comment '所属规格',
+    value       varchar(50)                          not null comment '规格值，如 红、XL',
+    sort_order  int      default 0                   not null comment '排序',
+    status      tinyint  default 1                   not null comment '状态',
+    create_time datetime default current_timestamp() not null,
+    update_time datetime default current_timestamp() not null on update current_timestamp(),
+    constraint uk_spec_value
+        unique (spec_id, value)
+)
+    comment '规格值表';
+
+create index idx_spec_id
+    on spec_value (spec_id);
 
 create table store
 (
@@ -184,4 +302,5 @@ create table user
         unique (username)
 )
     comment '用户表' collate = utf8mb4_uca1400_ai_ci;
+
 

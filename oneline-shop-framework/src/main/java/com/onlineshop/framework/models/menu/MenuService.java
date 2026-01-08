@@ -30,8 +30,8 @@ public class MenuService implements IMenuService {
         // 统计菜单
         Menu statistics = new Menu();
         statistics.setName("Statistics");
+        statistics.setRoutePath("statistics");
         statistics.setPath("statistics");
-        statistics.setComponent("statistics");
         statistics.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         statistics.setMeta(new Menu.Meta("数据嵌板", "data-analysis"));
         menus.add(statistics);
@@ -39,8 +39,8 @@ public class MenuService implements IMenuService {
         // 公告菜单
         Menu notice = new Menu();
         notice.setName("Notice");
+        notice.setRoutePath("notice");
         notice.setPath("notice");
-        notice.setComponent("notice");
         notice.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         notice.setMeta(new Menu.Meta("公告管理", "notification"));
         menus.add(notice);
@@ -48,8 +48,8 @@ public class MenuService implements IMenuService {
         // 轮播图菜单
         Menu banner = new Menu();
         banner.setName("Banner");
+        banner.setRoutePath("banner");
         banner.setPath("banner");
-        banner.setComponent("banner");
         banner.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         banner.setMeta(new Menu.Meta("轮播图管理", "picture"));
         menus.add(banner);
@@ -57,8 +57,8 @@ public class MenuService implements IMenuService {
         // 分类菜单
         Menu category = new Menu();
         category.setName("Category");
+        category.setRoutePath("category");
         category.setPath("category");
-        category.setComponent("category");
         category.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         category.setMeta(new Menu.Meta("分类管理", "menu"));
         menus.add(category);
@@ -66,17 +66,34 @@ public class MenuService implements IMenuService {
         // 商品菜单
         Menu goods = new Menu();
         goods.setName("Goods");
-        goods.setPath("goods");
-        goods.setComponent("goods");
-        goods.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
+        goods.setRoutePath("/goods");
+        goods.setRouteRecordRawType(RoueRecordRawType.PARENT_VIEW.getCode());
+        goods.setRedirect("/goods/publish");
         goods.setMeta(new Menu.Meta("商品管理", "shop"));
         menus.add(goods);
+
+
+        Menu list = new Menu();
+        list.setName("List");
+        list.setRoutePath("/list");
+        list.setPath("/goods/list");
+        list.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
+        list.setMeta(new Menu.Meta("商品列表"));
+
+        // 公告菜单
+        Menu unit = new Menu();
+        unit.setName("Unit");
+        unit.setRoutePath("unit");
+        unit.setPath("/goods/unit");
+        unit.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
+        unit.setMeta(new Menu.Meta("单位管理"));
+        goods.setChildren(List.of(list, unit));
 
         // 订单菜单
         Menu order = new Menu();
         order.setName("Order");
+        order.setRoutePath("order");
         order.setPath("order");
-        order.setComponent("order");
         order.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         order.setMeta(new Menu.Meta("订单管理", "wallet"));
         menus.add(order);
@@ -84,8 +101,8 @@ public class MenuService implements IMenuService {
         // 收货地址菜单
         Menu address = new Menu();
         address.setName("Address");
+        address.setRoutePath("address");
         address.setPath("address");
-        address.setComponent("address");
         address.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         address.setMeta(new Menu.Meta("地址管理", "location"));
         menus.add(address);
@@ -93,15 +110,16 @@ public class MenuService implements IMenuService {
         // 用户菜单
         Menu user = new Menu();
         user.setName("User");
+        user.setRoutePath("user");
         user.setPath("user");
-        user.setComponent("user");
         user.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         user.setMeta(new Menu.Meta("用户管理", "user"));
         menus.add(user);
 
         // wrap into a 'home' layout for frontend (vue-router): a single root layout with children
         Menu home = new Menu();
-        home.setPath("/");
+        home.setRoutePath("/");
+        home.setPath("/home");
         home.setName("Home");
         home.setRedirect("/statistics");
         home.setRouteRecordRawType(RoueRecordRawType.LAYOUT.getCode());
@@ -121,8 +139,8 @@ public class MenuService implements IMenuService {
 
         Menu statistics = new Menu();
         statistics.setName("Statistics");
+        statistics.setRoutePath("statistics");
         statistics.setPath("statistics");
-        statistics.setComponent("statistics");
         statistics.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         statistics.setMeta(new Menu.Meta("数据嵌板", "data-analysis"));
         menus.add(statistics);
@@ -130,8 +148,8 @@ public class MenuService implements IMenuService {
         // 商品菜单
         Menu store = new Menu();
         store.setName("Store");
+        store.setRoutePath("store");
         store.setPath("store");
-        store.setComponent("store");
         store.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         store.setMeta(new Menu.Meta("店铺管理", "setting"));
         menus.add(store);
@@ -139,16 +157,32 @@ public class MenuService implements IMenuService {
         // 商品菜单
         Menu goods = new Menu();
         goods.setName("Goods");
-        goods.setPath("goods");
-        goods.setComponent("goods");
-        goods.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
+        goods.setRoutePath("/goods");
+        goods.setRouteRecordRawType(RoueRecordRawType.PARENT_VIEW.getCode());
+        goods.setRedirect("/goods/publish");
         goods.setMeta(new Menu.Meta("商品管理", "shop"));
         menus.add(goods);
 
+        Menu publish = new Menu();
+        publish.setName("Publish");
+        publish.setRoutePath("/publish");
+        publish.setPath("/goods/publish");
+        publish.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
+        publish.setMeta(new Menu.Meta("发布商品", "plus"));
+
+        Menu list = new Menu();
+        list.setName("List");
+        list.setRoutePath("/list");
+        list.setPath("/goods/list");
+        list.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
+        list.setMeta(new Menu.Meta("商品列表", "list"));
+
+        goods.setChildren(List.of(publish, list));
+
         Menu comment = new Menu();
         comment.setName("Comment");
+        comment.setRoutePath("comment");
         comment.setPath("comment");
-        comment.setComponent("comment");
         comment.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         comment.setMeta(new Menu.Meta("商品评论", "chat-round"));
         menus.add(comment);
@@ -156,8 +190,8 @@ public class MenuService implements IMenuService {
         // 订单菜单
         Menu order = new Menu();
         order.setName("Order");
+        order.setRoutePath("order");
         order.setPath("order");
-        order.setComponent("order");
         order.setRouteRecordRawType(RoueRecordRawType.VIEW.getCode());
         order.setMeta(new Menu.Meta("订单管理", "wallet"));
         menus.add(order);
@@ -165,7 +199,8 @@ public class MenuService implements IMenuService {
         // wrap into a 'home' layout for frontend (vue-router): a single root layout with children
         Menu home = new Menu();
         home.setName("Home");
-        home.setPath("/");
+        home.setRoutePath("/");
+        home.setPath("/home");
         home.setRedirect("/statistics");
         home.setRouteRecordRawType(RoueRecordRawType.LAYOUT.getCode());
         home.setMeta(new Menu.Meta("首页", "home"));

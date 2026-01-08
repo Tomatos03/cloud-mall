@@ -5,8 +5,8 @@ import com.onlineshop.framework.models.favorite.dto.FavoriteStatusDTO;
 import com.onlineshop.framework.models.favorite.Favorite;
 import com.onlineshop.framework.models.favorite.IFavoriteService;
 import com.onlineshop.framework.utils.context.UserContextHolder;
-import com.onlineshop.framework.models.goods.IGoodsService;
-import com.onlineshop.framework.models.goods.Goods;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.Goods;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

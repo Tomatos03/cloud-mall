@@ -13,7 +13,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum RoueRecordRawType {
     LAYOUT("layout"),
-    VIEW("view");
+    VIEW("view"), // 叶子节点视图
+    PARENT_VIEW("parentView"); // 非叶子节点视图
 
     private final String code;
 }

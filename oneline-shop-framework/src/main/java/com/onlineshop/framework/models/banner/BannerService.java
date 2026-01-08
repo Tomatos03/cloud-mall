@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.models.banner.vo.BannerVO;
 import com.onlineshop.framework.models.banner.vo.HomeBannerVO;
-import com.onlineshop.framework.models.goods.Goods;
-import com.onlineshop.framework.models.goods.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.Goods;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

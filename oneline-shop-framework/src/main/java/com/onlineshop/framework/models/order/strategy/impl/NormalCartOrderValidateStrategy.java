@@ -7,7 +7,7 @@ import com.onlineshop.framework.enums.BizErrorCode;
 import com.onlineshop.framework.models.cart.CartType;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.cart.ICartService;
-import com.onlineshop.framework.models.goods.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.utils.context.UserContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

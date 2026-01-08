@@ -27,6 +27,16 @@ public enum BizErrorCode {
     // ==================== 商品分类相关错误码 (20xxx) ====================
     CATEGORY_BEYOND_MAX_LEVEL(20000, "分类层级超出最大限制"),
     GOODS_OR_SHOP_NOT_EXIST(20001, "商品或店铺不存在"),
+    GOODS_SAVE_FAILED(20002, "商品保存失败"),
+    SKU_SAVE_FAILED(20003, "SKU保存失败"),
+    SPEC_VALUE_INVALID(20004, "规格值无效"),
+    GOODS_ID_INVALID(20005, "商品ID无效"),
+    GOODS_UPDATE_FAILED(20006, "商品更新失败"),
+    SPEC_SAVE_FAILED(20007, "规格保存失败"),
+    SPU_DELETE_FAILED(20009, "删除商品SPU失败"),
+    SPEC_VALUE_SAVE_FAILED(20008, "规格值保存失败"),
+    SPEC_VALUE_DELETE_FAILED(20010, "规格值删除失败"),
+    SPEC_VALUE_CLEANUP_NOT_SUPPORTED(20011, "规格值清理功能不支持"),
 
     // ==================== 地址相关错误码 (30xxx) ====================
     ADDRESS_NOT_EXIST(30000, "地址不存在"),
@@ -105,7 +115,19 @@ public enum BizErrorCode {
     STORE_NOT_EXIST(500015, "店铺不存在"),
     MERCHANT_NO_SHOP(500016, "商家没有关联这个店铺"),
     INSUFFICIENT_PERMISSIONS(500017, "权限不足"),
-    INVALID_ROLE(500018, "无效的用户角色");
+    INVALID_ROLE(500018, "无效的用户角色"),
+
+    // ==================== 审核相关错误码 (90xxx) ====================
+    AUDIT_SUBMIT_PARAMS_INCOMPLETE(90000, "审核申请参数不完整"),
+    USER_NOT_LOGGED_IN_FOR_AUDIT_SUBMIT(90001, "用户未登录，无法提交审核申请"),
+    AUDIT_SUBMIT_FAILED(90002, "审核申请提交失败"),
+    AUDIT_DECISION_PARAMS_INCOMPLETE(90003, "审核决定参数不完整"),
+    AUDIT_LOG_NOT_EXISTS(90004, "审核记录不存在"),
+    AUDIT_ONLY_PENDING(90005, "只能审核待审核状态的记录"),
+    AUDITOR_NOT_LOGGED_IN(90006, "审核员未登录"),
+    AUDIT_ID_CANNOT_BE_NULL(90007, "审核记录ID不能为空"),
+    AUDIT_WITHDRAW_OWN_ONLY(90008, "只能撤回自己提交的审核申请"),
+    AUDIT_WITHDRAW_ONLY_PENDING(90009, "只能撤回待审核状态的审核申请");
 
     final int code;
     final String errorMessage;
