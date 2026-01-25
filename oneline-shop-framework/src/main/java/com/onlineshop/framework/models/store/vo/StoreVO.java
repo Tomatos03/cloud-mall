@@ -10,7 +10,7 @@ import java.io.Serializable;
  */
 @Data
 @Builder
-public class StoreItemVO implements Serializable {
+public class StoreVO implements Serializable {
     /**
      * 店铺唯一标识 ID
      */
@@ -24,7 +24,7 @@ public class StoreItemVO implements Serializable {
     /**
      * 店铺简介/描述
      */
-    private String info;
+    private String description;
 
     /**
      * 店铺头像 URL

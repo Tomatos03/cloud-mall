@@ -1,12 +1,13 @@
 package com.onlineshop.framework.models.order.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  *
@@ -19,13 +20,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class StoreOrderItemVO implements Serializable {
+    @JsonProperty("id")
+    private Long orderItemId;
     private Long goodsId;      // 商品ID
     private String goodsName;  // 商品名称快照
-    private String goodsImg;   // 商品图片快照
-    private Long goodsPrice;   // 下单时商品单价（单位：分）
-    private String goodsPriceText; // 下单时商品单价（单位：元，格式化字符串）
+    private String goodsMainImageUrl;
+    private String goodsPrice;   // 下单时商品单价（单位：分)
     private Integer quantity;     // 购买数量
-    private Long totalPrice;   // 明细小计（单位：分）
-    private String totalPriceText; // 明细小计（单位：元，格式化字符串）
-    private LocalDateTime createTime; // 创建时间
+    private String totalPrice;   // 明细小计（单位：分）
+    private Boolean commentStatus; // 是否已评价
+    private Map<String, String> selectedSpecs; // 购买时选择的规格，key: 规格名称，value: 规格值名称
 }

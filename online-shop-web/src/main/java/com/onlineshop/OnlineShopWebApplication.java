@@ -2,6 +2,7 @@ package com.onlineshop;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 
 /**
  *
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author : Tomatos
  * @date : 2025/12/18
  */
+@EnableCaching
 @SpringBootApplication
 public class OnlineShopWebApplication {
     public static void main(String[] args) {

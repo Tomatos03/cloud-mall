@@ -2,6 +2,7 @@ package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.comment.IGoodsCommentService;
+import com.onlineshop.framework.models.comment.dto.CommentQueryDTO;
 import com.onlineshop.framework.models.comment.dto.CreateCommentDTO;
 import com.onlineshop.framework.models.comment.vo.GoodsCommentVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,11 +42,8 @@ public class CommentWebController {
      * @param size    每页数量
      * @return 分页评论结果
      */
-    @GetMapping("/goods/{goodsId}")
-    public IPage<GoodsCommentVO> getCommentsByGoodsId(
-            @PathVariable Long goodsId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return goodsCommentService.getCommentsByGoodsId(goodsId, page, size);
+    @GetMapping
+    public IPage<GoodsCommentVO> pageQueryComment(CommentQueryDTO queryDTO) {
+        return goodsCommentService.pageGoodsComment(queryDTO);
     }
 }

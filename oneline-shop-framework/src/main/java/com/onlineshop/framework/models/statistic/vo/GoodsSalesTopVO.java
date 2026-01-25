@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.statistic.vo;
 
+import com.onlineshop.framework.utils.image.Image;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,11 +29,7 @@ public class GoodsSalesTopVO {
      */
     private String goodsName;
 
-    /**
-     * 商品封面图
-     */
-    private String goodsCover;
-
+    private Image mainImage;
     /**
      * 销量（核心排序指标）
      */
@@ -42,9 +39,4 @@ public class GoodsSalesTopVO {
      * 销售额（辅助展示，不参与主排序）
      */
     private String saleAmount;
-
-//    /**
-//     * （可选）销量环比 / 同比，例如：12.3%
-//     */
-//    private BigDecimal growthRate;
 }

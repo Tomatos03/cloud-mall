@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.statistic;
 
+import com.onlineshop.framework.utils.image.Image;
 import com.onlineshop.framework.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.category.Category;
@@ -8,14 +9,15 @@ import com.onlineshop.framework.models.favorite.Favorite;
 import com.onlineshop.framework.models.favorite.IFavoriteService;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
-import com.onlineshop.framework.models.order.service.IOrderItemService;
-import com.onlineshop.framework.models.order.service.IOrderService;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.entity.OrderItem;
 import com.onlineshop.framework.models.order.enums.OrderStatus;
 import com.onlineshop.framework.models.order.enums.OrderType;
+import com.onlineshop.framework.models.order.service.IOrderItemService;
+import com.onlineshop.framework.models.order.service.IOrderService;
 import com.onlineshop.framework.models.statistic.vo.*;
 import com.onlineshop.framework.models.user.UserRole;
+import com.onlineshop.framework.utils.image.ImageUtil;
 import com.onlineshop.framework.utils.context.UserContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,11 +147,13 @@ public class StatisticService implements IStatisticService {
                 continue;
             }
 
+
+            List<Image> displayImages = ImageUtil.createImageList(goods.getDisplayImages(), ",");
             GoodsSalesTopVO rankVO = rankMap.computeIfAbsent(item.getGoodsId(), goodsId ->
                     GoodsSalesTopVO.builder()
                                    .goodsId(goodsId)
                                    .goodsName(goods.getName())
-                                   .goodsCover(goods.getImg())
+                                   .mainImage(displayImages.get(0))
                                    .saleCount(0L)
                                    .saleAmount("0")
                                    .build());
@@ -328,69 +332,6 @@ public class StatisticService implements IStatisticService {
         return queryDashboardOverviewInternal(storeId);
     }
 
-    @Override
-    public List<GoodsSalesTopVO> queryGoodsSalesRankAdmin(Integer top) {
-        int topNum = top == null || top <= 0 ? 10 : top;
-        log.info("管理员查询商品销售排行，top: {}", topNum);
-        // 管理员查询全平台销售排行（不限制店铺）
-        List<OrderItem> orderItems = fetchFinishedOrderItems();
-        if (orderItems.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Map<Long, GoodsSalesTopVO> rankMap = calculateGoodsSalesRank(orderItems, null);
-        List<GoodsSalesTopVO> rankList = sortAndRankList(rankMap.values(), topNum,
-                                                         this::compareSalesTop);
-
-        log.info("管理员获取商品销售排行 {} 条", rankList.size());
-        return rankList;
-    }
-
-    @Override
-    public List<FavoriteGoodsTopVO> queryGoodsFavoriteRankAdmin(Integer top) {
-        int topNum = top == null || top <= 0 ? 10 : top;
-        log.info("管理员查询商品收藏排行，top: {}", topNum);
-        // 管理员查询全平台收藏排行（不限制店铺）
-        List<Goods> goods = fetchShelfGoods(null);
-        if (goods.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Map<Long, Long> favoriteCountMap = calculateFavoriteCount(goods);
-        Map<Long, Long> favoriteLast7DaysMap = calculateFavoriteLast7Days(goods);
-        List<FavoriteGoodsTopVO> rankList = buildFavoriteGoodsTopList(goods, favoriteCountMap,
-                                                                      favoriteLast7DaysMap);
-        List<FavoriteGoodsTopVO> finalList = sortAndRankList(rankList, topNum,
-                                                             (a, b) -> Integer.compare(
-                                                                     b.getFavoriteTotal(),
-                                                                     a.getFavoriteTotal()));
-        addRanking(finalList);
-
-        log.info("管理员获取商品收藏排行 {} 条", finalList.size());
-        return finalList;
-    }
-
-
-    // ========== 营收趋势方法 ==========
-
-    @Override
-    public List<RevenueVO> queryRevenueByDaysTrendAdmin(int days) {
-        log.info("管理员查询{}天的营收趋势", days);
-        return queryRevenueByDaysTrendInternal(null, days);
-    }
-
-    @Override
-    public List<CategorySalesRatioVO> queryCategorySalesRatioAdmin() {
-        log.info("管理员查询所有店铺的类目销售占比");
-        return queryCategorySalesRatio(null);
-    }
-
-    @Override
-    public DashboardOverviewVO queryDashboardOverviewAdmin() {
-        log.info("管理员查询平台仪表板概览信息");
-        return queryDashboardOverviewInternal(null);
-    }
-
     /**
      * 内部方法：查询仪表板概览信息
      * 包含：今日营收、今日订单数、今日新增用户数、累计营收
@@ -455,6 +396,130 @@ public class StatisticService implements IStatisticService {
                                   .build();
     }
 
+    @Override
+    public FavoriteOverviewVO queryFavoriteOverviewMerchant() {
+        log.info("商家查询收藏概览信息");
+        Long storeId = getCurrentStoreId();
+        return queryFavoriteOverviewInternal(storeId);
+    }
+
+
+    // ========== 营收趋势方法 ==========
+
+    @Override
+    public List<GoodsSalesTopVO> queryGoodsSalesRankAdmin(Integer top) {
+        int topNum = top == null || top <= 0 ? 10 : top;
+        log.info("管理员查询商品销售排行，top: {}", topNum);
+        // 管理员查询全平台销售排行（不限制店铺）
+        List<OrderItem> orderItems = fetchFinishedOrderItems();
+        if (orderItems.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, GoodsSalesTopVO> rankMap = calculateGoodsSalesRank(orderItems, null);
+        List<GoodsSalesTopVO> rankList = sortAndRankList(rankMap.values(), topNum,
+                                                         this::compareSalesTop);
+
+        log.info("管理员获取商品销售排行 {} 条", rankList.size());
+        return rankList;
+    }
+
+    @Override
+    public List<FavoriteGoodsTopVO> queryGoodsFavoriteRankAdmin(Integer top) {
+        int topNum = top == null || top <= 0 ? 10 : top;
+        log.info("管理员查询商品收藏排行，top: {}", topNum);
+        // 管理员查询全平台收藏排行（不限制店铺）
+        List<Goods> goods = fetchShelfGoods(null);
+        if (goods.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, Long> favoriteCountMap = calculateFavoriteCount(goods);
+        Map<Long, Long> favoriteLast7DaysMap = calculateFavoriteLast7Days(goods);
+        List<FavoriteGoodsTopVO> rankList = buildFavoriteGoodsTopList(goods, favoriteCountMap,
+                                                                      favoriteLast7DaysMap);
+        List<FavoriteGoodsTopVO> finalList = sortAndRankList(rankList, topNum,
+                                                             (a, b) -> Integer.compare(
+                                                                     b.getFavoriteTotal(),
+                                                                     a.getFavoriteTotal()));
+        addRanking(finalList);
+
+        log.info("管理员获取商品收藏排行 {} 条", finalList.size());
+        return finalList;
+    }
+
+    @Override
+    public List<RevenueVO> queryRevenueByDaysTrendAdmin(int days) {
+        log.info("管理员查询{}天的营收趋势", days);
+        return queryRevenueByDaysTrendInternal(null, days);
+    }
+
+    @Override
+    public List<CategorySalesRatioVO> queryCategorySalesRatioAdmin() {
+        log.info("管理员查询所有店铺的类目销售占比");
+        return queryCategorySalesRatio(null);
+    }
+
+    @Override
+    public DashboardOverviewVO queryDashboardOverviewAdmin() {
+        log.info("管理员查询平台仪表板概览信息");
+        return queryDashboardOverviewInternal(null);
+    }
+
+    @Override
+    public FavoriteOverviewVO queryFavoriteOverviewAdmin() {
+        log.info("管理员查询收藏概览信息");
+        return queryFavoriteOverviewInternal(null);
+    }
+
+    /**
+     * 内部方法：查询收藏概览信息
+     * 包含：今日新增收藏、今日取消收藏、今日净增加、累计收藏总数
+     *
+     * @param storeId 店铺ID，null表示所有店铺
+     * @return 收藏概览信息
+     */
+    private FavoriteOverviewVO queryFavoriteOverviewInternal(Long storeId) {
+        // 获取今天的开始和结束时间
+        LocalDate today = LocalDate.now();
+        LocalDateTime todayStart = today.atStartOfDay();
+        LocalDateTime todayEnd = today.atTime(23, 59, 59);
+
+        // 查询今日新增收藏
+        List<Favorite> todayFavorites = favoriteService.lambdaQuery()
+                                                       .ge(Favorite::getAddedAt, todayStart)
+                                                       .le(Favorite::getAddedAt, todayEnd)
+                                                       .apply(storeId != null, "store_id = {0}",
+                                                              storeId)
+                                                       .list();
+
+        int todayFavoriteAdd = todayFavorites.size();
+
+        // 注：数据库中Favorite表只记录添加，没有记录取消
+        // 取消收藏通常是物理删除，无法统计历史取消数据
+        // 暂时设为0，实际应用中可考虑添加删除记录表
+        int todayFavoriteCancel = 0;
+
+        // 今日净增加 = 新增 - 取消
+        int todayFavoriteNetIncrease = todayFavoriteAdd - todayFavoriteCancel;
+
+        // 查询累计收藏总数
+        long totalFavoriteCount = favoriteService.lambdaQuery()
+                                                 .apply(storeId != null, "store_id = {0}", storeId)
+                                                 .count();
+
+        log.info("收藏概览 - 今日新增收藏: {}, 今日取消收藏: {}, 今日净增加: {}, 累计收藏总数: {}",
+                 todayFavoriteAdd, todayFavoriteCancel, todayFavoriteNetIncrease,
+                 totalFavoriteCount);
+
+        return FavoriteOverviewVO.builder()
+                                 .todayFavoriteAdd(todayFavoriteAdd)
+                                 .todayFavoriteCancel(todayFavoriteCancel)
+                                 .todayFavoriteNetIncrease(todayFavoriteNetIncrease)
+                                 .totalFavoriteCount((int) totalFavoriteCount)
+                                 .build();
+    }
+
     /**
      * 获取上架的商品列表
      *
@@ -467,6 +532,8 @@ public class StatisticService implements IStatisticService {
                            .eq(Goods::getStatus, true)
                            .list();
     }
+
+    // ========== 类目销售占比方法 ==========
 
     /**
      * 计算商品收藏数
@@ -521,14 +588,17 @@ public class StatisticService implements IStatisticService {
      * @param favoriteLast7DaysMap 最近7天收藏数映射
      * @return 收藏排行VO列表
      */
-    private List<FavoriteGoodsTopVO> buildFavoriteGoodsTopList(List<Goods> goods,
-                                                               Map<Long, Long> favoriteCountMap,
-                                                               Map<Long, Long> favoriteLast7DaysMap) {
+    private List<FavoriteGoodsTopVO> buildFavoriteGoodsTopList(
+            List<Goods> goods,
+            Map<Long, Long> favoriteCountMap,
+            Map<Long, Long> favoriteLast7DaysMap
+    ) {
         return goods.stream()
                     .map(g -> FavoriteGoodsTopVO.builder()
                                                 .goodsId(g.getId())
                                                 .goodsName(g.getName())
-                                                .goodsImage(g.getImg())
+                                                .goodsMainImage(ImageUtil.createImageList(g.getDisplayImages())
+                                                                         .get(0))
                                                 .favoriteTotal(
                                                         favoriteCountMap.getOrDefault(g.getId(), 0L)
                                                                         .intValue())
@@ -539,8 +609,6 @@ public class StatisticService implements IStatisticService {
                                                 .build())
                     .collect(Collectors.toList());
     }
-
-    // ========== 类目销售占比方法 ==========
 
     /**
      * 获取分类的顶级分类ID
@@ -683,64 +751,5 @@ public class StatisticService implements IStatisticService {
                             .withMinute(0)
                             .withSecond(0)
                             .withNano(0);
-    }
-
-    @Override
-    public FavoriteOverviewVO queryFavoriteOverviewMerchant() {
-        log.info("商家查询收藏概览信息");
-        Long storeId = getCurrentStoreId();
-        return queryFavoriteOverviewInternal(storeId);
-    }
-
-    @Override
-    public FavoriteOverviewVO queryFavoriteOverviewAdmin() {
-        log.info("管理员查询收藏概览信息");
-        return queryFavoriteOverviewInternal(null);
-    }
-
-    /**
-     * 内部方法：查询收藏概览信息
-     * 包含：今日新增收藏、今日取消收藏、今日净增加、累计收藏总数
-     *
-     * @param storeId 店铺ID，null表示所有店铺
-     * @return 收藏概览信息
-     */
-    private FavoriteOverviewVO queryFavoriteOverviewInternal(Long storeId) {
-        // 获取今天的开始和结束时间
-        LocalDate today = LocalDate.now();
-        LocalDateTime todayStart = today.atStartOfDay();
-        LocalDateTime todayEnd = today.atTime(23, 59, 59);
-
-        // 查询今日新增收藏
-        List<Favorite> todayFavorites = favoriteService.lambdaQuery()
-                                                       .ge(Favorite::getAddedAt, todayStart)
-                                                       .le(Favorite::getAddedAt, todayEnd)
-                                                       .apply(storeId != null, "store_id = {0}", storeId)
-                                                       .list();
-
-        int todayFavoriteAdd = todayFavorites.size();
-
-        // 注：数据库中Favorite表只记录添加，没有记录取消
-        // 取消收藏通常是物理删除，无法统计历史取消数据
-        // 暂时设为0，实际应用中可考虑添加删除记录表
-        int todayFavoriteCancel = 0;
-
-        // 今日净增加 = 新增 - 取消
-        int todayFavoriteNetIncrease = todayFavoriteAdd - todayFavoriteCancel;
-
-        // 查询累计收藏总数
-        long totalFavoriteCount = favoriteService.lambdaQuery()
-                                                 .apply(storeId != null, "store_id = {0}", storeId)
-                                                 .count();
-
-        log.info("收藏概览 - 今日新增收藏: {}, 今日取消收藏: {}, 今日净增加: {}, 累计收藏总数: {}", 
-                 todayFavoriteAdd, todayFavoriteCancel, todayFavoriteNetIncrease, totalFavoriteCount);
-
-        return FavoriteOverviewVO.builder()
-                                .todayFavoriteAdd(todayFavoriteAdd)
-                                .todayFavoriteCancel(todayFavoriteCancel)
-                                .todayFavoriteNetIncrease(todayFavoriteNetIncrease)
-                                .totalFavoriteCount((int) totalFavoriteCount)
-                                .build();
     }
 }

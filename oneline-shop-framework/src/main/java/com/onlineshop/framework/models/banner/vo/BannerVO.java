@@ -11,9 +11,7 @@ import lombok.Data;
 @Data
 public class BannerVO {
     private Long id;
-    private String title;
     private String imageUrl;
-    private String info;
     private Long goodsId;
     private String goodsName;
     private Boolean isRecommend;

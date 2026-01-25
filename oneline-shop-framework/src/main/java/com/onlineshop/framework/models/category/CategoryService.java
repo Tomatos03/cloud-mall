@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class CategoryService extends ServiceImpl<CategoryMapper, Category> imple
     @Autowired
     private CategoryMapper categoryMapper;
 
+    @CacheEvict(value = "category", allEntries = true)
     @Override
     public void addCategory(Category dto) {
         checkAndFill(dto);
@@ -35,14 +38,16 @@ public class CategoryService extends ServiceImpl<CategoryMapper, Category> imple
         syncParentStatusIfChildrenHasEnable(dto);
     }
 
-    @Override
+    @CacheEvict(value = "category", allEntries = true)
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void updateCategory(Category dto) {
         categoryMapper.updateById(dto);
         syncParentStatusIfChildrenHasEnable(dto);
         syncChildrenStatus(dto);
     }
 
+    @CacheEvict(value = "category", allEntries = true)
     @Override
     public void deleteCategory(Long categoryId) {
         removeById(categoryId);
@@ -52,6 +57,7 @@ public class CategoryService extends ServiceImpl<CategoryMapper, Category> imple
         }
     }
 
+    @CacheEvict(value = "category", allEntries = true)
     @Override
     public void updateCategoryStatus(Long id, Boolean status) {
         Category category = new Category();
@@ -60,16 +66,39 @@ public class CategoryService extends ServiceImpl<CategoryMapper, Category> imple
         updateById(category);
     }
 
+    @Cacheable(value = "category", key = "'tree'")
+    @Override
+    public List<CategoryVO> getCategoryTree() {
+        List<Category> categoryList = getCategoryList();
+        return buildChildrenTree(categoryList, TREE_ROOT);
+    }
+
+    @Cacheable(value = "category", key = "'list'")
     @Override
     public List<Category> getCategoryList() {
-        QueryWrapper<Category> queryWrapper = new QueryWrapper<Category>().eq("status", 1);
-        return categoryMapper.selectList(queryWrapper);
+        return lambdaQuery().eq(Category::getStatus, true)
+                            .list();
+    }
+
+    @Cacheable(value = "category", key = "'allTree'")
+    @Override
+    public List<CategoryVO> getAllCategoryTree() {
+        return buildChildrenTree(list(), TREE_ROOT);
     }
 
     @Override
-    public List<CategoryVO> getCategoryTree() {
-        List<Category> categories = list();
-        return buildChildrenTree(categories, TREE_ROOT);
+    public String getCategoryIdPath(Long categoryId, Long parentId) {
+        if (parentId == null || parentId.equals(0L)) {
+            return String.valueOf(categoryId);
+        } else {
+            Category parentCategory = getById(parentId);
+            if (parentCategory == null) {
+                throw new BusinessException(BizErrorCode.CATEGORY_NOT_EXIST);
+            }
+
+            String parentPath = getCategoryIdPath(parentId, parentCategory.getParentId());
+            return parentPath + "/" + categoryId;
+        }
     }
 
     private List<CategoryVO> buildChildrenTree(List<Category> categories, Long parent) {

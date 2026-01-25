@@ -2,6 +2,7 @@ package com.onlineshop.framework.models.banner;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.onlineshop.framework.models.banner.dto.BannerDTO;
 import com.onlineshop.framework.models.banner.vo.BannerVO;
 import com.onlineshop.framework.models.banner.vo.HomeBannerVO;
 
@@ -14,6 +15,15 @@ import java.util.List;
  * @date 2025/12/17
  */
 public interface IBannerService extends IService<Banner> {
+    /**
+     * 创建或更新轮播图
+     * 保存前会验证关联商品是否存在
+     *
+     * @param dto 轮播图创建/更新DTO
+     * @return 是否成功
+     */
+    boolean saveOrUpdateBanner(BannerDTO dto);
+
     boolean toggleRecommend(Long id, Boolean status);
 
     List<HomeBannerVO> getRecommendBanner();
@@ -23,9 +33,8 @@ public interface IBannerService extends IService<Banner> {
      *
      * @param pageNum  页码
      * @param pageSize 每页大小
-     * @param keyword  关键词
-     * @param status
+     * @param status   推荐状态
      * @return BannerVO分页结果
      */
-    IPage<BannerVO> pageBannerVO(int pageNum, int pageSize, String keyword, Boolean status);
+    IPage<BannerVO> pageBannerVO(int pageNum, int pageSize, Boolean status);
 }

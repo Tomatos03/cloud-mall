@@ -2,64 +2,53 @@ package com.onlineshop.framework.models.store;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.models.goods.spu.Goods;
-import com.onlineshop.framework.models.goods.spu.GoodsMapper;
-import com.onlineshop.framework.models.store.vo.StoreItemVO;
-import com.onlineshop.framework.models.store.vo.StoreProductItemVO;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
+import com.onlineshop.framework.models.store.dto.StoreGoodsQueryDTO;
+import com.onlineshop.framework.models.store.vo.StoreVO;
 import com.onlineshop.framework.utils.context.UserContextHolder;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * 店铺相关业务 Service 实现
  */
 @Service
+@RequiredArgsConstructor
 public class StoreService extends ServiceImpl<StoreMapper, Store> implements IStoreService {
+    private final IGoodsService goodsService;
 
-    @Autowired
-    private StoreMapper storeMapper;
-
-    @Autowired
-    private GoodsMapper goodsMapper;
 
     @Override
-    public StoreItemVO getStoreInfo(Long storeId) {
-        Store store = storeMapper.selectById(storeId);
-        return store == null ? null : buildStoreItemVO(store);
+    public StoreVO getStoreInfoById(Long storeId) {
+        Store store = getById(storeId);
+        return buildStoreItemVO(store);
     }
 
-
     @Override
-    public List<StoreProductItemVO> getStoreProducts(Long storeId) {
+    public IPage<GoodsCardVO> pageStoreGoods(StoreGoodsQueryDTO queryDTO) {
+        // 构建查询条件
         QueryWrapper<Goods> wrapper = new QueryWrapper<>();
-        wrapper.eq("store_id", storeId);
-        List<Goods> goodsList = goodsMapper.selectList(wrapper);
-        return goodsList.stream()
-                        .map(goods -> StoreProductItemVO.builder()
-                                                        .id(String.valueOf(goods.getId()))
-                                                        .title(goods.getName())
-                                                        .desc(goods.getInfo())
-                                                        .price(goods.getPrice())
-                                                        .img(goods.getImg())
-                                                        .sale(goods.getSales() == null ? 0 :
-                                                                      goods.getSales()
-                                                                                                  .intValue())
-                                                        .build()
-                        )
-                        .collect(Collectors.toList());
+        wrapper.eq("store_id", queryDTO.getStoreId())
+               .eq("status", true);
+
+        Page<Goods> page = new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize());
+
+        return goodsService.page(page, wrapper)
+                           .convert(GoodsCardVO::convertGoodsCardVO);
     }
 
     @Override
-    public StoreItemVO getMyStore(Long userId) {
-        QueryWrapper<Store> wrapper = new QueryWrapper<>();
-        wrapper.eq("user_id", userId);
-        Store store = storeMapper.selectOne(wrapper);
-        return store == null ? null : buildStoreItemVO(store);
+    public StoreVO getMyStoreInfo() {
+        Store store = lambdaQuery().eq(Store::getUserId, UserContextHolder.getUserId())
+                                   .one();
+        return buildStoreItemVO(store);
     }
 
     @Override
@@ -83,21 +72,22 @@ public class StoreService extends ServiceImpl<StoreMapper, Store> implements ISt
             updateWrapper.set("banner", updateDTO.getBanner());
         }
 
-        int result = storeMapper.update(null, updateWrapper);
-        return result > 0;
+        return update(updateWrapper);
     }
 
     /**
      * 构建 StoreItemVO
      */
-    private StoreItemVO buildStoreItemVO(Store store) {
-        return StoreItemVO.builder()
-                          .id(String.valueOf(store.getId()))
-                          .name(store.getName())
-                          .info(store.getInfo())
-                          .avatarUrl(store.getAvatarUrl())
-                          .banner(store.getBanner())
-                          .build();
+    private StoreVO buildStoreItemVO(Store store) {
+        Objects.requireNonNull(store);
+
+        return StoreVO.builder()
+                      .id(String.valueOf(store.getId()))
+                      .name(store.getName())
+                      .description(store.getInfo())
+                      .avatarUrl(store.getAvatarUrl())
+                      .banner(store.getBanner())
+                      .build();
     }
 
     public Store queryUserStore() {

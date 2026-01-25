@@ -3,6 +3,8 @@ package com.onlineshop.framework.models.unit;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * 单位服务接口
  *
@@ -27,4 +29,12 @@ public interface IUnitService extends IService<Unit> {
      * @return 是否成功
      */
     boolean updateStatus(Long id, Integer status);
+
+    List<Unit> getAllUnit();
+
+    void addUnit(Unit unit);
+
+    void updateUnit(Unit unit);
+
+    void batchRemoveUnit(List<Long> ids);
 }

@@ -1,10 +1,10 @@
 package com.onlineshop.framework.models.store;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.onlineshop.framework.models.store.vo.StoreItemVO;
-import com.onlineshop.framework.models.store.vo.StoreProductItemVO;
-
-import java.util.List;
+import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
+import com.onlineshop.framework.models.store.dto.StoreGoodsQueryDTO;
+import com.onlineshop.framework.models.store.vo.StoreVO;
 
 /**
  * 店铺相关业务 Service
@@ -16,21 +16,21 @@ public interface IStoreService extends IService<Store> {
      * @param storeId 店铺ID
      * @return 店铺基本信息VO
      */
-    StoreItemVO getStoreInfo(Long storeId);
+    StoreVO getStoreInfoById(Long storeId);
 
     /**
-     * 获取店铺商品列表
-     * @param storeId 店铺ID
-     * @return 商品列表
+     * 分页查询店铺商品列表
+     * @param queryDTO 查询条件，包含店铺ID和分页参数
+     * @return 商品卡片分页结果
      */
-    List<StoreProductItemVO> getStoreProducts(Long storeId);
+    IPage<GoodsCardVO> pageStoreGoods(StoreGoodsQueryDTO queryDTO);
 
     /**
      * 根据用户ID获取店铺信息
      * @param userId 用户ID
      * @return 店铺信息
      */
-    StoreItemVO getMyStore(Long userId);
+    StoreVO getMyStoreInfo();
 
     /**
      * 更新店铺信息（部分更新）

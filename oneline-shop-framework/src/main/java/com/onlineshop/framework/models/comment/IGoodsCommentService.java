@@ -2,6 +2,7 @@ package com.onlineshop.framework.models.comment;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.onlineshop.framework.models.comment.dto.CommentQueryDTO;
 import com.onlineshop.framework.models.comment.dto.CreateCommentDTO;
 import com.onlineshop.framework.models.comment.dto.ReplyCommentDTO;
 import com.onlineshop.framework.models.comment.vo.GoodsCommentCardVO;
@@ -27,7 +28,7 @@ public interface IGoodsCommentService extends IService<GoodsComment> {
      * @param size     每页数量
      * @return 分页结果
      */
-    IPage<GoodsCommentVO> getCommentsByGoodsId(Long goodsId, int page, int size);
+    IPage<GoodsCommentVO> pageGoodsComment(CommentQueryDTO queryDTO);
 
     /**
      * 管理员分页查询所有评论（卡片视图），支持按是否有回复进行过滤

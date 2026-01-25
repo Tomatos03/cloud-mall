@@ -3,6 +3,7 @@ package com.onlineshop.framework.models.banner;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -13,12 +14,12 @@ import lombok.Data;
  */
 @Data
 @TableName("banner")
+@Builder
 public class Banner {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private String title;
     private String imageUrl;
-    private String info;
     private Long goodsId;
+    private String goodsName;
     private Boolean isRecommend;
 }

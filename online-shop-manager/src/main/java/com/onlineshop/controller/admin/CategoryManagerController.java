@@ -21,6 +21,11 @@ public class CategoryManagerController {
     @Autowired
     private ICategoryService categoryService;
 
+    @GetMapping("/allTree")
+    public List<CategoryVO> getAllCategoryTree() {
+        return categoryService.getAllCategoryTree();
+    }
+
     /**
      * 获取分类树/列表
      *

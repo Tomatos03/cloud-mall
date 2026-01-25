@@ -12,6 +12,8 @@ import com.onlineshop.framework.models.address.IAddressService;
 import com.onlineshop.framework.models.cart.CartType;
 import com.onlineshop.framework.models.cart.ICartService;
 import com.onlineshop.framework.models.cart.dto.CartCacheItemDTO;
+import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.order.dto.*;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.entity.OrderItem;
@@ -32,14 +34,14 @@ import com.onlineshop.framework.models.order.wrapper.OrderQueryWrapper;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.Store;
 import com.onlineshop.framework.models.user.UserRole;
-import com.onlineshop.framework.utils.MoneyUtil;
 import com.onlineshop.framework.utils.OrderNoUtil;
 import com.onlineshop.framework.utils.context.UserContextHolder;
+import com.onlineshop.framework.utils.money.Money;
+import com.onlineshop.framework.utils.money.MoneyUtil;
 import io.micrometer.common.util.StringUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,8 +66,8 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     private final IAddressService addressService;
     private final IStoreService storeService;
     private final ICartService cartService;
-    private final StringRedisTemplate stringRedisTemplate;
-
+    private final IGoodsService goodsService;
+    private final IGoodsSkuService goodsSkuService;
 
     /**
      * 用户端：分页查询聚合订单（查询父订单和普通订单，并聚合子订单和商品明细）
@@ -77,7 +79,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     public IPage<OrderAggregateVO> pageQueryForUser(OrderQueryDTO queryDTO) {
         UserRole role = UserRole.of(UserContextHolder.getUserRoleCode());
 
-        Page<Order> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<Order> page = new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize());
         LambdaQueryWrapper<Order> wrapper = OrderQueryWrapper.build(role, queryDTO, null);
 
         IPage<Order> orderPage = page(page, wrapper);
@@ -164,15 +166,25 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     }
 
     private StoreOrderItemVO buildStoreOrderItemVO(OrderItem item) {
+        // 解析SKU规格快照（格式：颜色=黑色;尺码=L）
+        Map<String, String> selectedSpecs = parseSkuSpecs(item.getSkuSpecs());
+
         return StoreOrderItemVO.builder()
+                               .orderItemId(item.getId())
                                .goodsId(item.getGoodsId())
                                .goodsName(item.getGoodsName())
-                               .goodsImg(item.getGoodsImg())
-                               .goodsPrice(item.getGoodsPrice())
-                               .goodsPriceText(MoneyUtil.fenToYuan(item.getGoodsPrice()))
+                               .goodsMainImageUrl(item.getGoodsMainImageUrl())
+                               .goodsPrice(
+                                       Money.ofCents(item.getGoodsPrice())
+                                            .toYuanString()
+                               )
                                .quantity(item.getQuantity())
-                               .totalPrice(item.getTotalPrice())
-                               .totalPriceText(MoneyUtil.fenToYuan(item.getTotalPrice()))
+                               .totalPrice(
+                                       Money.ofCents(item.getTotalPrice())
+                                            .toYuanString()
+                               )
+                               .commentStatus(item.getCommentStatus())
+                               .selectedSpecs(selectedSpecs)
                                .build();
     }
 
@@ -188,39 +200,58 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
             Order order,
             String storeName
     ) {
-        Long totalPrice = calculateOrderTotalPrice(items);
-        Long count = calculateOrderGoodsTotalNum(items);
         return StoreOrderVO.builder()
                            .orderNo(order.getNo())
                            .storeId(order.getStoreId())
                            .storeName(storeName)
                            .status(order.getStatus())
                            .items(items)
-                           .totalPrice(totalPrice)
-                           .totalPriceText(MoneyUtil.fenToYuan(totalPrice))
-                           .count(count)
+                           .totalPrice(calculateOrderTotalPrice(items))
+                           .count(calculateOrderGoodsTotalNum(items))
                            .build();
     }
 
     private OrderAggregateVO buildOrderAggregateVO(Order topOrder, List<StoreOrderVO> storeOrders) {
-        Long totalPrice = calculateAggregateOrderTotalPrice(storeOrders);
-        Long totalCount = calculateAggregateOrderGoodsTotalNum(storeOrders);
-
         return OrderAggregateVO.builder()
                                .orderNo(topOrder.getNo())
                                .status(topOrder.getStatus())
                                .createTime(topOrder.getCreateTime())
                                .storeOrders(storeOrders)
-                               .totalPrice(totalPrice)
-                               .totalPriceText(MoneyUtil.fenToYuan(totalPrice))
-                               .count(totalCount)
+                               .totalPrice(calculateAggregateOrderTotalPrice(storeOrders))
+                               .count(calculateAggregateOrderGoodsTotalNum(storeOrders))
                                .build();
     }
 
-    private Long calculateOrderTotalPrice(List<StoreOrderItemVO> items) {
-        return items.stream()
-                    .mapToLong(StoreOrderItemVO::getTotalPrice)
-                    .sum();
+    /**
+     * 解析SKU规格快照字符串
+     * 格式：颜色=黑色;尺码=L
+     *
+     * @param skuSpecs SKU规格快照字符串
+     * @return 规格Map，key: 规格名称，value: 规格值名称
+     */
+    private Map<String, String> parseSkuSpecs(String skuSpecs) {
+        if (skuSpecs == null || skuSpecs.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> specMap = new java.util.LinkedHashMap<>();
+        String[] specPairs = skuSpecs.split(";");
+
+        for (String pair : specPairs) {
+            String[] keyValue = pair.split("=");
+            if (keyValue.length == 2) {
+                specMap.put(keyValue[0].trim(), keyValue[1].trim());
+            }
+        }
+        return specMap;
+    }
+
+    private String calculateOrderTotalPrice(List<StoreOrderItemVO> items) {
+        List<Money> monies = items.stream()
+                                  .map(item -> Money.ofYuan(item.getTotalPrice()))
+                                  .toList();
+        return MoneyUtil.sum(monies)
+                        .toYuanString();
     }
 
     private Long calculateOrderGoodsTotalNum(List<StoreOrderItemVO> items) {
@@ -229,10 +260,12 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
                     .sum();
     }
 
-    private Long calculateAggregateOrderTotalPrice(List<StoreOrderVO> storeOrders) {
-        return storeOrders.stream()
-                          .mapToLong(StoreOrderVO::getTotalPrice)
-                          .sum();
+    private String calculateAggregateOrderTotalPrice(List<StoreOrderVO> storeOrders) {
+        List<Money> monies = storeOrders.stream()
+                                        .map(order -> Money.ofYuan(order.getTotalPrice()))
+                                        .toList();
+        return MoneyUtil.sum(monies)
+                        .toYuanString();
     }
 
     private Long calculateAggregateOrderGoodsTotalNum(List<StoreOrderVO> items) {
@@ -291,9 +324,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
             List<TradeShopItemDTO> tradeShopItemList = tradeItem.getTradeShopItemList();
             for (TradeShopItemDTO tradeShopItem : tradeShopItemList) {
                 CartCacheItemDTO cartCacheItemDTO = new CartCacheItemDTO();
-                cartCacheItemDTO.setGoodsId(tradeShopItem.getGoodsId());
-                cartCacheItemDTO.setStoreId(tradeItem.getStoreId());
-
+                cartCacheItemDTO.setSkuId(tradeShopItem.getSkuId());
                 itemList.add(cartCacheItemDTO);
             }
         }
@@ -448,13 +479,12 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         }
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean queryPaymentStatus(String orderNo) {
-        log.info("开始查询支付状态, orderNo: {}", orderNo);
-
         try {
             // 模拟支付查询延迟（休眠2秒）
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             log.error("支付状态查询被中断, orderNo: {}", orderNo, e);
             Thread.currentThread()
@@ -462,11 +492,104 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         }
 
         // 模拟支付成功，实际项目中应该调用真实的支付平台API
-        log.info("支付查询成功（模拟）, orderNo: {}, 支付状态: 成功", orderNo);
-
+        log.info("支付成功（模拟）, orderNo: {}, 支付状态: 成功", orderNo);
         Order order = queryOrderByOrderNo(orderNo);
         validateOrder(order);
         return updateOrderStatusByOrderNo(order, OrderStatus.PAID);
+    }
+
+    private Order queryOrderByOrderNo(String orderNo) {
+        return lambdaQuery().eq(Order::getNo, orderNo)
+                            .one();
+    }
+
+    private void validateOrder(Order order) {
+        if (order == null) {
+            throw new BusinessException(BizErrorCode.ORDER_NOT_EXIST);
+        }
+    }
+
+    private boolean updateOrderStatusByOrderNo(Order order, OrderStatus newStatus) {
+        OrderStatusMachine.validateTransition(OrderStatus.of(order.getStatus()), newStatus);
+
+        order.setStatus(newStatus.getCode());
+        syncOrderStatus(order);
+        return this.updateById(order);
+    }
+
+    private void syncOrderStatus(Order order) {
+        if (OrderType.PARENT == OrderType.of(order.getOrderType())) {
+            syncSubOrderStatus(order);
+        } else {
+            syncParentOrderStatus(order);
+        }
+    }
+
+    public List<OrderItem> getOrderItemsByOrderNo(String orderNo) {
+        Order order = lambdaQuery().eq(Order::getNo, orderNo)
+                                   .one();
+        List<Long> orderIds = Collections.singletonList(order.getId());;
+        if (OrderType.PARENT == OrderType.of(order.getOrderType())) {
+            orderIds = lambdaQuery().eq(Order::getParentId, order.getId())
+                                    .list()
+                                    .stream()
+                                    .map(Order::getId)
+                                    .toList();
+        }
+
+        return orderItemService.lambdaQuery()
+                               .in(OrderItem::getOrderId, orderIds)
+                               .list();
+    }
+
+    private void syncSubOrderStatus(Order order) {
+        List<Order> subOrders = querySubOrder(order);
+        for (Order subOrder : subOrders) {
+            subOrder.setStatus(order.getStatus());
+        }
+        this.updateBatchById(subOrders);
+    }
+
+    private void syncParentOrderStatus(Order order) {
+        Order parentOrder = queryParentOrder(order);
+        if (parentOrder == null) {
+            return;
+        }
+        List<Order> subOrder = querySubOrder(parentOrder);
+        boolean allSameStatus = subOrder.stream()
+                                        .allMatch(o -> o.getStatus()
+                                                        .equals(order.getStatus()));
+        parentOrder.setStatus(
+                allSameStatus ? order.getStatus() : ParentOrderStatus.PROCESSING.getCode());
+        this.updateById(parentOrder);
+    }
+
+    private Order queryParentOrder(Order order) {
+        return lambdaQuery().eq(Order::getId, order.getParentId())
+                            .one();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deductInventoryByOrderNo(String orderNo) {
+        List<OrderItem> orderItems = getOrderItemsByOrderNo(orderNo);
+        if (CollectionUtil.isEmpty(orderItems)) {
+            log.warn("订单明细为空，无需扣减库存, orderNo: {}", orderNo);
+            return;
+        }
+
+        // 遍历订单明细，对每个SKU扣减库存并增加销量
+        for (OrderItem orderItem : orderItems) {
+            Long skuId = orderItem.getSkuId();
+            Integer quantity = orderItem.getQuantity();
+
+            // 扣减SKU库存并增加销量
+            goodsSkuService.deductInventoryAndIncreaseSales(skuId, quantity);
+            // 增加商品销量
+            goodsService.increaseSales(orderItem.getGoodsId(), quantity);
+        }
+        log.info("订单库存扣减和销量更新完成, orderNo: {}, 明细数量: {}", orderNo,
+                 orderItems.size());
     }
 
     @Override
@@ -514,14 +637,6 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean shipOrder(String orderNo) {
-        Order order = queryUserOrderByOrderNo(orderNo);
-        validateOrder(order);
-        return updateOrderStatusByOrderNo(order, OrderStatus.SHIPPED);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
     public boolean cancelOrder(String orderNo) {
         Order order = queryUserOrderByOrderNo(orderNo);
         validateOrder(order);
@@ -532,7 +647,11 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     public boolean finishOrder(String orderNo) {
         Order order = queryUserOrderByOrderNo(orderNo);
         validateOrder(order);
-        return updateOrderStatusByOrderNo(order, OrderStatus.FINISHED);
+        if (updateOrderStatusByOrderNo(order, OrderStatus.FINISHED)) {
+            deductInventoryByOrderNo(orderNo);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -542,7 +661,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         LambdaQueryWrapper<Order> wrapper = OrderQueryWrapper.build(role, queryDTO, null);
 
         // 执行分页查询
-        Page<Order> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<Order> page = new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize());
         IPage<Order> orderPage = this.page(page, wrapper);
 
         // 转换为OrderVO
@@ -560,7 +679,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         wrapper.orderByDesc(Order::getCreateTime);
 
         // 执行分页查询
-        Page<Order> page = new Page<>(queryDTO.getPageNum(), queryDTO.getPageSize());
+        Page<Order> page = new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize());
         IPage<Order> orderPage = this.page(page, wrapper);
 
         return orderPage.convert(OrderVO::buildOrderVO);
@@ -624,63 +743,9 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         }
     }
 
-    private Order queryOrderByOrderNo(String orderNo) {
-        return lambdaQuery().eq(Order::getNo, orderNo)
-                            .one();
-    }
-
-    private boolean updateOrderStatusByOrderNo(Order order, OrderStatus newStatus) {
-        OrderStatusMachine.validateTransition(OrderStatus.of(order.getStatus()), newStatus);
-
-        order.setStatus(newStatus.getCode());
-        syncOrderStatus(order);
-        return this.updateById(order);
-    }
-
     private Order queryUserOrderByOrderNo(String orderNo) {
         return lambdaQuery().eq(Order::getNo, orderNo)
                             .eq(Order::getUserId, UserContextHolder.getUserId())
-                            .one();
-    }
-
-    private void validateOrder(Order order) {
-        if (order == null) {
-            throw new BusinessException(BizErrorCode.ORDER_NOT_EXIST);
-        }
-    }
-
-    private void syncOrderStatus(Order order) {
-        if (OrderType.PARENT == OrderType.of(order.getOrderType())) {
-            syncSubOrderStatus(order);
-        } else {
-            syncParentOrderStatus(order);
-        }
-    }
-
-    private void syncSubOrderStatus(Order order) {
-        List<Order> subOrders = querySubOrder(order);
-        for (Order subOrder : subOrders) {
-            subOrder.setStatus(order.getStatus());
-        }
-        this.updateBatchById(subOrders);
-    }
-
-    private void syncParentOrderStatus(Order order) {
-        Order parentOrder = queryParentOrder(order);
-        if (parentOrder == null) {
-            return;
-        }
-        List<Order> subOrder = querySubOrder(parentOrder);
-        boolean allSameStatus = subOrder.stream()
-                                        .allMatch(o -> o.getStatus()
-                                                        .equals(order.getStatus()));
-        parentOrder.setStatus(
-                allSameStatus ? order.getStatus() : ParentOrderStatus.PROCESSING.getCode());
-        this.updateById(parentOrder);
-    }
-
-    private Order queryParentOrder(Order order) {
-        return lambdaQuery().eq(Order::getId, order.getParentId())
                             .one();
     }
 }

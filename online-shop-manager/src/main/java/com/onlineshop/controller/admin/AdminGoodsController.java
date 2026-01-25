@@ -3,10 +3,9 @@ package com.onlineshop.controller.admin;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 管理员商品管理 Controller
@@ -18,14 +17,12 @@ public class AdminGoodsController {
     @Autowired
     private IGoodsService goodsService;
 
-    /**
-     * 查询所有商品（管理员权限）
-     * 
-     * @return 所有商品列表
-     */
     @GetMapping
-    public List<Goods> getAllGoods() {
-        return goodsService.list();
+    public IPage<SpuVO> getGoodsPage(
+            @RequestParam("page") int page,
+            @RequestParam("pageSize") int size
+    ) {
+        return goodsService.getGoodsPageAdmin(page, size);
     }
 
     /**
@@ -70,19 +67,6 @@ public class AdminGoodsController {
     @DeleteMapping("/{id}")
     public boolean deleteGoods(@PathVariable Long id) {
         return goodsService.removeById(id);
-    }
-
-    /**
-     * 分页查询所有商品（管理员权限）
-     * 
-     * @param page 页码，从1开始
-     * @param size 每页数量
-     * @return 分页结果
-     */
-    @GetMapping("/page")
-    public IPage<Goods> getGoodsPage(@RequestParam("page") int page,
-                                     @RequestParam("pageSize") int size) {
-        return goodsService.getGoodsPageAdmin(page, size);
     }
 
     /**

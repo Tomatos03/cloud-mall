@@ -14,11 +14,11 @@ import java.time.LocalDateTime;
  * 审核日志实体类
  */
 @Data
-@TableName("audit_log")
+@TableName("audit")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuditLog {
+public class Audit {
     /**
      * 审核记录ID
      */
@@ -36,9 +36,9 @@ public class AuditLog {
     private Long targetId;
 
     /**
-     * 审核状态: 0-未提交, 1-待审核, 2-通过, 3-拒绝
+     * 审核状态: 0-待审核, 1-通过, 2-拒绝, 3-已撤销
      */
-    private Byte status;
+    private Integer status;
 
     /**
      * 审核备注/拒绝原因

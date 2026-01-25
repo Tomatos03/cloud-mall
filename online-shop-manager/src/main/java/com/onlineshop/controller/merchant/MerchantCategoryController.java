@@ -1,5 +1,6 @@
 package com.onlineshop.controller.merchant;
 
+import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.CategoryVO;
 import com.onlineshop.framework.models.category.ICategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,5 +25,10 @@ public class MerchantCategoryController {
     @GetMapping("/tree")
     public List<CategoryVO> getCategoryTree() {
         return categoryService.getCategoryTree();
+    }
+
+    @GetMapping("/list")
+    public List<Category> getCategoryList() {
+        return categoryService.getCategoryList();
     }
 }

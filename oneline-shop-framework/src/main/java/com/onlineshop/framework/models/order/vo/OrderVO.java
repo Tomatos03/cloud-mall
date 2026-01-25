@@ -1,7 +1,7 @@
 package com.onlineshop.framework.models.order.vo;
 
 import com.onlineshop.framework.models.order.entity.Order;
-import com.onlineshop.framework.utils.MoneyUtil;
+import com.onlineshop.framework.utils.money.Money;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,12 +27,10 @@ public class OrderVO {
     private String orderType;
     private LocalDateTime createTime;
     private Integer goodsNum;
-    private Long totalPrice;
-    private String totalPriceText;
+    private String totalPrice;
     private String buyerName;
     private Integer regionCode;
     private String detailAddress;
-    private String zipCode;
     private String phone;
 
     /**
@@ -49,8 +47,7 @@ public class OrderVO {
                       .orderStatus(order.getStatus())
                       .createTime(order.getCreateTime())
                       .goodsNum(order.getQuantity())
-                      .totalPrice(order.getTotalPrice())
-                      .totalPriceText(MoneyUtil.fenToYuan(order.getTotalPrice()))
+                      .totalPrice(Money.ofCents(order.getTotalPrice()).toYuanString())
                       .buyerName(order.getUserName())
                       .phone(order.getPhone())
                       .detailAddress(order.getAddress())

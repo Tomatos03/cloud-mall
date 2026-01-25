@@ -22,4 +22,8 @@ public interface ICategoryService extends IService<Category> {
     List<CategoryVO> getCategoryTree();
 
     List<Category> getCategoryList();
+
+    List<CategoryVO> getAllCategoryTree();
+
+    String getCategoryIdPath(Long categoryId, Long parentId);
 }

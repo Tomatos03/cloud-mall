@@ -40,12 +40,11 @@ public class StoreOrderVO implements Serializable {
      */
     private String status;
 
+    private String totalPrice;   // 订单总价（单位：分）
+    private Long count; // 商品总数量
+
     /**
      * 订单商品明细列表
      */
     private List<StoreOrderItemVO> items;
-
-    private Long totalPrice;   // 订单总价（单位：分）
-    private String totalPriceText; // 订单总价（单位：元，格式化
-    private Long count; // 商品总数量
 }

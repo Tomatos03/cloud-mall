@@ -11,5 +11,4 @@ import lombok.Data;
 @Data
 public class AddFavoriteDTO {
     private Long goodsId;
-    private Long storeId;
 }

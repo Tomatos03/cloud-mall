@@ -1,9 +1,8 @@
 package com.onlineshop.framework.models.goods.spu.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.onlineshop.framework.common.entity.PageQueryDTO;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * 商品搜索 DTO
@@ -15,28 +14,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class GoodsSearchDTO {
-    
-    // ========== 分页参数 ==========
-    /**
-     * 页码（从1开始）
-     */
-    @Builder.Default
-    private Integer pageNum = 1;
-    
-    /**
-     * 每页数量
-     */
-    @Builder.Default
-    private Integer pageSize = 10;
-    
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+public class GoodsSearchDTO extends PageQueryDTO {
+
     // ========== 搜索条件 ==========
-    /**
-     * 搜索关键词
-     * 支持模糊搜索商品名称、简介、描述
-     */
-    private String keyword = "";
+    private String keyword;
     
     /**
      * 分类ID

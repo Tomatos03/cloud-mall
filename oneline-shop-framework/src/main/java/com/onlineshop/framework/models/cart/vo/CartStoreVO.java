@@ -19,7 +19,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CartSotreVO implements Serializable {
+public class CartStoreVO implements Serializable {
     @JsonProperty("storeId")
     private Long storeId;
 

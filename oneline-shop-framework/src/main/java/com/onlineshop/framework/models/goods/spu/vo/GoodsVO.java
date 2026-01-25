@@ -18,8 +18,7 @@ import lombok.NoArgsConstructor;
 public class GoodsVO {
     private Long id;
     private String name;
-    private String info;
-    private Long price;
-    private String img;
+    private String sellPoint;
+    private String minPrice;
+    private String mainImageUrl;
 }
-

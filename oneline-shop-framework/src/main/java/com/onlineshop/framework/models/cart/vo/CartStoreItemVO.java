@@ -7,9 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
- *
+ * 购物车项VO - 支持多规格商品
  *
  * @author : Tomatos
  * @date : 2025/12/24
@@ -33,7 +34,7 @@ public class CartStoreItemVO implements Serializable {
     private String storeName;
 
     /**
-     * 商品ID
+     * 商品ID (SPU)
      */
     @JsonProperty("goodsId")
     private Long goodsId;
@@ -43,6 +44,18 @@ public class CartStoreItemVO implements Serializable {
      */
     @JsonProperty("goodsName")
     private String goodsName;
+
+    /**
+     * SKU ID
+     */
+    @JsonProperty("skuId")
+    private Long skuId;
+
+    /**
+     * SKU规格信息，格式: {"颜色": "黑色", "容量": "128G"}
+     */
+    @JsonProperty("skuSpecs")
+    private Map<String, String> skuSpecs;
 
     /**
      * 商品价格（单位：分）
@@ -57,19 +70,13 @@ public class CartStoreItemVO implements Serializable {
     private Boolean selected;
 
     /**
-     * 库存
-     */
-    @JsonProperty("inventory")
-    private Long inventory;
-
-    /**
      * 下单数量
      */
     @JsonProperty("quantity")
     private Long quantity;
 
     /**
-     * 主图
+     * 商品图片URL
      */
     @JsonProperty("mainImage")
     private String mainImage;

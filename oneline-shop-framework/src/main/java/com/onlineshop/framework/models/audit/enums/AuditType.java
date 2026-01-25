@@ -3,7 +3,7 @@ package com.onlineshop.framework.models.audit.enums;
 /**
  * 审核对象类型枚举
  */
-public enum AuditTargetType {
+public enum AuditType {
     /**
      * 商品(SPU)
      */
@@ -12,17 +12,12 @@ public enum AuditTargetType {
     /**
      * 商品规格(SKU)
      */
-    SKU("SKU", "商品规格"),
-
-    /**
-     * 其他
-     */
-    OTHER("OTHER", "其他");
+    SKU("SKU", "商品规格");
 
     private final String code;
     private final String name;
 
-    AuditTargetType(String code, String name) {
+    AuditType(String code, String name) {
         this.code = code;
         this.name = name;
     }
@@ -35,8 +30,8 @@ public enum AuditTargetType {
         return name;
     }
 
-    public static AuditTargetType fromCode(String code) {
-        for (AuditTargetType type : AuditTargetType.values()) {
+    public static AuditType fromCode(String code) {
+        for (AuditType type : AuditType.values()) {
             if (type.code.equals(code)) {
                 return type;
             }

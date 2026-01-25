@@ -6,8 +6,8 @@ import com.onlineshop.framework.models.unit.Unit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 管理员单位管理 Controller
@@ -41,9 +41,8 @@ public class AdminUnitManagerController {
      * @return 创建的单位
      */
     @PostMapping
-    public Unit createUnit(@RequestBody Unit unit) {
-        unitService.save(unit);
-        return unit;
+    public void createUnit(@RequestBody Unit unit) {
+        unitService.addUnit(unit);
     }
 
     /**
@@ -65,10 +64,9 @@ public class AdminUnitManagerController {
      * @return 更新后的单位
      */
     @PutMapping("/{id}")
-    public Unit updateUnit(@PathVariable Long id, @RequestBody Unit unit) {
+    public void updateUnit(@PathVariable Long id, @RequestBody Unit unit) {
         unit.setId(id);
-        unitService.updateById(unit);
-        return unit;
+        unitService.updateUnit(unit);
     }
 
     /**
@@ -78,9 +76,8 @@ public class AdminUnitManagerController {
      * @return 更新后的单位
      */
     @PatchMapping("/{id}/status")
-    public Unit updateUnitStatus(@PathVariable Long id, @RequestBody Unit unit) {
+    public void updateUnitStatus(@PathVariable Long id, @RequestBody Unit unit) {
         unitService.updateStatus(id, unit.getStatus());
-        return unitService.getById(id);
     }
 
     /**
@@ -90,18 +87,15 @@ public class AdminUnitManagerController {
      */
     @DeleteMapping("/{id}")
     public void deleteUnit(@PathVariable Long id) {
-        unitService.removeById(id);
+        unitService.batchRemoveUnit(Collections.singletonList(id));
     }
 
     /**
      * 批量删除单位
      *
-     * @param body 请求体，包含ids数组
      */
     @DeleteMapping
-    public void batchDeleteUnits(@RequestBody Map<String, List<String>> body) {
-        List<String> idsStr = body.get("ids");
-        List<Long> ids = idsStr.stream().map(Long::valueOf).toList();
-        unitService.removeByIds(ids);
+    public void batchDeleteUnits(@RequestBody List<Long> ids) {
+        unitService.batchRemoveUnit(ids);
     }
 }

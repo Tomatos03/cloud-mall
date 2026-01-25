@@ -19,6 +19,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private TokenInterceptor tokenInterceptor;
+    @Autowired
+    private WhiteListProperties whiteListProperties;
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
@@ -38,12 +40,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(tokenInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns(
-                        "/login",
-                        "/css/**",
-                        "/js/**",
-                        "/error"
-                );
+                .excludePathPatterns(whiteListProperties.getWhiteList());
     }
 
     @Override

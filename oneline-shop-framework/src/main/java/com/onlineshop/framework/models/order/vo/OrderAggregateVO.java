@@ -33,9 +33,7 @@ public class OrderAggregateVO implements Serializable {
      */
     private LocalDateTime createTime;
 
-    private List<StoreOrderVO> storeOrders;
-
-    private Long totalPrice;   // 订单总价（单位：分）
-    private String totalPriceText; // 订单总价（单位：元，格式化
+    private String totalPrice;
     private Long count; // 订单总商品数量
+    private List<StoreOrderVO> storeOrders;
 }

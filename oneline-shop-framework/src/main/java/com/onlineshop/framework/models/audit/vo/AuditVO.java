@@ -15,11 +15,11 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuditLogVO {
+public class AuditVO {
     /**
      * 审核记录ID
      */
-    private Long id;
+    private Long auditId;
 
     /**
      * 被审核对象类型: GOODS / SKU / OTHER
@@ -32,9 +32,9 @@ public class AuditLogVO {
     private Long targetId;
 
     /**
-     * 审核状态: 0-未提交, 1-待审核, 2-通过, 3-拒绝
+     * 审核状态: 0-待审核, 1-通过, 2-拒绝, 3-已撤销
      */
-    private Byte status;
+    private Integer status;
 
     /**
      * 审核状态名称

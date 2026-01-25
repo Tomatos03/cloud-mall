@@ -1,4 +1,4 @@
-package com.onlineshop.framework.config;
+package com.onlineshop.framework.config.jackson;
 
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
@@ -20,13 +20,15 @@ public class JacksonConfig {
     private static final String DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer localDateTimeCustomizer() {
+    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
         return builder -> {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATETIME_PATTERN);
             builder.serializerByType(
                     LocalDateTime.class,
                     new LocalDateTimeSerializer(formatter)
             );
+            // 在已有模块上添加 LongIdToStringModule
+            builder.modulesToInstall(new LongIdToStringModule());
         };
     }
 }

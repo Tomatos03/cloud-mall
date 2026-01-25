@@ -10,7 +10,6 @@ import lombok.Data;
  */
 @Data
 public class TradeShopItemDTO {
-    private Long goodsId;
-
+    private Long skuId;
     private Integer quantity;
 }

@@ -1,10 +1,13 @@
 package com.onlineshop.framework.models.order.dto;
 
+import com.onlineshop.framework.common.entity.PageQueryDTO;
 import com.onlineshop.framework.models.order.enums.OrderStatus;
 import com.onlineshop.framework.models.order.enums.OrderType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.Date;
 
@@ -16,21 +19,12 @@ import java.util.Date;
  * @date : 2025/12/24
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderQueryDTO {
-    
-    // ========== 分页参数 ==========
-    /**
-     * 页码（从1开始）
-     */
-    private Integer pageNum = 1;
-    
-    /**
-     * 每页数量
-     */
-    private Integer pageSize = 10;
-    
+@EqualsAndHashCode(callSuper = true)
+public class OrderQueryDTO extends PageQueryDTO {
+
     // ========== 查询条件 ==========
     /**
      * 订单号（模糊查询）

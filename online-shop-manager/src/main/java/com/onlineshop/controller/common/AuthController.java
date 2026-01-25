@@ -25,8 +25,4 @@ public class AuthController {
     public TokenDTO login(@RequestBody LoginDTO loginDTO) {
         return accountService.login(loginDTO);
     }
-//    @PutMapping("/register")
-//    public MerchantRegisterResponseDTO register(@RequestBody RegisterDTO registerDTO) {
-//        return accountService.registerMerchant(registerDTO);
-//    }
 }

@@ -50,14 +50,17 @@ public class CartController {
     }
 
     /**
-     * 删除购物车项
+     * 删除购物车项 - 根据SKU ID删除
      */
-    @DeleteMapping("{storeId}/items/{goodsId}")
-    public void removeCartItem(@PathVariable Long storeId, @PathVariable Long goodsId) {
-        cartService.removeCartItem(storeId, goodsId);
+    @DeleteMapping("/{skuId}")
+    public void removeCartItem(@PathVariable Long skuId) {
+        cartService.removeCartItem(skuId);
     }
 
-    @PostMapping("/items/batch")
+    /**
+     * 批量删除购物车项 - 根据SKU ID列表批量删除
+     */
+    @DeleteMapping("/batch")
     public void batchRemove(@RequestBody List<CartCacheItemDTO> items) {
         cartService.removeCartItems(items);
     }

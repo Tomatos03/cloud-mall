@@ -1,15 +1,24 @@
 package com.onlineshop.framework.models.order.strategy.impl;
 
+import com.onlineshop.framework.models.goods.sku.GoodsSku;
+import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
+import com.onlineshop.framework.models.goods.spec.entity.GoodsSkuSpec;
+import com.onlineshop.framework.models.goods.spec.entity.Spec;
+import com.onlineshop.framework.models.goods.spec.entity.SpecValue;
+import com.onlineshop.framework.models.goods.spec.service.IGoodsSkuSpecService;
+import com.onlineshop.framework.models.goods.spec.service.ISpecService;
+import com.onlineshop.framework.models.goods.spec.service.ISpecValueService;
+import com.onlineshop.framework.models.goods.spu.Goods;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
 import com.onlineshop.framework.models.order.dto.TradeShopDTO;
 import com.onlineshop.framework.models.order.dto.TradeShopItemDTO;
-import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.entity.OrderItem;
-import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.order.strategy.OrderCreateStrategy;
 import com.onlineshop.framework.utils.OrderNoUtil;
 import com.onlineshop.framework.utils.context.UserContextHolder;
+import com.onlineshop.framework.utils.image.ImageUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,20 +38,23 @@ import java.util.List;
  * 
  * ✅ 已验证的内容：
  *   - 基本数据完整性（用户、店铺、商品 ID 等不为空）
- *   - 商品存在且已上架
- *   - 商品属于指定的店铺
- *   - 库存充足
+ *   - SKU 存在且已上架
+ *   - SKU 所属商品属于指定的店铺
+ *   - SKU 库存充足
  *   - 购物车中存在该商品（仅适用于普通购物车）
  * 
  * ❌ 本类不进行任何校验：
- *   - 不检查商品是否存在
- *   - 不检查库存是否充足
- *   - 不抛出任何业务异常（除非数据严重错误）
+ *   - 不检查数据有效性（校验已在 OrderValidateStrategy 完成）
+ *   - 不抛出业务异常
  * 
+ * 职责分离原则：
+ *   - 校验层：OrderValidateStrategy - 验证所有输入数据
+ *   - 创建层：OrderCreateStrategy - 直接构建订单，无需再做校验
+ *   
  * 调用流程：
- *   OrderValidateStrategy.validate(tradeDTO)  ← 完成所有校验
+ *   OrderValidateStrategy.validate(tradeDTO)  ← 完成所有校验，数据有效
  *          ↓
- *   OrderCreateStrategy.buildOrders(tradeDTO) ← 直接构建，无需校验
+ *   OrderCreateStrategy.buildOrders(tradeDTO) ← 直接构建，信任数据有效性
  * ============================================================
  *
  * @author : Tomatos
@@ -53,6 +65,10 @@ import java.util.List;
 public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy {
 
     protected final IGoodsService goodsService;
+    protected final IGoodsSkuService goodsSkuService;
+    protected final IGoodsSkuSpecService goodsSkuSpecService;
+    protected final ISpecService specService;
+    protected final ISpecValueService specValueService;
 
     /**
      * 主入口：构建订单对象和订单明细
@@ -104,21 +120,21 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
         // 构建订单明细
         for (TradeShopItemDTO itemDTO : itemList) {
             // 获取商品信息（由子类实现具体逻辑）
-            // 注意：此时商品已通过校验，不需要再次验证
             Goods goods = getGoods(shopDTO, itemDTO);
 
-            // 计算明细小计
-            long itemTotalPrice = goods.getPrice() * itemDTO.getQuantity();
+            // 获取SKU信息
+            GoodsSku sku = goodsSkuService.getById(itemDTO.getSkuId());
+
+            // 获取规格快照
+            String skuSpecsSnapshot = buildSkuSpecsSnapshot(itemDTO.getSkuId());
+
+            // 计算明细小计（使用SKU的实际价格）
+            long itemTotalPrice = sku.getPrice() * itemDTO.getQuantity();
             orderTotalPrice += itemTotalPrice;
 
             // 构建订单明细
-            OrderItem orderItem = buildOrderItem(goods, itemDTO, itemTotalPrice);
+            OrderItem orderItem = buildOrderItem(goods, itemDTO, sku, skuSpecsSnapshot, itemTotalPrice);
             orderItems.add(orderItem);
-
-            // 扣减库存
-            goodsService.deductInventory(goods.getId(), itemDTO.getQuantity());
-            log.info("库存扣减成功, goodsId: {}, 扣减数量: {}",
-                     goods.getId(), itemDTO.getQuantity());
         }
 
         // 子类可在此之后进行清理操作（如从购物车移除商品）
@@ -159,21 +175,25 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
     protected abstract Goods getGoods(TradeShopDTO shopDTO, TradeShopItemDTO itemDTO);
 
     /**
-     * 构建订单明细项
+     * 构建订单明细项（支持多规格商品）
      *
-     * @param goods          商品信息
-     * @param itemDTO        商品项DTO
-     * @param itemTotalPrice 明细总价
+     * @param goods               商品信息
+     * @param itemDTO             商品项DTO
+     * @param sku                 SKU信息
+     * @param skuSpecsSnapshot    SKU规格快照
+     * @param itemTotalPrice      明细总价
      * @return 订单明细对象
      */
-    protected OrderItem buildOrderItem(Goods goods, TradeShopItemDTO itemDTO, long itemTotalPrice) {
+    protected OrderItem buildOrderItem(Goods goods, TradeShopItemDTO itemDTO, GoodsSku sku, String skuSpecsSnapshot, long itemTotalPrice) {
         return OrderItem.builder()
+                        .skuId(itemDTO.getSkuId())
                         .goodsId(goods.getId())
                         .goodsName(goods.getName())
-                        .goodsImg(goods.getImg())
-                        .goodsPrice(goods.getPrice())
+                        .goodsMainImageUrl(ImageUtil.getMainImageUrl(goods.getDisplayImages()))
+                        .goodsPrice(sku.getPrice())
                         .quantity(itemDTO.getQuantity())
                         .totalPrice(itemTotalPrice)
+                        .skuSpecs(skuSpecsSnapshot)
                         .build();
     }
 
@@ -194,10 +214,55 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
     }
 
     /**
+     * 构建SKU规格快照字符串
+     * 格式：颜色=黑色;尺码=L
+     * 
+     * @param skuId SKU ID
+     * @return SKU规格快照字符串
+     */
+    private String buildSkuSpecsSnapshot(Long skuId) {
+        // 查询SKU的所有规格
+        List<GoodsSkuSpec> skuSpecs = goodsSkuSpecService.listBySkuId(skuId);
+        
+        if (skuSpecs == null || skuSpecs.isEmpty()) {
+            return "";
+        }
+
+        // 构建规格快照：规格名=规格值 的格式，用分号分隔
+        StringBuilder specsBuilder = new StringBuilder();
+        
+        for (int i = 0; i < skuSpecs.size(); i++) {
+            GoodsSkuSpec skuSpec = skuSpecs.get(i);
+            
+            // 获取规格名
+            Spec spec = specService.getById(skuSpec.getSpecId());
+            if (spec == null) {
+                log.warn("规格不存在，specId: {}", skuSpec.getSpecId());
+                continue;
+            }
+            
+            // 获取规格值名
+            SpecValue specValue = specValueService.getById(skuSpec.getSpecValueId());
+            if (specValue == null) {
+                log.warn("规格值不存在，specValueId: {}", skuSpec.getSpecValueId());
+                continue;
+            }
+            
+            // 追加到字符串
+            specsBuilder.append(spec.getName()).append("=").append(specValue.getValue());
+            if (i < skuSpecs.size() - 1) {
+                specsBuilder.append(";");
+            }
+        }
+        
+        return specsBuilder.toString();
+    }
+
+    /**
      * 构建订单主表
      *
      * @param storeId         店铺ID
-     * @param quantity             商品项数量
+     * @param quantity        商品项数量
      * @param orderTotalPrice 订单总价
      * @param orderItems      订单明细列表
      * @return 订单构建结果

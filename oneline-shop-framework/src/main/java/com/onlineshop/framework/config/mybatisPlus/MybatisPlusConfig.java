@@ -1,4 +1,4 @@
-package com.onlineshop.framework.config;
+package com.onlineshop.framework.config.mybatisPlus;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;

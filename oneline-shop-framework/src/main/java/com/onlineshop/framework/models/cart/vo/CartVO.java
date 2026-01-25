@@ -23,5 +23,5 @@ public class CartVO {
      * 按店铺分组的购物车
      */
     @JsonProperty("storeList")
-    private List<CartSotreVO> storeList;
+    private List<CartStoreVO> storeList;
 }

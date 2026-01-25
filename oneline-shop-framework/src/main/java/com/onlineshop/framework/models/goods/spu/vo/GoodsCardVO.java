@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.onlineshop.framework.enums.SearchOrderType;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
+import com.onlineshop.framework.utils.image.ImageUtil;
+import com.onlineshop.framework.utils.money.Money;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,10 +27,10 @@ import java.util.List;
 public class GoodsCardVO {
     private Long id;
     private String name;
-    private String info;
-    private String img;
-    private Long price;
-    private Long sale;
+    private String sellPoint;
+    private String mainImageUrl;
+    private String minPrice;
+    private Integer sale;
 
     /**
      * 构建搜索商品的QueryWrapper
@@ -66,9 +68,7 @@ public class GoodsCardVO {
         switch (orderType) {
             case SALES:
                 queryWrapper.orderByDesc("sales");
-                break;
-            case NEWEST:
-                queryWrapper.orderByDesc("date");
+                queryWrapper.orderByDesc("create_date");
                 break;
             case COMPREHENSIVE:
             default:
@@ -85,16 +85,17 @@ public class GoodsCardVO {
      * @param goods Goods对象
      * @return GoodsCardVO对象
      */
-    public static GoodsCardVO fromGoods(Goods goods) {
+    public static GoodsCardVO convertGoodsCardVO(Goods goods) {
         if (goods == null) {
             return null;
         }
+
         return GoodsCardVO.builder()
                           .id(goods.getId())
                           .name(goods.getName())
-                          .info(goods.getInfo())
-                          .img(goods.getImg())
-                          .price(goods.getPrice())
+                          .mainImageUrl(ImageUtil.getMainImageUrl(goods.getDisplayImages()))
+                          .minPrice(Money.ofCents(goods.getMinPrice()).toYuanString())
+                          .sellPoint(goods.getSellPoint())
                           .sale(goods.getSales())
                           .build();
     }

@@ -1,4 +1,4 @@
-package com.onlineshop.framework.models.user.dto;
+package com.onlineshop.framework.models.goods.spec.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,13 +9,13 @@ import lombok.NoArgsConstructor;
  *
  *
  * @author : Tomatos
- * @date : 2025/12/27
+ * @date : 2026/1/20
  */
 @Data
-@AllArgsConstructor
 @Builder
 @NoArgsConstructor
-public class UserInfoDTO {
-    private String nickname;
-    private String avatarUrl;
+@AllArgsConstructor
+public class SpecValueVO {
+    private Long id;
+    private String name;
 }

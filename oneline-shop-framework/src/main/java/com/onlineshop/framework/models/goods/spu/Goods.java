@@ -1,36 +1,32 @@
 package com.onlineshop.framework.models.goods.spu;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.onlineshop.framework.common.entity.CommonDO;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.util.Date;
 
 @Data
 @TableName("goods")
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Goods implements Serializable {
-    @TableId(type = IdType.AUTO)
-    private Long id;
+public class Goods extends CommonDO implements Serializable {
     private String name;
-    private Integer categoryId; // 分类Id
-    private String info;
-    private String description;
-    private String img;
-    private String imgList;
-    private Long inventory;
-    private Long price;
-    private String unit;
+    private Long categoryId;
+    private String categoryIdPath;
+    private Long unitId;
+    private String unitName;
+    private String sellPoint;
+    private String descriptionImages;
+    private String displayImages;
     private Long storeId;
     private String storeName;
-    private Long sales;
-    private Date date;
+    private Integer sales;
+    private Long minPrice;
+    private Long maxPrice;
     private Boolean status;
 }

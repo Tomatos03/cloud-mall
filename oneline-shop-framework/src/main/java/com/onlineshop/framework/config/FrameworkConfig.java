@@ -1,5 +1,6 @@
 package com.onlineshop.framework.config;
 
+import com.onlineshop.framework.config.mybatisPlus.MybatisPlusConfig;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Import;
 

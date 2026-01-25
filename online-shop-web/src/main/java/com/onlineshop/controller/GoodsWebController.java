@@ -1,10 +1,11 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.onlineshop.framework.models.goods.application.IGoodsAppService;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
 import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
-import com.onlineshop.framework.models.goods.spu.vo.GoodsDetailVO;
+import com.onlineshop.framework.models.goods.application.vo.WebGoodsDetailVO;
 import com.onlineshop.framework.models.goods.spu.vo.GoodsVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +21,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/web/goods")
 public class GoodsWebController {
-
     @Autowired
     private IGoodsService goodsService;
+    @Autowired
+    private IGoodsAppService goodsAppService;
 
     /**
      * 根据分类ID获取商品列表
@@ -51,7 +53,7 @@ public class GoodsWebController {
     }
 
     @GetMapping("/detail/{id}")
-    public GoodsDetailVO getGoodsDetail(@PathVariable Long id) {
-        return goodsService.getGoodsDetail(id);
+    public WebGoodsDetailVO getGoodsDetail(@PathVariable Long id) {
+        return goodsAppService.getWebGoodsDetail(id);
     }
 }

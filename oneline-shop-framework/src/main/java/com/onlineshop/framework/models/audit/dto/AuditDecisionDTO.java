@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.audit.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,8 @@ public class AuditDecisionDTO {
     /**
      * 审核日志ID
      */
-    private Long auditLogId;
+    @NotNull
+    private Long auditId;
 
     /**
      * 审核结果: true-通过, false-拒绝

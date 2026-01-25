@@ -10,6 +10,14 @@ spring:
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      username: default
+      password: 'zjlljz'
+  cache:
+    type: redis
 
 auth:
   white-list:

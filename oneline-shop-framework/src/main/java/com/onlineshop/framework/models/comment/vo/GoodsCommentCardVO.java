@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.comment.vo;
 
+import com.onlineshop.framework.utils.image.Image;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,7 +34,7 @@ public class GoodsCommentCardVO implements Serializable {
     /**
      * 商品图片URL
      */
-    private String goodsImage;
+    private Image goodsMainImage;
 
     /**
      * 买家名称

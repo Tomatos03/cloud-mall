@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.statistic.vo;
 
+import com.onlineshop.framework.utils.image.Image;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +20,7 @@ public class FavoriteGoodsTopVO {
     private Integer rank;
     private Long goodsId;
     private String goodsName;
-    private String goodsImage;
+    private Image goodsMainImage;
     private Integer favoriteTotal;
     private Integer favoriteLast7Days;
 }

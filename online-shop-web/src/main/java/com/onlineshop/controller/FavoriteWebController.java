@@ -1,16 +1,14 @@
 package com.onlineshop.controller;
 
-import com.onlineshop.framework.models.favorite.dto.AddFavoriteDTO;
-import com.onlineshop.framework.models.favorite.dto.FavoriteStatusDTO;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.favorite.Favorite;
 import com.onlineshop.framework.models.favorite.IFavoriteService;
+import com.onlineshop.framework.models.favorite.dto.FavoriteQueryDTO;
+import com.onlineshop.framework.models.favorite.dto.FavoriteStatusDTO;
+import com.onlineshop.framework.models.favorite.vo.FavoriteVO;
 import com.onlineshop.framework.utils.context.UserContextHolder;
-import com.onlineshop.framework.models.goods.spu.IGoodsService;
-import com.onlineshop.framework.models.goods.spu.Goods;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  *
@@ -24,41 +22,18 @@ public class FavoriteWebController {
     @Autowired
     private IFavoriteService favoriteService;
 
-    @Autowired
-    private IGoodsService goodsService;
-
-    // 获取当前用户所有收藏
+    // 分页获取当前用户所有收藏
     @GetMapping
-    public List<Favorite> listFavorites() {
-        Long userId = UserContextHolder.getUserId();
-        return favoriteService.lambdaQuery()
-                .eq(Favorite::getUserId, userId)
-                .list();
+    public IPage<FavoriteVO> pageFavorites(FavoriteQueryDTO queryDTO) {
+        return favoriteService.pageUserFavorites(queryDTO);
     }
 
     // 添加收藏
-    @PostMapping
-    public Favorite addFavorite(@RequestBody AddFavoriteDTO addFavoriteDTO) {
-        Long userId = UserContextHolder.getUserId();
-        Long goodsId = addFavoriteDTO.getGoodsId();
-        Long storeId = addFavoriteDTO.getStoreId();
-        Goods goods = goodsService.getById(goodsId);
-        if (goods == null) {
-            throw new RuntimeException("商品不存在");
-        }
-        Favorite favorite = new Favorite();
-        favorite.setUserId(userId);
-        favorite.setGoodsId(goodsId);
-        favorite.setGoodsTitle(goods.getName());
-        favorite.setGoodsImg(goods.getImg());
-        favorite.setGoodsPrice(goods.getPrice());
-        favorite.setGoodsDesc(goods.getDescription());
-        favorite.setStoreId(storeId);
-        favoriteService.save(favorite);
-        return favorite;
+    @PostMapping("{goodsId}")
+    public void addFavorite(@PathVariable Long goodsId) {
+        favoriteService.addFavorite(goodsId);
     }
 
-    // 取消收藏
     @DeleteMapping("{id}")
     public boolean removeFavorite(@PathVariable Long id) {
         return favoriteService.removeById(id);

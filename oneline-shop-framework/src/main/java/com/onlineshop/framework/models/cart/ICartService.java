@@ -9,13 +9,15 @@ import com.onlineshop.framework.models.cart.vo.CartVO;
 import java.util.List;
 
 /**
- * 购物车服务接口
+ * 购物车服务接口 - 支持多规格商品
  */
 public interface ICartService {
     
     /**
      * 添加商品到购物车
-     * @param addCartItemDTO 添加购物车项DTO
+     * 前端仅需传入SKU ID和购买数量，后端会从SKU自动查询关联的商品和店铺信息
+     *
+     * @param addCartItemDTO 添加购物车项DTO（仅需包含SKU ID和购买数量）
      * @return 购物车项VO
      */
     CartStoreItemVO addToCart(AddCartItemDTO addCartItemDTO);
@@ -28,21 +30,22 @@ public interface ICartService {
 
     /**
      * 更新购物车项
-     * @param request 更新购物车项DTO
+     * @param request 更新购物车项DTO（包含SKU ID）
      * @return 更新后的购物车项VO
      */
     CartStoreItemVO updateCartItem(UpdateCartItemDTO request);
 
     /**
      * 删除购物车项
-     * @param storeId 店铺ID
-     * @param goodsId 商品ID
+     * 根据SKU ID删除对应的购物车项，SKU ID能唯一确定购物车中的一个商品
+     *
+     * @param skuId SKU ID
      */
-    void removeCartItem(Long storeId, Long goodsId);
+    void removeCartItem(Long skuId);
 
     /**
      * 批量删除购物车项
-     * @param itemList 购物车项列表
+     * @param itemList 购物车项列表（包含SKU ID）
      */
     void removeCartItems(List<CartCacheItemDTO> itemList);
 

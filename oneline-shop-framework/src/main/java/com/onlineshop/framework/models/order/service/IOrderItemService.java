@@ -20,7 +20,7 @@ public interface IOrderItemService extends IService<OrderItem> {
      * @return 订单明细列表
      */
     List<OrderItem> listByOrderId(Long orderId);
-    
+
     /**
      * 批量保存订单明细
      *

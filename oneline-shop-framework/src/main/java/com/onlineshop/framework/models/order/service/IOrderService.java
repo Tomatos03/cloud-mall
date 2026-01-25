@@ -48,6 +48,15 @@ public interface IOrderService extends IService<Order> {
     boolean queryPaymentStatus(String orderNo);
 
     /**
+     * 根据订单号扣减库存
+     * 遍历订单的所有明细，对每个SKU进行库存扣减和销量增加
+     * 支持聚合订单：若订单为父订单，则扣减所有子订单明细的库存
+     *
+     * @param orderNo 订单号
+     */
+    void deductInventoryByOrderNo(String orderNo);
+
+    /**
      * 根据订单号查询订单明细项列表
      * 一个订单对应一个店铺，一个订单可能有多个订单明细项
      *
@@ -56,17 +65,6 @@ public interface IOrderService extends IService<Order> {
      * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在时
      */
     OrderAggregateVO getOrderDetailByOrderNo(String orderNo);
-
-    /**
-     * 商家发货接口
-     * 功能：将订单状态从 PAID 改为 SHIPPED
-     * 检查订单是否处于 PAID 状态，只有处于该状态才能发货
-     *
-     * @param orderNo 订单编号
-     * @return 是否成功
-     * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在或订单状态不符合要求时
-     */
-    boolean shipOrder(String orderNo);
 
     /**
      * 取消订单接口

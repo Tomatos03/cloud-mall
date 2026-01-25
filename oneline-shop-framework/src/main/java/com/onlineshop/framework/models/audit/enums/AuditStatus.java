@@ -1,51 +1,45 @@
 package com.onlineshop.framework.models.audit.enums;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.util.Arrays;
+
 /**
- * 审核状态枚举
+ * 商品审核状态枚举
+ * <p>
+ * 包含：
+ * PENDING(0, "待审核")，APPROVED(1, "通过")，REJECTED(2, "拒绝")，CANCELLED(3, "已撤销")
  */
+@AllArgsConstructor
+@Getter
 public enum AuditStatus {
     /**
-     * 未提交 (0)
+     * 待审核 (0)
      */
-    NOT_SUBMITTED((byte) 0, "未提交"),
+    PENDING(0, "待审核"),
 
     /**
-     * 待审核 (1)
+     * 通过 (1)
      */
-    PENDING((byte) 1, "待审核"),
+    APPROVED(1, "通过"),
 
     /**
-     * 通过 (2)
+     * 拒绝 (2)
      */
-    APPROVED((byte) 2, "通过"),
-
+    REJECTED(2, "拒绝"),
     /**
-     * 拒绝 (3)
+     * 已撤销 (3)
      */
-    REJECTED((byte) 3, "拒绝");
+    REVOKED(3, "已撤销");
 
-    private final byte code;
+    private final int code;
     private final String name;
 
-    AuditStatus(byte code, String name) {
-        this.code = code;
-        this.name = name;
-    }
-
-    public byte getCode() {
-        return code;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public static AuditStatus fromCode(byte code) {
-        for (AuditStatus status : AuditStatus.values()) {
-            if (status.code == code) {
-                return status;
-            }
-        }
-        return null;
+    public static AuditStatus of(int code) {
+        return Arrays.stream(AuditStatus.values())
+                     .filter(status -> status.code == code)
+                     .findFirst()
+                     .orElseThrow(() -> new IllegalArgumentException("未知的审核状态代码: " + code));
     }
 }

@@ -66,12 +66,12 @@ public class GoodsComment {
     /**
      * 评论图片，逗号分隔URL
      */
-    private String images;
+    private String imageUrls;
     
     /**
      * 是否匿名：0-否 1-是
      */
-    private Integer isAnonymous;
+    private Boolean isAnonymous;
     
     /**
      * 商家回复内容
@@ -82,4 +82,6 @@ public class GoodsComment {
      * 创建时间
      */
     private LocalDateTime createTime;
+
+    private String skuSpecSnapshot;
 }

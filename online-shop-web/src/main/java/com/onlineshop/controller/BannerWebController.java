@@ -22,7 +22,7 @@ public class BannerWebController {
     private IBannerService bannerService;
 
     @GetMapping
-    public List<HomeBannerVO> list() {
+    public List<HomeBannerVO> getRecommendBanner() {
         return bannerService.getRecommendBanner();
     }
 }

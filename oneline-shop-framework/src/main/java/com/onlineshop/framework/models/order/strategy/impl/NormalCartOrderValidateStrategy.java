@@ -8,6 +8,7 @@ import com.onlineshop.framework.models.cart.CartType;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.cart.ICartService;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
 import com.onlineshop.framework.utils.context.UserContextHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,10 @@ import org.springframework.stereotype.Component;
 /**
  * 普通购物车订单校验策略
  * 职责：在订单创建前完成所有必要的数据校验
+ * 
+ * 多规格商品支持更新（2025-01-02）:
+ * - 从商品级别验证 → SKU级别验证
+ * - 购物车中检查SKU而非商品
  *
  * @author : Tomatos
  * @date : 2025/12/24
@@ -25,14 +30,16 @@ public class NormalCartOrderValidateStrategy extends AbstractOrderValidateStrate
 
     private final ICartService cartService;
 
-    public NormalCartOrderValidateStrategy(IGoodsService goodsService,
-                                          ICartService cartService) {
-        super(goodsService);
+    public NormalCartOrderValidateStrategy(
+            IGoodsService goodsService,
+            IGoodsSkuService goodsSkuService,
+            ICartService cartService) {
+        super(goodsService, goodsSkuService);
         this.cartService = cartService;
     }
 
     /**
-     * 购物车特定校验：校验商品是否在购物车中
+     * 购物车特定校验：校验SKU是否在购物车中
      */
     @Override
     protected void doAdditionalValidate(TradeDTO tradeDTO) {
@@ -40,21 +47,21 @@ public class NormalCartOrderValidateStrategy extends AbstractOrderValidateStrate
         
         for (TradeShopDTO shopDTO : tradeDTO.getTradeItems()) {
             for (TradeShopItemDTO item : shopDTO.getTradeShopItemList()) {
-                validateCartItem(userId, item.getGoodsId());
+                validateCartItem(userId, item.getSkuId());
             }
         }
     }
 
     /**
-     * 校验购物车中是否存在该商品
+     * 校验购物车中是否存在该SKU
      *
-     * @param userId  用户ID
-     * @param goodsId 商品ID
+     * @param userId 用户ID
+     * @param skuId  SKU ID
      */
-    private void validateCartItem(Long userId, Long goodsId) {
-        boolean existsInCart = cartService.existsInCart(userId, goodsId);
+    private void validateCartItem(Long userId, Long skuId) {
+        boolean existsInCart = cartService.existsInCart(userId, skuId);
         if (!existsInCart) {
-            log.error("购物车中不存在该商品, userId: {}, goodsId: {}", userId, goodsId);
+            log.error("购物车中不存在该SKU, userId: {}, skuId: {}", userId, skuId);
             throw new BusinessException(BizErrorCode.GOODS_NOT_IN_CART);
         }
     }

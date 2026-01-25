@@ -1,5 +1,6 @@
 package com.onlineshop.framework.enums;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -26,6 +27,7 @@ public enum BizErrorCode {
 
     // ==================== 商品分类相关错误码 (20xxx) ====================
     CATEGORY_BEYOND_MAX_LEVEL(20000, "分类层级超出最大限制"),
+    CATEGORY_NOT_EXIST(20013, "分类不存在"),
     GOODS_OR_SHOP_NOT_EXIST(20001, "商品或店铺不存在"),
     GOODS_SAVE_FAILED(20002, "商品保存失败"),
     SKU_SAVE_FAILED(20003, "SKU保存失败"),
@@ -33,16 +35,26 @@ public enum BizErrorCode {
     GOODS_ID_INVALID(20005, "商品ID无效"),
     GOODS_UPDATE_FAILED(20006, "商品更新失败"),
     SPEC_SAVE_FAILED(20007, "规格保存失败"),
-    SPU_DELETE_FAILED(20009, "删除商品SPU失败"),
     SPEC_VALUE_SAVE_FAILED(20008, "规格值保存失败"),
+    SPU_DELETE_FAILED(20009, "删除商品SPU失败"),
     SPEC_VALUE_DELETE_FAILED(20010, "规格值删除失败"),
     SPEC_VALUE_CLEANUP_NOT_SUPPORTED(20011, "规格值清理功能不支持"),
+    GOODS_PUBLISH_PAYLOAD_INVALID(20012, "商品发布数据无效"),
+    SPECIFICATIONS_CANNOT_BE_EMPTY(20014, "规格不能为空"),
+    SKUS_CANNOT_BE_EMPTY(20015, "SKU不能为空"),
+    SPECIFICATIONS_EXCEED_MAX_LIMIT(20016, "规格数量超出最大限制"),
+    SKU_SPECS_CANNOT_BE_EMPTY(20017, "SKU规格不能为空"),
+    SKU_SPEC_NOT_MATCH(20018, "SKU中包含无效的规格"),
 
     // ==================== 地址相关错误码 (30xxx) ====================
     ADDRESS_NOT_EXIST(30000, "地址不存在"),
 
     // ==================== 搜索相关错误码 (40xxx) ====================
     UNKNOWN_SEARCH_ORDER_TYPE(40000, "未知的搜索排序类型"),
+
+    // ==================== 轮播图相关错误码 (45xxx) ====================
+    BANNER_NOT_EXIST(45000, "轮播图不存在"),
+    BANNER_GOODS_NOT_EXIST(45001, "轮播图关联的商品不存在"),
 
     // ==================== 订单相关错误码 (50xxx) ====================
     // 订单创建相关
@@ -71,6 +83,7 @@ public enum BizErrorCode {
     
     // 已废弃或很少使用
     USER_ID_IS_NULL(50011, "用户ID不能为空"),  // 拦截器保证非空，不再使用
+    GOODS_INVENTORY_NOT_ENOUGH(50019, "SKU库存不足"),
 
     // ==================== 购物车相关错误码 (60xxx) ====================
     UNKNOW_CART_TYPE(60000, "未知的购物车类型"),
@@ -127,7 +140,12 @@ public enum BizErrorCode {
     AUDITOR_NOT_LOGGED_IN(90006, "审核员未登录"),
     AUDIT_ID_CANNOT_BE_NULL(90007, "审核记录ID不能为空"),
     AUDIT_WITHDRAW_OWN_ONLY(90008, "只能撤回自己提交的审核申请"),
-    AUDIT_WITHDRAW_ONLY_PENDING(90009, "只能撤回待审核状态的审核申请");
+    AUDIT_WITHDRAW_ONLY_PENDING(90009, "只能撤回待审核状态的审核申请"),
+    AUDIT_EXTRA_INFO_EMPTY(90010, "审核记录扩展信息为空"),
+    AUDIT_EXTRA_INFO_INVALID(90011, "审核记录扩展信息无效"),
+    AUDIT_TARGET_TYPE_MISMATCH(90012, "审核对象类型不匹配"),
+    AUDIT_ONLY_APPROVED(90013, "只能操作已通过的审核记录"),
+    AUDIT_INVALID_STATUS(90014, "非法的审核状态");
 
     final int code;
     final String errorMessage;

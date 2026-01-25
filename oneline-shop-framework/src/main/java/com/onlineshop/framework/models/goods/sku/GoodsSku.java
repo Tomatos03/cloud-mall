@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @TableName("goods_sku")
@@ -17,7 +17,6 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GoodsSku implements Serializable {
-    
     @TableId(type = IdType.AUTO)
     private Long id;
     
@@ -44,15 +43,15 @@ public class GoodsSku implements Serializable {
     /**
      * 状态, 1-上架, 0-下架
      */
-    private Integer status;
+    private Boolean status;
     
     /**
      * 创建时间
      */
-    private Date createTime;
+    private LocalDateTime createTime;
     
     /**
      * 更新时间
      */
-    private Date updateTime;
+    private LocalDateTime updateTime;
 }

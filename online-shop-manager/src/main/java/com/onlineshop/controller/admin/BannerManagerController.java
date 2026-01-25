@@ -1,9 +1,11 @@
 package com.onlineshop.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.banner.Banner;
 import com.onlineshop.framework.models.banner.IBannerService;
+import com.onlineshop.framework.models.banner.dto.BannerDTO;
 import com.onlineshop.framework.models.banner.vo.BannerVO;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,25 +25,14 @@ public class BannerManagerController {
     private IBannerService bannerService;
 
     /**
-     * 保存/更新轮播图
+     * 创建或更新轮播图
      *
-     * @param banner 轮播图对象
+     * @param dto 轮播图创建/更新DTO
      * @return 是否成功
      */
     @PostMapping
-    public boolean save(@RequestBody Banner banner) {
-        return bannerService.saveOrUpdate(banner);
-    }
-
-    /**
-     * 删除单个轮播图
-     *
-     * @param id 轮播图ID
-     * @return 是否成功
-     */
-    @DeleteMapping("/{id}")
-    public boolean delete(@PathVariable Long id) {
-        return bannerService.removeById(id);
+    public boolean save(@Valid @RequestBody BannerDTO dto) {
+        return bannerService.saveOrUpdateBanner(dto);
     }
 
     /**
@@ -50,8 +41,8 @@ public class BannerManagerController {
      * @param ids 轮播图ID列表
      * @return 是否成功
      */
-    @PostMapping("/batch/del")
-    public boolean deleteBatch(@RequestBody List<Long> ids) {
+    @DeleteMapping("/batch/del")
+    public boolean deleteBatch(@RequestParam("ids")List<Long> ids) {
         return bannerService.removeByIds(ids);
     }
 
@@ -60,17 +51,15 @@ public class BannerManagerController {
      *
      * @param pageNum  页码
      * @param pageSize 每页大小
-     * @param keyword  关键词
      * @return 分页结果
      */
     @GetMapping("/page")
     public IPage<BannerVO> page(
             @RequestParam("page") Integer pageNum,
             @RequestParam("pageSize") Integer pageSize,
-            @RequestParam(required = false, name = "name") String keyword,
             @RequestParam(required = false, name = "status") Boolean status
     ) {
-        return bannerService.pageBannerVO(pageNum, pageSize, keyword, status);
+        return bannerService.pageBannerVO(pageNum, pageSize, status);
     }
 
     /**
@@ -80,7 +69,10 @@ public class BannerManagerController {
      * @return 是否成功
      */
     @PostMapping("/recommend/{id}/{status}")
-    public boolean toggleRecommend(@PathVariable Long id, @PathVariable Boolean status) {
+    public boolean toggleRecommend(
+            @NotNull @PathVariable Long id,
+            @NotNull @PathVariable Boolean status
+    ) {
         return bannerService.toggleRecommend(id, status);
     }
 }

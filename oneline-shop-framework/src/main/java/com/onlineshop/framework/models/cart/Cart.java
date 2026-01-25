@@ -11,6 +11,7 @@ public class Cart {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long goodsId;
+    private Long skuId;
     private Long num;
     private Long userId;
     private Integer unitId;

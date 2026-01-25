@@ -3,7 +3,7 @@ package com.onlineshop.controller.merchant;
 import com.onlineshop.framework.models.store.StoreUpdateDTO;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.utils.context.UserContextHolder;
-import com.onlineshop.framework.models.store.vo.StoreItemVO;
+import com.onlineshop.framework.models.store.vo.StoreVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,9 +25,8 @@ public class MerchantStoreInfoController {
      * @return 当前登录商家的店铺信息
      */
     @GetMapping("/me")
-    public StoreItemVO getMyStore() {
-        Long userId = UserContextHolder.getUserId();
-        return storeService.getMyStore(userId);
+    public StoreVO getMyStore() {
+        return storeService.getMyStoreInfo();
     }
 
     /**
@@ -36,8 +35,8 @@ public class MerchantStoreInfoController {
      * @return 店铺详情
      */
     @GetMapping("/{id}")
-    public StoreItemVO getStore(@PathVariable Long id) {
-        return storeService.getStoreInfo(id);
+    public StoreVO getStore(@PathVariable Long id) {
+        return storeService.getStoreInfoById(id);
     }
 
     /**

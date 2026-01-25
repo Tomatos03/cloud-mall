@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.comment.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -9,6 +10,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 创建商品评论 DTO（数据传输对象）
  */
@@ -17,19 +20,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CreateCommentDTO {
-    
+    @NotNull
+    private String orderNo;
+
     /**
      * 订单明细ID（必需）
      */
     @NotNull(message = "订单明细ID不能为空")
     private Long orderItemId;
-    
-    /**
-     * 订单ID（必需）
-     */
-    @NotNull(message = "订单ID不能为空")
-    private String orderNo;
-    
+
     /**
      * 商品ID（必需）
      */
@@ -49,26 +48,16 @@ public class CreateCommentDTO {
      */
     @NotBlank(message = "评论内容不能为空")
     private String content;
-    
-    /**
-     * 评论图片，逗号分隔URL（可选）
-     */
-    private String images;
-    
+
+    private List<String> imageUrls;
+
     /**
      * 是否匿名：0-否 1-是（可选，默认0）
      */
-    private Integer isAnonymous = 0;
+    private Boolean isAnonymous = false;
 
-    private Long userId;
-
-    /**
-     * 用户昵称（冗余，便于二次查询）
-     */
-    private String userName;
-    
-    /**
-     * 用户头像（冗余，便于二次查询）
-     */
-    private String userAvatar;
+    // 商品规格快照
+    @NotBlank
+    @JsonProperty("specs")
+    private String specSnapshot;
 }

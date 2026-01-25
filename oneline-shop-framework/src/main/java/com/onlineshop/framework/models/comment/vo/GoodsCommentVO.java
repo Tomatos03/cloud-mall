@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.comment.vo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -77,15 +78,18 @@ public class GoodsCommentVO {
     /**
      * 评论图片列表
      */
-    private List<String> images;
+    private List<String> imageUrls;
 
     /**
      * 是否匿名：0-否 1-是
      */
-    private Integer isAnonymous;
+    private Boolean isAnonymous;
 
     /**
      * 创建时间
      */
     private LocalDateTime createTime;
+
+    @JsonProperty("specs")
+    private String specSnapshot;
 }
