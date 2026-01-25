@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,8 +95,7 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
             resultList.add(result);
         }
 
-        log.info("订单构建成功, userId: {}, 购物车类型: {}, 店铺数量: {}",
-                 userId, getSupportedCartType(), shopList.size());
+        log.info("订单构建成功, userId: {}, 订单类型: {}", userId, getSupportedCartType());
         return resultList;
     }
 
@@ -137,11 +137,10 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
             orderItems.add(orderItem);
         }
 
-        // 子类可在此之后进行清理操作（如从购物车移除商品）
         afterBuildOrderItems(shopDTO, itemList);
 
         // 构建订单主表
-        return buildOrder(storeId, itemList.size(), orderTotalPrice, orderItems);
+        return buildOrderBuildResult(storeId, itemList.size(), orderTotalPrice, orderItems);
     }
 
     /**
@@ -198,9 +197,54 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
     }
 
     /**
+     * 构建SKU规格快照字符串
+     * 格式：颜色=黑色;尺码=L
+     *
+     * @param skuId SKU ID
+     * @return SKU规格快照字符串
+     */
+    private String buildSkuSpecsSnapshot(Long skuId) {
+        // 查询SKU的所有规格
+        List<GoodsSkuSpec> skuSpecs = goodsSkuSpecService.listBySkuId(skuId);
+
+        if (skuSpecs == null || skuSpecs.isEmpty()) {
+            return "";
+        }
+
+        // 构建规格快照：规格名=规格值 的格式，用分号分隔
+        StringBuilder specsBuilder = new StringBuilder();
+
+        for (int i = 0; i < skuSpecs.size(); i++) {
+            GoodsSkuSpec skuSpec = skuSpecs.get(i);
+
+            // 获取规格名
+            Spec spec = specService.getById(skuSpec.getSpecId());
+            if (spec == null) {
+                log.warn("规格不存在，specId: {}", skuSpec.getSpecId());
+                continue;
+            }
+
+            // 获取规格值名
+            SpecValue specValue = specValueService.getById(skuSpec.getSpecValueId());
+            if (specValue == null) {
+                log.warn("规格值不存在，specValueId: {}", skuSpec.getSpecValueId());
+                continue;
+            }
+
+            // 追加到字符串
+            specsBuilder.append(spec.getName()).append("=").append(specValue.getValue());
+            if (i < skuSpecs.size() - 1) {
+                specsBuilder.append(";");
+            }
+        }
+
+        return specsBuilder.toString();
+    }
+
+    /**
      * 在构建订单明细之后的钩子方法
      * 子类可覆盖此方法以执行自定义的后置逻辑
-     * 
+     *
      * 使用场景：
      * - 从购物车中移除已购买的商品
      * - 清理缓存
@@ -209,54 +253,7 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
      * @param shopDTO  店铺交易数据
      * @param itemList 商品项列表
      */
-    protected void afterBuildOrderItems(TradeShopDTO shopDTO, List<TradeShopItemDTO> itemList) {
-        // 默认实现为空，子类可选择覆盖
-    }
-
-    /**
-     * 构建SKU规格快照字符串
-     * 格式：颜色=黑色;尺码=L
-     * 
-     * @param skuId SKU ID
-     * @return SKU规格快照字符串
-     */
-    private String buildSkuSpecsSnapshot(Long skuId) {
-        // 查询SKU的所有规格
-        List<GoodsSkuSpec> skuSpecs = goodsSkuSpecService.listBySkuId(skuId);
-        
-        if (skuSpecs == null || skuSpecs.isEmpty()) {
-            return "";
-        }
-
-        // 构建规格快照：规格名=规格值 的格式，用分号分隔
-        StringBuilder specsBuilder = new StringBuilder();
-        
-        for (int i = 0; i < skuSpecs.size(); i++) {
-            GoodsSkuSpec skuSpec = skuSpecs.get(i);
-            
-            // 获取规格名
-            Spec spec = specService.getById(skuSpec.getSpecId());
-            if (spec == null) {
-                log.warn("规格不存在，specId: {}", skuSpec.getSpecId());
-                continue;
-            }
-            
-            // 获取规格值名
-            SpecValue specValue = specValueService.getById(skuSpec.getSpecValueId());
-            if (specValue == null) {
-                log.warn("规格值不存在，specValueId: {}", skuSpec.getSpecValueId());
-                continue;
-            }
-            
-            // 追加到字符串
-            specsBuilder.append(spec.getName()).append("=").append(specValue.getValue());
-            if (i < skuSpecs.size() - 1) {
-                specsBuilder.append(";");
-            }
-        }
-        
-        return specsBuilder.toString();
-    }
+    protected void afterBuildOrderItems(TradeShopDTO shopDTO, List<TradeShopItemDTO> itemList) {}
 
     /**
      * 构建订单主表
@@ -268,24 +265,31 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
      * @return 订单构建结果
      */
     @NonNull
-    protected OrderBuildResult buildOrder(
+    protected OrderBuildResult buildOrderBuildResult(
             long storeId,
             int quantity,
             long orderTotalPrice,
             List<OrderItem> orderItems
     ) {
+        Order order = buildOrder(storeId, quantity, orderTotalPrice);
+        return new OrderBuildResult(order, orderItems);
+    }
+
+    private Order buildOrder(long storeId, int quantity, long orderTotalPrice) {
         Long userId = UserContextHolder.getUserId();
         String orderNo = OrderNoUtil.generateOrderNo();
-        Order order = Order.builder()
-                           .no(orderNo)
-                           .userId(userId)
-                           .storeId(storeId)
-                           .quantity(quantity)
-                           .totalPrice(orderTotalPrice)
-                           .status(getOrderStatus())
-                           .build();
-        log.info("店铺订单构建成功, storeId: {}, orderNo: {}", storeId, orderNo);
-        return new OrderBuildResult(order, orderItems);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime expire = now.plusMinutes(30);
+
+        return Order.builder()
+                    .no(orderNo)
+                    .userId(userId)
+                    .storeId(storeId)
+                    .quantity(quantity)
+                    .totalPrice(orderTotalPrice)
+                    .createTime(expire)
+                    .status(getOrderStatus())
+                    .build();
     }
 
     /**

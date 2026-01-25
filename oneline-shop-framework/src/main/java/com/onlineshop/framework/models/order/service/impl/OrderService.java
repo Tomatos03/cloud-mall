@@ -34,6 +34,7 @@ import com.onlineshop.framework.models.order.wrapper.OrderQueryWrapper;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.Store;
 import com.onlineshop.framework.models.user.UserRole;
+import com.onlineshop.framework.mq.order.OrderProducer;
 import com.onlineshop.framework.utils.OrderNoUtil;
 import com.onlineshop.framework.utils.context.UserContextHolder;
 import com.onlineshop.framework.utils.money.Money;
@@ -68,6 +69,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     private final ICartService cartService;
     private final IGoodsService goodsService;
     private final IGoodsSkuService goodsSkuService;
+    private final OrderProducer orderProducer;
 
     /**
      * 用户端：分页查询聚合订单（查询父订单和普通订单，并聚合子订单和商品明细）
@@ -278,21 +280,19 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     @Transactional(rollbackFor = Exception.class)
     public OrderCreateResultDTO createOrder(TradeDTO tradeDTO, CartType cartType) {
         Address address = loadValidateAddress(tradeDTO);
-
         orderStrategyContext.validate(cartType, tradeDTO);
         List<OrderCreateStrategy.OrderBuildResult> buildResults = orderStrategyContext.buildOrders(
                 cartType, tradeDTO
         );
-
         String orderNo = processOrderAggregate(buildResults, address);
-
-        log.debug("订单创建成功, orderNo: {}", orderNo);
+        log.info("订单创建成功, orderNo: {}", orderNo);
 
         cleanCartGoods(tradeDTO.getTradeItems());
         return OrderCreateResultDTO.builder()
                                    .orderNo(orderNo)
                                    .build();
     }
+
 
     private @NonNull Address loadValidateAddress(TradeDTO tradeDTO) {
         Address address = getAddress(tradeDTO);
@@ -315,6 +315,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         List<OrderItem> orderItems = buildOrderItemsAndBindOrderId(buildResults, orders);
         saveOrderItems(orderItems);
 
+        orderProducer.sendOrderTimeoutCancelAfterCommit(orders);
         return extractOrderNo(parentOrder, orders);
     }
 
@@ -638,6 +639,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean cancelOrder(String orderNo) {
+        log.info("取消订单, orderNo: {}", orderNo);
         Order order = queryUserOrderByOrderNo(orderNo);
         validateOrder(order);
         return updateOrderStatusByOrderNo(order, OrderStatus.CANCELED);

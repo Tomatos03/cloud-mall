@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.favorite.dto.FavoriteQueryDTO;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.onlineshop.framework.models.favorite.dto.FavoriteStatusDTO;
 import com.onlineshop.framework.models.favorite.vo.FavoriteVO;
 
 public interface IFavoriteService extends IService<Favorite> {
@@ -21,5 +22,13 @@ public interface IFavoriteService extends IService<Favorite> {
      * @param goodsId 商品id
      */
     void addFavorite(Long goodsId);
+
+    /**
+     * 检查某个商品是否已被当前用户收藏
+     *
+     * @param goodsId 商品id
+     * @return true-已收藏 false-未收藏
+     */
+    FavoriteStatusDTO isFavorite(Long goodsId);
 }
 

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.models.favorite.dto.FavoriteQueryDTO;
+import com.onlineshop.framework.models.favorite.dto.FavoriteStatusDTO;
 import com.onlineshop.framework.models.favorite.vo.FavoriteVO;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
@@ -39,6 +40,17 @@ public class FavoriteService extends ServiceImpl<FavoriteMapper, Favorite> imple
 
         Favorite favorite = buildFavorite(goods);
         this.save(favorite);
+    }
+
+    @Override
+    public FavoriteStatusDTO isFavorite(Long goodsId) {
+        Favorite favorite = this.lambdaQuery()
+                                .eq(Favorite::getUserId, UserContextHolder.getUserId())
+                                .eq(Favorite::getGoodsId, goodsId)
+                                .one();
+        FavoriteStatusDTO favoriteStatusDTO = new FavoriteStatusDTO();
+        favoriteStatusDTO.setFavorite(favorite != null);
+        return favoriteStatusDTO;
     }
 
     /**

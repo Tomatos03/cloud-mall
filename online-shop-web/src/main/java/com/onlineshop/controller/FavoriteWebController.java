@@ -1,12 +1,10 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.favorite.Favorite;
 import com.onlineshop.framework.models.favorite.IFavoriteService;
 import com.onlineshop.framework.models.favorite.dto.FavoriteQueryDTO;
 import com.onlineshop.framework.models.favorite.dto.FavoriteStatusDTO;
 import com.onlineshop.framework.models.favorite.vo.FavoriteVO;
-import com.onlineshop.framework.utils.context.UserContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,19 +37,8 @@ public class FavoriteWebController {
         return favoriteService.removeById(id);
     }
 
-    // 检查收藏状态
     @GetMapping("/status/{goodsId}")
     public FavoriteStatusDTO checkFavoriteStatus(@PathVariable Long goodsId) {
-        Long userId = UserContextHolder.getUserId();
-        Favorite one = favoriteService.lambdaQuery()
-                                      .eq(Favorite::getUserId, userId)
-                                      .eq(Favorite::getGoodsId, goodsId)
-                                      .one();
-        FavoriteStatusDTO favoriteStatusDTO = new FavoriteStatusDTO();
-        if (one != null) {
-            favoriteStatusDTO.setFavoriteId(one.getId());
-            favoriteStatusDTO.setFavorite(true);
-        }
-        return favoriteStatusDTO;
+        return favoriteService.isFavorite(goodsId);
     }
 }

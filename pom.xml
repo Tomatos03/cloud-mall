@@ -29,12 +29,20 @@
         <mybatis-plus-jsqlparser-version>3.5.14</mybatis-plus-jsqlparser-version>
         <mybatis-plus-annotation-version>3.5.14</mybatis-plus-annotation-version>
         <hutool-all-version>5.8.42</hutool-all-version>
+        <rocketMQ-starter-version>2.3.5</rocketMQ-starter-version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- RocketMQ Starter -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-spring-boot-starter</artifactId>
+            <version>${rocketMQ-starter-version}</version>
         </dependency>
 
         <!-- Spring Boot Validation -->

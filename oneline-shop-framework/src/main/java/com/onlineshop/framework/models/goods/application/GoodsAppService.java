@@ -10,6 +10,7 @@ import com.onlineshop.framework.models.audit.enums.AuditType;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
+import com.onlineshop.framework.models.favorite.IFavoriteService;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
 import com.onlineshop.framework.models.goods.application.vo.WebGoodsDetailVO;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
@@ -29,8 +30,8 @@ import com.onlineshop.framework.models.goods.spec.vo.SpecificationVO;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.goods.spu.vo.WebSpuVO;
+import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.Store;
-import com.onlineshop.framework.models.store.StoreService;
 import com.onlineshop.framework.models.store.vo.StoreInfoVO;
 import com.onlineshop.framework.models.unit.IUnitService;
 import com.onlineshop.framework.models.unit.Unit;
@@ -38,7 +39,7 @@ import com.onlineshop.framework.support.JsonSupport;
 import com.onlineshop.framework.utils.context.UserContextHolder;
 import com.onlineshop.framework.utils.image.ImageUtil;
 import com.onlineshop.framework.utils.money.Money;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,42 +50,22 @@ import java.util.stream.Collectors;
  * 商品发布聚合应用服务
  * 用于处理商品发布、更新、查询等涉及多个子模块的复杂业务
  *
- * 重构说明：
- * - 商品发布现在需要经过审核流程
- * - submitGoodsAudit: 提交商品审核申请（新增或更新）
- * - publishGoodsAfterAudit: 审核通过后进行实际保存
- *
  * @author Tomatos
  * @date 2026/1/6
  */
 @Service
+@RequiredArgsConstructor
 public class GoodsAppService implements IGoodsAppService {
-
-    @Autowired
-    private IGoodsService goodsService;
-
-    @Autowired
-    private IGoodsSkuService skuService;
-
-    @Autowired
-    private ISpecService specService;
-
-    @Autowired
-    private ISpecValueService specValueService;
-
-    @Autowired
-    private IGoodsSkuSpecService skuSpecService;
-
-    @Autowired
-    private IAuditService auditService;
-
-    @Autowired
-    private ICategoryService categoryService;
-
-    @Autowired
-    private IUnitService unitService;
-    @Autowired
-    private StoreService storeService;
+    private final IGoodsService goodsService;
+    private final IGoodsSkuService skuService;
+    private final ISpecService specService;
+    private final ISpecValueService specValueService;
+    private final IGoodsSkuSpecService skuSpecService;
+    private final IAuditService auditService;
+    private final ICategoryService categoryService;
+    private final IUnitService unitService;
+    private final IStoreService storeService;
+    private final IFavoriteService favoriteService;
 
     @Override
     public void submitGoodsAudit(GoodsDTO payload) {
@@ -329,7 +310,6 @@ public class GoodsAppService implements IGoodsAppService {
         StoreInfoVO storeInfo = buildStoreInfoVO(goods.getStoreId());
         List<SpecificationVO> specifications = buildSpecificationsVOForDisplay(id);
         List<SelectedSkuDTO> selectedSkus = buildSelectedSkuDTOList(id);
-
         return buildWebGoodsDetailVO(spu, storeInfo, specifications, selectedSkus);
     }
 

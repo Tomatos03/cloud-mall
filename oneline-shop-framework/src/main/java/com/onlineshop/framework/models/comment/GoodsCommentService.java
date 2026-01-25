@@ -101,8 +101,13 @@ public class GoodsCommentService extends ServiceImpl<GoodsCommentMapper, GoodsCo
         }
 
         Page<GoodsComment> pageObj = new Page<>(page, size);
-        return this.page(pageObj, queryWrapper)
-                   .convert(this::createCommentCardVO);
+        Page<GoodsComment> result = this.page(pageObj, queryWrapper);
+
+        List<GoodsComment> deduplicateComments = deduplicateCommentsByGoodsAndUser(pageObj.getRecords());
+        result.setRecords(deduplicateComments);
+        result.setTotal(deduplicateComments.size());
+
+        return result.convert(this::createCommentCardVO);
     }
 
     @Override
@@ -128,8 +133,7 @@ public class GoodsCommentService extends ServiceImpl<GoodsCommentMapper, GoodsCo
                                  .commentId(comment.getId())
                                  .orderNo(order.getNo())
                                  .goodsName(orderItem.getGoodsName())
-                                 .goodsMainImage(
-                                         ImageUtil.urlToImage(orderItem.getGoodsMainImageUrl()))
+                                 .goodsMainImageUrl(orderItem.getGoodsMainImageUrl())
                                  .buyerName(
                                          getDisplayName(
                                                  comment.getIsAnonymous(),

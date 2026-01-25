@@ -79,9 +79,13 @@ public class Order {
      * 订单类型：PARENT-父订单, SUB-子订单, NORMAL-普通订单（单店铺）
      */
     private String orderType;
+
+    private String reason;
     
     /**
      * 下单时间
      */
     private LocalDateTime createTime;
+
+    private LocalDateTime expireTime;
 }

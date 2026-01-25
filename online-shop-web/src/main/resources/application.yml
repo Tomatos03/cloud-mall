@@ -28,6 +28,19 @@ auth:
     - '/web/user/register'
     - '/web/goods/**'
 
+rocketmq:
+  name-server: localhost:9876
+  producer:
+    group: online-mall-group
+    send-message-timeout: 3000
+  consumer:
+    group: order_timeout_cancel_group
+
+mq:
+  orders:
+    timeout-seconds: 1800
+    cancel-topic: "order.cancel.topic"
+
 jwt:
   secret: mySecretKeyForJwtToken123456789012345678901234567890  # 请替换为更安全的密钥
   expire: 86400000  # 24小时（毫秒）
