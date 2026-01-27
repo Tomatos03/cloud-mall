@@ -5,10 +5,9 @@ import com.onlineshop.framework.models.order.dto.TradeDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * 订单策略上下文
@@ -24,8 +23,12 @@ public class OrderStrategyContext {
     private final List<OrderCreateStrategy> createStrategies;
     private final List<OrderValidateStrategy> validateStrategies;
 
-    private Map<CartType, OrderCreateStrategy> createStrategyMap;
-    private Map<CartType, OrderValidateStrategy> validateStrategyMap;
+    private static Map<String, OrderCreateStrategy> createStrategyMap;
+    private static Map<String, OrderValidateStrategy> validateStrategyMap;
+    /**
+     * 初始化策略映射
+     */
+    private static volatile boolean initialized = false;
 
     /**
      * 校验订单
@@ -46,29 +49,35 @@ public class OrderStrategyContext {
      * @param cartType 购物车类型
      * @return 订单校验策略
      */
-    public OrderValidateStrategy getValidateStrategy(CartType cartType) {
-        initStrategyMaps();
-        return validateStrategyMap.get(cartType);
+    private OrderValidateStrategy getValidateStrategy(CartType cartType) {
+        ensureInit();
+        return validateStrategyMap.get(cartType.name());
     }
 
-    /**
-     * 初始化策略映射
-     */
-    private void initStrategyMaps() {
-        if (createStrategyMap == null) {
-            createStrategyMap = createStrategies.stream()
-                                                .collect(
-                                                        Collectors.toMap(
-                                                                OrderCreateStrategy::getSupportedCartType,
-                                                                Function.identity()
-                                                        )
-                                                );
-        }
-        if (validateStrategyMap == null) {
-            validateStrategyMap = validateStrategies.stream()
-                                                    .collect(Collectors.toMap(
-                                                            OrderValidateStrategy::supportCartType,
-                                                            Function.identity()));
+    private void ensureInit() {
+        if (initialized) return;
+        synchronized (OrderStrategyContext.class) {
+            if (initialized) return;
+            createStrategyMap = new HashMap<>();
+            validateStrategyMap = new HashMap<>();
+
+            for (OrderCreateStrategy strategy : createStrategies) {
+                createStrategyMap.put(
+                        strategy.getSupportedCartType()
+                                .name(),
+                        strategy
+                );
+            }
+
+            for (OrderValidateStrategy strategy : validateStrategies) {
+                validateStrategyMap.put(
+                        strategy.getSupportCartType()
+                                .name(),
+                        strategy
+                );
+            }
+
+            initialized = true;
         }
     }
 
@@ -80,8 +89,7 @@ public class OrderStrategyContext {
      * @param tradeDTO 交易数据
      * @return 构建好的订单结果列表（按店铺分组）
      */
-    public List<OrderCreateStrategy.OrderBuildResult> buildOrders(CartType cartType,
-                                                                  TradeDTO tradeDTO) {
+    public OrderCreateStrategy.OrderBuildResult buildOrders(CartType cartType, TradeDTO tradeDTO) {
         OrderCreateStrategy strategy = getCreateStrategy(cartType);
         if (strategy != null) {
             return strategy.buildOrders(tradeDTO);
@@ -95,8 +103,8 @@ public class OrderStrategyContext {
      * @param cartType 购物车类型
      * @return 订单创建策略
      */
-    public OrderCreateStrategy getCreateStrategy(CartType cartType) {
-        initStrategyMaps();
-        return createStrategyMap.get(cartType);
+    private OrderCreateStrategy getCreateStrategy(CartType cartType) {
+        ensureInit();
+        return createStrategyMap.get(cartType.name());
     }
 }

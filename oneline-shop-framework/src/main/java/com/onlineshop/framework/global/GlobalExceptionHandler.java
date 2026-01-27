@@ -1,6 +1,6 @@
 package com.onlineshop.framework.global;
 
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.utils.Result;
 import lombok.extern.slf4j.Slf4j;

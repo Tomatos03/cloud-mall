@@ -1,10 +1,9 @@
 package com.onlineshop.framework.models.cart;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.cart.dto.AddCartItemDTO;
-import com.onlineshop.framework.models.cart.dto.CartCacheItemDTO;
 import com.onlineshop.framework.models.cart.dto.UpdateCartItemDTO;
 import com.onlineshop.framework.models.cart.vo.CartStoreItemVO;
 import com.onlineshop.framework.models.cart.vo.CartStoreVO;
@@ -231,8 +230,8 @@ public class CartService implements ICartService {
      */
     @Override
     @CacheEvict(value = "cart", key = "#root.target.getUserIdForCache()")
-    public void removeCartItems(List<CartCacheItemDTO> itemList) {
-        if (CollectionUtil.isEmpty(itemList)) {
+    public void removeCartItems(Collection<Long> ids) {
+        if (CollectionUtil.isEmpty(ids)) {
             return;
         }
 
@@ -240,19 +239,14 @@ public class CartService implements ICartService {
         String cartKey = getCartKey(userId);
         Map<Object, Object> cartData = redisTemplate.opsForHash()
                                                     .entries(cartKey);
-
-        // 构建要删除的SKU ID集合
-        Set<Long> skuIdsToDelete = new HashSet<>();
-        for (CartCacheItemDTO item : itemList) {
-            skuIdsToDelete.add(item.getSkuId());
-        }
+        HashSet<Long> deleteIdsSet = new HashSet<>(ids);
 
         // 查找并删除匹配的项
         List<Object> fieldsToDelete = new ArrayList<>();
         for (Map.Entry<Object, Object> entry : cartData.entrySet()) {
             try {
                 CartStoreItemVO itemVO = (CartStoreItemVO) entry.getValue();
-                if (skuIdsToDelete.contains(itemVO.getSkuId())) {
+                if (deleteIdsSet.contains(itemVO.getSkuId())) {
                     fieldsToDelete.add(entry.getKey());
                 }
             } catch (Exception e) {

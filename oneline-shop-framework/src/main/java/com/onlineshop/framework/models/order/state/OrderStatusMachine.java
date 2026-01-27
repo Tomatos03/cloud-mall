@@ -1,7 +1,5 @@
 package com.onlineshop.framework.models.order.state;
 
-import com.onlineshop.framework.enums.BizErrorCode;
-import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.order.enums.OrderStatus;
 
 import java.util.Collections;
@@ -27,10 +25,8 @@ public class OrderStatusMachine {
     /**
      * 校验状态流转是否合法
      */
-    public static void validateTransition(OrderStatus from, OrderStatus to) {
+    public static boolean validateTransition(OrderStatus from, OrderStatus to) {
         Set<OrderStatus> allowed = transitions.getOrDefault(from, Collections.emptySet());
-        if (!allowed.contains(to)) {
-            throw new BusinessException(BizErrorCode.INVALID_ORDER_STATUS);
-        }
+        return allowed.contains(to);
     }
 }

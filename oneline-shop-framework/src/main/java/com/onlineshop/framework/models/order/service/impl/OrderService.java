@@ -1,17 +1,18 @@
 package com.onlineshop.framework.models.order.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
+import com.onlineshop.framework.event.cart.ClearCartEvent;
+import com.onlineshop.framework.event.order.OrderCreatedEvent;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.address.Address;
 import com.onlineshop.framework.models.address.IAddressService;
 import com.onlineshop.framework.models.cart.CartType;
-import com.onlineshop.framework.models.cart.ICartService;
-import com.onlineshop.framework.models.cart.dto.CartCacheItemDTO;
 import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.order.dto.*;
@@ -34,8 +35,7 @@ import com.onlineshop.framework.models.order.wrapper.OrderQueryWrapper;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.Store;
 import com.onlineshop.framework.models.user.UserRole;
-import com.onlineshop.framework.mq.order.OrderProducer;
-import com.onlineshop.framework.utils.OrderNoUtil;
+import com.onlineshop.framework.utils.DateTimeUtil;
 import com.onlineshop.framework.utils.context.UserContextHolder;
 import com.onlineshop.framework.utils.money.Money;
 import com.onlineshop.framework.utils.money.MoneyUtil;
@@ -43,13 +43,11 @@ import io.micrometer.common.util.StringUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -66,10 +64,9 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     private final IOrderItemService orderItemService;
     private final IAddressService addressService;
     private final IStoreService storeService;
-    private final ICartService cartService;
     private final IGoodsService goodsService;
     private final IGoodsSkuService goodsSkuService;
-    private final OrderProducer orderProducer;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * 用户端：分页查询聚合订单（查询父订单和普通订单，并聚合子订单和商品明细）
@@ -218,6 +215,9 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
                                .orderNo(topOrder.getNo())
                                .status(topOrder.getStatus())
                                .createTime(topOrder.getCreateTime())
+                               .expireTime(topOrder.getCreateTime()
+                                                   .plusMinutes(30L))
+                               .reason(topOrder.getReason())
                                .storeOrders(storeOrders)
                                .totalPrice(calculateAggregateOrderTotalPrice(storeOrders))
                                .count(calculateAggregateOrderGoodsTotalNum(storeOrders))
@@ -281,18 +281,14 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     public OrderCreateResultDTO createOrder(TradeDTO tradeDTO, CartType cartType) {
         Address address = loadValidateAddress(tradeDTO);
         orderStrategyContext.validate(cartType, tradeDTO);
-        List<OrderCreateStrategy.OrderBuildResult> buildResults = orderStrategyContext.buildOrders(
+        OrderCreateStrategy.OrderBuildResult orderBuildResult = orderStrategyContext.buildOrders(
                 cartType, tradeDTO
         );
-        String orderNo = processOrderAggregate(buildResults, address);
-        log.info("订单创建成功, orderNo: {}", orderNo);
-
-        cleanCartGoods(tradeDTO.getTradeItems());
-        return OrderCreateResultDTO.builder()
-                                   .orderNo(orderNo)
-                                   .build();
+        OrderCreateResultDTO result = processOrderAggregate(orderBuildResult, address);
+        log.info("订单创建成功, orderNo: {}", result.getOrderNo());
+        pushCleanCartGoodsEvent(tradeDTO.getTradeItems());
+        return result;
     }
-
 
     private @NonNull Address loadValidateAddress(TradeDTO tradeDTO) {
         Address address = getAddress(tradeDTO);
@@ -301,35 +297,54 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public String processOrderAggregate(
-            List<OrderCreateStrategy.OrderBuildResult> buildResults,
+    public OrderCreateResultDTO processOrderAggregate(
+            @NonNull OrderCreateStrategy.OrderBuildResult buildResults,
             Address address
     ) {
-        validateOrderBuildResult(buildResults);
-        Order parentOrder = buildParentOrderIfNecessary(buildResults, address);
-        saveParentOrderIfExist(parentOrder);
-
-        List<Order> orders = buildAndAssembleOrders(address, buildResults, parentOrder);
+        savePayOrder(buildResults);
+        Order payOrder = buildResults.getPayOrder();
+        List<Order> orders = buildResults.getSubOrders()
+                                         .stream()
+                                         .map(OrderCreateStrategy.RawOrderBuild::getOrder)
+                                         .toList();
+        fillAddressInfo(orders, address);
         saveOrders(orders);
 
-        List<OrderItem> orderItems = buildOrderItemsAndBindOrderId(buildResults, orders);
+        bindOrderId(buildResults.getSubOrders());
+        List<OrderItem> orderItems = buildResults.getSubOrders()
+                                                 .stream()
+                                                 .map(OrderCreateStrategy.RawOrderBuild::getOrderItems)
+                                                 .flatMap(List::stream)
+                                                 .toList();
         saveOrderItems(orderItems);
 
-        orderProducer.sendOrderTimeoutCancelAfterCommit(orders);
-        return extractOrderNo(parentOrder, orders);
+        applicationEventPublisher.publishEvent(
+                OrderCreatedEvent.builder()
+                                 .orderId(payOrder.getId())
+                                 .orderNo(payOrder.getNo())
+                                 .build()
+        );
+
+        return OrderCreateResultDTO.builder()
+                                   .orderNo(payOrder.getNo())
+                                   .expireTime(payOrder.getCreateTime()
+                                                       .plusMinutes(30)
+                                   )
+                                   .build();
     }
 
-    private void cleanCartGoods(List<TradeShopDTO> tradeItems) {
-        List<CartCacheItemDTO> itemList = new ArrayList<>();
-        for (TradeShopDTO tradeItem : tradeItems) {
-            List<TradeShopItemDTO> tradeShopItemList = tradeItem.getTradeShopItemList();
-            for (TradeShopItemDTO tradeShopItem : tradeShopItemList) {
-                CartCacheItemDTO cartCacheItemDTO = new CartCacheItemDTO();
-                cartCacheItemDTO.setSkuId(tradeShopItem.getSkuId());
-                itemList.add(cartCacheItemDTO);
-            }
-        }
-        cartService.removeCartItems(itemList);
+    private void pushCleanCartGoodsEvent(List<TradeShopDTO> tradeItems) {
+        List<Long> skuIds = tradeItems.stream()
+                                      .map(TradeShopDTO::getTradeShopItemList)
+                                      .flatMap(Collection::stream)
+                                      .map(TradeShopItemDTO::getSkuId)
+                                      .toList();
+
+        applicationEventPublisher.publishEvent(
+                ClearCartEvent.builder()
+                              .skuIds(skuIds)
+                              .build()
+        );
     }
 
     private Address getAddress(TradeDTO tradeDTO) {
@@ -346,137 +361,52 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         }
     }
 
-    private void validateOrderBuildResult(List<OrderCreateStrategy.OrderBuildResult> buildResults) {
-        if (buildResults == null || buildResults.isEmpty()) {
-            throw new BusinessException(BizErrorCode.ORDER_DATA_IS_NULL);
-        }
-    }
-
-    private Order buildParentOrderIfNecessary(
-            List<OrderCreateStrategy.OrderBuildResult> buildResults,
-            Address address
-    ) {
-        Order parentOrder = null;
-        if (buildResults.size() > 1) {
-            parentOrder = createParentOrder(buildResults, address);
-            log.debug("父订单创建成功, parentOrderId: {}, parentOrderNo: {}, 子订单数量: {}",
-                      parentOrder.getId(), parentOrder.getNo(), buildResults.size());
-        }
-        return parentOrder;
-    }
-
-    private void saveParentOrderIfExist(Order parentOrder) {
-        if (parentOrder == null) {
+    private void savePayOrder(OrderCreateStrategy.OrderBuildResult buildResult) {
+        Order payOrder = buildResult.getPayOrder();
+        if (!OrderType.PARENT.getCode()
+                             .equals(payOrder.getOrderType())) {
             return;
         }
-        if (!save(parentOrder)) {
-            log.error("父订单保存失败");
+
+        if (!this.save(payOrder)) {
+            log.error("支付订单保存失败");
             throw new BusinessException(BizErrorCode.ORDER_CREATE_FAILED);
         }
     }
 
-    private List<Order> buildAndAssembleOrders(
-            Address address,
-            List<OrderCreateStrategy.OrderBuildResult> buildResults,
-            Order parentOrder
-    ) {
-        return buildResults.stream()
-                           .map(OrderCreateStrategy.OrderBuildResult::getOrder)
-                           .peek(order -> assembleOrder(address, order, parentOrder))
-                           .collect(Collectors.toList());
+    private void fillAddressInfo(List<Order> orders, Address address) {
+        for (Order order : orders) {
+            order.setUserName(address.getReceiver());
+            order.setPhone(address.getPhone());
+            order.setAddress(address.getFullAddress() + "/" + address.getDetail());
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
     public void saveOrders(List<Order> orders) {
+        if (CollectionUtil.isEmpty(orders)) {
+            return;
+        }
+
         if (!saveBatch(orders)) {
             log.error("订单保存失败");
             throw new BusinessException(BizErrorCode.ORDER_CREATE_FAILED);
         }
     }
 
-    private List<OrderItem> buildOrderItemsAndBindOrderId(List<OrderCreateStrategy.OrderBuildResult> buildResults, List<Order> orders) {
-        int orderItemNum = buildResults.stream()
-                                       .mapToInt(result ->
-                                                         result.getOrderItems()
-                                                               .size())
-                                       .sum();
-        List<OrderItem> orderItemList = new ArrayList<>(orderItemNum);
-        int size = buildResults.size();
-        for (int i = 0; i < size; ++i) {
-            Long orderId = orders.get(i)
-                                 .getId();
-
-            List<OrderItem> orderItems = buildResults.get(i)
-                                                     .getOrderItems();
-            bindOrderId(orderId, orderItems);
-            orderItemList.addAll(orderItems);
+    private void bindOrderId(List<OrderCreateStrategy.RawOrderBuild> orderBuilds) {
+        for (OrderCreateStrategy.RawOrderBuild orderBuild : orderBuilds) {
+            Order order = orderBuild.getOrder();
+            for (OrderItem orderItem : orderBuild.getOrderItems()) {
+                orderItem.setOrderId(order.getId());
+            }
         }
-        return orderItemList;
     }
 
     private void saveOrderItems(List<OrderItem> orderItems) {
         if (!orderItemService.saveBatchItems(orderItems)) {
             log.error("订单明细保存失败");
             throw new BusinessException(BizErrorCode.ORDER_CREATE_FAILED);
-        }
-    }
-
-    private String extractOrderNo(Order parentOrder, List<Order> orders) {
-        return (parentOrder != null) ? parentOrder.getNo() : orders.get(0)
-                                                                   .getNo();
-    }
-
-    /**
-     * 创建父订单
-     *
-     * @param buildResults 订单构建结果列表
-     * @param address      收货地址
-     * @return 父订单
-     */
-    private Order createParentOrder(
-            List<OrderCreateStrategy.OrderBuildResult> buildResults,
-            Address address
-    ) {
-        // 计算所有子订单的总价
-        long totalPrice = buildResults.stream()
-                                      .mapToLong(r -> r.getOrder()
-                                                       .getTotalPrice())
-                                      .sum();
-
-        return Order.builder()
-                    .no(OrderNoUtil.generateParentOrderNo())
-                    .userId(UserContextHolder.getUserId())
-                    .totalPrice(totalPrice)
-                    .quantity(buildResults.size())  // 子订单数量
-                    .status(OrderStatus.CREATED.getCode())
-                    .orderType(OrderType.PARENT.getCode())
-                    .userName(address.getReceiver())
-                    .address(address.getFullAddress() + "/" + address.getDetail())
-                    .phone(address.getPhone())
-                    .build();
-    }
-
-    private void assembleOrder(
-            Address address,
-            Order order,
-            Order parentOrder
-    ) {
-        order.setUserName(address.getReceiver());
-        order.setAddress(address.getFullAddress() + "/" + address.getDetail());
-        order.setPhone(address.getPhone());
-
-        // 设置订单类型和父订单关联
-        if (parentOrder != null) {
-            order.setOrderType(OrderType.SUB.getCode());
-            order.setParentId(parentOrder.getId());
-        } else {
-            order.setOrderType(OrderType.NORMAL.getCode());
-        }
-    }
-
-    private void bindOrderId(Long orderId, List<OrderItem> orderItems) {
-        for (OrderItem orderItem : orderItems) {
-            orderItem.setOrderId(orderId);
         }
     }
 
@@ -496,8 +426,38 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         log.info("支付成功（模拟）, orderNo: {}, 支付状态: 成功", orderNo);
         Order order = queryOrderByOrderNo(orderNo);
         validateOrder(order);
-        return updateOrderStatusByOrderNo(order, OrderStatus.PAID);
+        return syncUpdateOrderStatus(order, OrderStatus.PAID);
     }
+
+    //    /**
+    //     * 创建父订单
+    //     *
+    //     * @param buildResults 订单构建结果列表
+    //     * @param address      收货地址
+    //     * @return 父订单
+    //     */
+    //    private Order createParentOrder(
+    //            List<OrderCreateStrategy.OrderBuildResult> buildResults,
+    //            Address address
+    //    ) {
+    //        // 计算所有子订单的总价
+    //        long totalPrice = buildResults.stream()
+    //                                      .mapToLong(r -> r.getOrder()
+    //                                                       .getTotalPrice())
+    //                                      .sum();
+    //
+    //        return Order.builder()
+    //                    .no(OrderNoUtil.generateParentOrderNo())
+    //                    .userId(UserContextHolder.getUserId())
+    //                    .totalPrice(totalPrice)
+    //                    .quantity(buildResults.size())  // 子订单数量
+    //                    .status(OrderStatus.CREATED.getCode())
+    //                    .orderType(OrderType.PARENT.getCode())
+    //                    .userName(address.getReceiver())
+    //                    .address(address.getFullAddress() + "/" + address.getDetail())
+    //                    .phone(address.getPhone())
+    //                    .build();
+    //    }
 
     private Order queryOrderByOrderNo(String orderNo) {
         return lambdaQuery().eq(Order::getNo, orderNo)
@@ -510,37 +470,29 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         }
     }
 
-    private boolean updateOrderStatusByOrderNo(Order order, OrderStatus newStatus) {
-        OrderStatusMachine.validateTransition(OrderStatus.of(order.getStatus()), newStatus);
+    private boolean syncUpdateOrderStatus(Order order, OrderStatus newStatus) {
+        String oldStatus = order.getStatus();
+        // 验证状态迁移的合法性
+        if (OrderStatusMachine.validateTransition(OrderStatus.of(oldStatus), newStatus)) {
+            return false;
+        }
 
         order.setStatus(newStatus.getCode());
-        syncOrderStatus(order);
-        return this.updateById(order);
+        syncUpdateParentOrSubOrderStatus(order);
+        // 乐观锁
+        return lambdaUpdate().eq(Order::getStatus, oldStatus)
+                             .set(Order::getStatus, newStatus)
+                             .set(StrUtil.isNotBlank(order.getReason()), Order::getReason,
+                                  order.getReason())
+                             .update();
     }
 
-    private void syncOrderStatus(Order order) {
+    private void syncUpdateParentOrSubOrderStatus(Order order) {
         if (OrderType.PARENT == OrderType.of(order.getOrderType())) {
             syncSubOrderStatus(order);
         } else {
             syncParentOrderStatus(order);
         }
-    }
-
-    public List<OrderItem> getOrderItemsByOrderNo(String orderNo) {
-        Order order = lambdaQuery().eq(Order::getNo, orderNo)
-                                   .one();
-        List<Long> orderIds = Collections.singletonList(order.getId());;
-        if (OrderType.PARENT == OrderType.of(order.getOrderType())) {
-            orderIds = lambdaQuery().eq(Order::getParentId, order.getId())
-                                    .list()
-                                    .stream()
-                                    .map(Order::getId)
-                                    .toList();
-        }
-
-        return orderItemService.lambdaQuery()
-                               .in(OrderItem::getOrderId, orderIds)
-                               .list();
     }
 
     private void syncSubOrderStatus(Order order) {
@@ -639,21 +591,38 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean cancelOrder(String orderNo) {
-        log.info("取消订单, orderNo: {}", orderNo);
-        Order order = queryUserOrderByOrderNo(orderNo);
+        return cancelOrder(orderNo, UserContextHolder.getUserId());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean cancelOrder(String orderNo, Long userId) {
+        log.info("取消订单, orderNo: {}, userId: {}", orderNo, userId);
+        Order order = queryOrderByOrderNoAndUserId(orderNo, userId);
         validateOrder(order);
-        return updateOrderStatusByOrderNo(order, OrderStatus.CANCELED);
+        return syncUpdateOrderStatus(order, OrderStatus.CANCELED);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean closeOrder(Order order) {
+        return syncUpdateOrderStatus(order, OrderStatus.CLOSED);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public boolean finishOrder(String orderNo) {
         Order order = queryUserOrderByOrderNo(orderNo);
         validateOrder(order);
-        if (updateOrderStatusByOrderNo(order, OrderStatus.FINISHED)) {
+        if (syncUpdateOrderStatus(order, OrderStatus.FINISHED)) {
             deductInventoryByOrderNo(orderNo);
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean finishOrder(Order order) {
+        return syncUpdateOrderStatus(order, OrderStatus.FINISHED);
     }
 
     @Override
@@ -694,9 +663,10 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
 
         Order order = queryStoreOrder(orderNo, stores);
         validateStoreOrder(order);
-        return updateOrderStatusByOrderNo(order, OrderStatus.SHIPPED);
+        return syncUpdateOrderStatus(order, OrderStatus.SHIPPED);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean cancelOrderMerchant(String orderNo) {
         List<Store> storeList = queryUserStore();
@@ -704,7 +674,6 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
 
         Order order = queryStoreOrder(orderNo, storeList);
         validateStoreOrder(order);
-
         return this.cancelOrder(orderNo);
     }
 
@@ -714,6 +683,26 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         Order order = queryStoreOrder(orderNo, stores);
         validateStoreOrder(order);
         return OrderVO.buildOrderVO(order);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean autoReceiveOrder(Order order) {
+        if (
+                !DateTimeUtil.isExpired(order.getCreateTime()
+                                             .plusMinutes(30L))
+                        || !OrderStatus.SHIPPED.getCode()
+                                               .equals(order.getStatus())
+        ) {
+            return false;
+        }
+        return syncUpdateOrderStatus(order, OrderStatus.FINISHED);
+    }
+
+    private Order queryOrderByOrderNoAndUserId(String orderNo, Long userId) {
+        return lambdaQuery().eq(Order::getNo, orderNo)
+                            .eq(Order::getUserId, userId)
+                            .one();
     }
 
     private Order queryStoreOrder(String orderNo, List<Store> stores) {
@@ -749,5 +738,282 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         return lambdaQuery().eq(Order::getNo, orderNo)
                             .eq(Order::getUserId, UserContextHolder.getUserId())
                             .one();
+    }
+
+    public List<OrderItem> getOrderItemsByOrderNo(String orderNo) {
+        Order order = lambdaQuery().eq(Order::getNo, orderNo)
+                                   .one();
+        List<Long> orderIds = Collections.singletonList(order.getId());
+
+        if (OrderType.PARENT == OrderType.of(order.getOrderType())) {
+            orderIds = lambdaQuery().eq(Order::getParentId, order.getId())
+                                    .list()
+                                    .stream()
+                                    .map(Order::getId)
+                                    .toList();
+        }
+
+        return orderItemService.lambdaQuery()
+                               .in(OrderItem::getOrderId, orderIds)
+                               .list();
+    }
+
+    /**
+     * 批量同步更新订单状态（按订单号）
+     * 根据订单号列表批量更新订单状态
+     *
+     * @param orderNos 订单号列表
+     * @param newStatus 新状态
+     * @return 成功更新的订单数
+     */
+    // TODO: ai 生成需要code_view
+    @Transactional(rollbackFor = Exception.class)
+    public int batchSyncUpdateOrderStatusByOrderNos(List<String> orderNos, OrderStatus newStatus) {
+        if (CollectionUtil.isEmpty(orderNos)) {
+            log.warn("批量更新订单状态: 订单号列表为空");
+            return 0;
+        }
+
+        List<Order> orders = lambdaQuery().in(Order::getNo, orderNos)
+                                          .list();
+
+        if (CollectionUtil.isEmpty(orders)) {
+            log.warn("批量更新订单状态: 未找到匹配的订单, orderNos: {}", orderNos);
+            return 0;
+        }
+
+        return batchSyncUpdateOrderStatus(orders, newStatus);
+    }
+
+    /**
+     * 批量同步更新订单状态
+     * 支持批量更新订单及其关联的父/子订单状态
+     *
+     * @param orders 待更新的订单列表
+     * @param newStatus 新状态
+     * @return 成功更新的订单数
+     */
+    private int batchSyncUpdateOrderStatus(List<Order> orders, OrderStatus newStatus) {
+        if (CollectionUtil.isEmpty(orders)) {
+            log.warn("批量更新订单状态: 订单列表为空");
+            return 0;
+        }
+
+        // 验证并过滤所有订单的状态迁移合法性
+        List<Order> validOrders = validateAndFilterOrders(orders, newStatus);
+        if (CollectionUtil.isEmpty(validOrders)) {
+            log.warn("批量更新订单状态: 没有有效的订单需要更新");
+            return 0;
+        }
+
+        // 准备批量更新数据
+        List<Order> ordersToUpdate = prepareBatchUpdateData(validOrders, newStatus);
+
+        // 批量更新订单
+        if (!updateBatchById(ordersToUpdate)) {
+            log.error("批量更新订单状态失败");
+            return 0;
+        }
+
+        // 同步更新关联的父/子订单
+        batchSyncUpdateParentOrSubOrderStatus(validOrders);
+
+        log.info("批量更新订单状态成功, 更新数量: {}, 新状态: {}", validOrders.size(),
+                 newStatus.getCode());
+        return validOrders.size();
+    }
+
+    /**
+     * 验证并过滤订单的状态迁移合法性
+     *
+     * @param orders 原始订单列表
+     * @param newStatus 新状态
+     * @return 有效的订单列表
+     */
+    private List<Order> validateAndFilterOrders(List<Order> orders, OrderStatus newStatus) {
+        return orders.stream()
+                     .filter(order -> {
+                         String oldStatus = order.getStatus();
+                         if (OrderStatusMachine.validateTransition(OrderStatus.of(oldStatus),
+                                                                   newStatus)) {
+                             log.warn("订单状态迁移非法, orderId: {}, oldStatus: {}, newStatus: {}",
+                                      order.getId(), oldStatus, newStatus.getCode());
+                             return false;
+                         }
+                         return true;
+                     })
+                     .collect(Collectors.toList());
+    }
+
+    /**
+     * 准备批量更新数据
+     * 包括主订单、子订单等所有需要更新的订单
+     *
+     * @param orders 有效的订单列表
+     * @param newStatus 新状态
+     * @return 所有需要更新的订单列表
+     */
+    private List<Order> prepareBatchUpdateData(List<Order> orders, OrderStatus newStatus) {
+        List<Order> ordersToUpdate = new ArrayList<>();
+
+        for (Order order : orders) {
+            order.setStatus(newStatus.getCode());
+            ordersToUpdate.add(order);
+
+            // 如果是父订单，同步准备更新所有子订单
+            if (OrderType.PARENT == OrderType.of(order.getOrderType())) {
+                List<Order> subOrders = querySubOrder(order);
+                for (Order subOrder : subOrders) {
+                    subOrder.setStatus(newStatus.getCode());
+                    ordersToUpdate.add(subOrder);
+                }
+            }
+        }
+
+        return ordersToUpdate;
+    }
+
+    /**
+     * 批量同步更新父/子订单状态
+     * 根据原始订单列表的类型分别处理父订单和子订单
+     * 实现真正的批量处理，减少数据库操作次数
+     *
+     * @param orders 原始有效订单列表
+     */
+    private void batchSyncUpdateParentOrSubOrderStatus(List<Order> orders) {
+        // 按订单类型分组
+        Map<String, List<Order>> ordersByType = orders.stream()
+                                                      .collect(Collectors.groupingBy(
+                                                              Order::getOrderType
+                                                      ));
+
+        // 批量处理子订单（当父订单被更新时）
+        List<Order> parentOrders = ordersByType.getOrDefault(OrderType.PARENT.getCode(),
+                                                             Collections.emptyList());
+        if (!parentOrders.isEmpty()) {
+            batchSyncSubOrderStatus(parentOrders);
+        }
+
+        // 批量处理父订单（当子订单被更新时）
+        List<Order> subOrders = ordersByType.getOrDefault(OrderType.SUB.getCode(),
+                                                          Collections.emptyList());
+        if (!subOrders.isEmpty()) {
+            batchSyncParentOrderStatus(subOrders);
+        }
+    }
+
+    /**
+     * 批量同步子订单状态
+     * 为一批父订单的所有子订单同步更新状态
+     *
+     * @param parentOrders 父订单列表
+     */
+    private void batchSyncSubOrderStatus(List<Order> parentOrders) {
+        // 获取所有父订单ID
+        List<Long> parentIds = parentOrders.stream()
+                                           .map(Order::getId)
+                                           .toList();
+
+        // 一次查询获取所有子订单
+        List<Order> allSubOrders = lambdaQuery().in(Order::getParentId, parentIds)
+                                                .list();
+
+        // 分组统计：按父订单ID分组，方便后续处理
+        Map<Long, List<Order>> subOrdersByParentId = allSubOrders.stream()
+                                                                 .collect(Collectors.groupingBy(
+                                                                         Order::getParentId
+                                                                 ));
+
+        // 准备批量更新的子订单列表
+        List<Order> subOrdersToUpdate = new ArrayList<>();
+
+        for (Order parentOrder : parentOrders) {
+            // 获取该父订单对应的所有子订单
+            List<Order> subOrders = subOrdersByParentId.getOrDefault(parentOrder.getId(),
+                                                                     Collections.emptyList());
+
+            // 更新子订单的状态为父订单的状态
+            for (Order subOrder : subOrders) {
+                subOrder.setStatus(parentOrder.getStatus());
+                subOrdersToUpdate.add(subOrder);
+            }
+        }
+
+        // 一次批量更新所有子订单
+        if (!subOrdersToUpdate.isEmpty()) {
+            updateBatchById(subOrdersToUpdate);
+            log.debug("批量同步子订单状态完成, 更新子订单数量: {}", subOrdersToUpdate.size());
+        }
+    }
+
+    /**
+     * 批量同步父订单状态
+     * 为一批子订单的父订单同步更新状态
+     * 父订单状态规则：
+     * - 所有子订单状态相同 => 父订单状态等于子订单状态
+     * - 子订单状态不全相同 => 父订单状态为 PROCESSING
+     *
+     * @param subOrders 子订单列表
+     */
+    private void batchSyncParentOrderStatus(List<Order> subOrders) {
+        // 获取所有不重复的父订单ID
+        List<Long> parentIds = subOrders.stream()
+                                        .map(Order::getParentId)
+                                        .filter(java.util.Objects::nonNull)
+                                        .distinct()
+                                        .toList();
+
+        if (parentIds.isEmpty()) {
+            return;
+        }
+
+        // 一次查询获取所有父订单
+        List<Order> parentOrders = lambdaQuery().in(Order::getId, parentIds)
+                                                .list();
+
+        // 构建父订单和其子订单的映射关系（一次查询）
+        Map<Long, List<Order>> childrenByParentId = lambdaQuery().in(Order::getParentId,
+                                                                     parentIds)
+                                                                 .list()
+                                                                 .stream()
+                                                                 .collect(Collectors.groupingBy(
+                                                                         Order::getParentId
+                                                                 ));
+
+        // 准备批量更新的父订单列表
+        List<Order> parentOrdersToUpdate = new ArrayList<>();
+
+        for (Order parentOrder : parentOrders) {
+            // 获取该父订单的所有子订单
+            List<Order> childOrders = childrenByParentId.getOrDefault(parentOrder.getId(),
+                                                                      Collections.emptyList());
+
+            if (childOrders.isEmpty()) {
+                continue;
+            }
+
+            // 检查所有子订单状态是否相同
+            String firstStatus = childOrders.get(0)
+                                            .getStatus();
+            boolean allSameStatus = childOrders.stream()
+                                               .allMatch(o -> o.getStatus()
+                                                               .equals(firstStatus));
+
+            // 根据子订单状态决定父订单状态
+            String newParentStatus = allSameStatus ? firstStatus
+                    : ParentOrderStatus.PROCESSING.getCode();
+
+            // 只有当父订单状态需要变更时才标记为更新
+            if (!newParentStatus.equals(parentOrder.getStatus())) {
+                parentOrder.setStatus(newParentStatus);
+                parentOrdersToUpdate.add(parentOrder);
+            }
+        }
+
+        // 一次批量更新所有需要更新的父订单
+        if (!parentOrdersToUpdate.isEmpty()) {
+            updateBatchById(parentOrdersToUpdate);
+            log.debug("批量同步父订单状态完成, 更新父订单数量: {}", parentOrdersToUpdate.size());
+        }
     }
 }

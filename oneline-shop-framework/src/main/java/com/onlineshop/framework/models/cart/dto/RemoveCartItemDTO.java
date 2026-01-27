@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 购物车缓存项DTO
  * 仅包含skuId，因为skuId能唯一确定购物车中的一个商品项
@@ -14,6 +16,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartCacheItemDTO {
-    private Long skuId;
+public class RemoveCartItemDTO {
+    private List<Long> skuIds;
 }

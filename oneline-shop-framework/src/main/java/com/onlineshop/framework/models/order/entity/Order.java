@@ -86,6 +86,4 @@ public class Order {
      * 下单时间
      */
     private LocalDateTime createTime;
-
-    private LocalDateTime expireTime;
 }

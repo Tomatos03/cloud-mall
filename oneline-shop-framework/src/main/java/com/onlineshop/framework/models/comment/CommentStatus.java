@@ -1,6 +1,6 @@
 package com.onlineshop.framework.models.comment;
 
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,16 +1,14 @@
 package com.onlineshop.controller;
 
-import com.onlineshop.framework.models.cart.dto.AddCartItemDTO;
-import com.onlineshop.framework.models.cart.dto.CartCacheItemDTO;
-import com.onlineshop.framework.models.cart.dto.UpdateCartItemDTO;
 import com.onlineshop.framework.models.cart.ICartService;
+import com.onlineshop.framework.models.cart.dto.AddCartItemDTO;
+import com.onlineshop.framework.models.cart.dto.RemoveCartItemDTO;
+import com.onlineshop.framework.models.cart.dto.UpdateCartItemDTO;
 import com.onlineshop.framework.models.cart.vo.CartStoreItemVO;
 import com.onlineshop.framework.models.cart.vo.CartVO;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 购物车控制器
@@ -61,8 +59,8 @@ public class CartController {
      * 批量删除购物车项 - 根据SKU ID列表批量删除
      */
     @DeleteMapping("/batch")
-    public void batchRemove(@RequestBody List<CartCacheItemDTO> items) {
-        cartService.removeCartItems(items);
+    public void batchRemove(@RequestBody RemoveCartItemDTO items) {
+        cartService.removeCartItems(items.getSkuIds());
     }
 
     /**

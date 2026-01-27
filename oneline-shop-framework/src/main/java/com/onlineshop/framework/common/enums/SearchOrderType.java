@@ -1,4 +1,4 @@
-package com.onlineshop.framework.enums;
+package com.onlineshop.framework.common.enums;
 
 import com.onlineshop.framework.exception.BusinessException;
 import lombok.AllArgsConstructor;

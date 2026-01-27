@@ -1,7 +1,7 @@
 package com.onlineshop.framework.models.goods.spu.vo;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.onlineshop.framework.enums.SearchOrderType;
+import com.onlineshop.framework.common.enums.SearchOrderType;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
 import com.onlineshop.framework.utils.image.ImageUtil;

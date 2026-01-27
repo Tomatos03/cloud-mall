@@ -3,7 +3,7 @@ package com.onlineshop.framework.models.category;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;

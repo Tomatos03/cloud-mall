@@ -1,7 +1,7 @@
 package com.onlineshop.framework.models.goods.application;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.entity.Audit;

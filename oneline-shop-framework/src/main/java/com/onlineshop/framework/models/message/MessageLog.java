@@ -23,7 +23,7 @@ public class MessageLog {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private Long bizId;
+    private String bizId;
 
     private String bizType;
 

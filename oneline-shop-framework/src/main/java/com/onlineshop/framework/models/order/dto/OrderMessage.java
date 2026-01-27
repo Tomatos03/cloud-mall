@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.order.dto;
 
+import com.onlineshop.framework.common.enums.BizType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,22 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 public class OrderMessage {
-    private Long orderId;
     private String orderNo;
     private String orderJson;
+    private String topic;
+    private String bizType;
+
+    public static OrderMessage of(
+            String orderNo,
+            String orderJson,
+            String topic,
+            BizType bizType
+    ) {
+        return OrderMessage.builder()
+                           .orderNo(orderNo)
+                           .orderJson(orderJson)
+                           .topic(topic)
+                           .bizType(bizType.getCode())
+                           .build();
+    }
 }

@@ -15,6 +15,8 @@ import com.onlineshop.framework.models.order.dto.TradeShopDTO;
 import com.onlineshop.framework.models.order.dto.TradeShopItemDTO;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.entity.OrderItem;
+import com.onlineshop.framework.models.order.enums.OrderStatus;
+import com.onlineshop.framework.models.order.enums.OrderType;
 import com.onlineshop.framework.models.order.strategy.OrderCreateStrategy;
 import com.onlineshop.framework.utils.OrderNoUtil;
 import com.onlineshop.framework.utils.context.UserContextHolder;
@@ -32,26 +34,26 @@ import java.util.List;
  * 订单创建策略抽象类
  * 职责：定义订单创建的通用逻辑框架，提取公共方法
  * 模板方法模式：子类通过实现抽象方法来定制具体的行为
- * 
+ *
  * 重要说明：
  * ============================================================
  * 本类假设所有数据都已通过 OrderValidateStrategy 的校验：
- * 
+ *
  * ✅ 已验证的内容：
  *   - 基本数据完整性（用户、店铺、商品 ID 等不为空）
  *   - SKU 存在且已上架
  *   - SKU 所属商品属于指定的店铺
  *   - SKU 库存充足
  *   - 购物车中存在该商品（仅适用于普通购物车）
- * 
+ *
  * ❌ 本类不进行任何校验：
  *   - 不检查数据有效性（校验已在 OrderValidateStrategy 完成）
  *   - 不抛出业务异常
- * 
+ *
  * 职责分离原则：
  *   - 校验层：OrderValidateStrategy - 验证所有输入数据
  *   - 创建层：OrderCreateStrategy - 直接构建订单，无需再做校验
- *   
+ *
  * 调用流程：
  *   OrderValidateStrategy.validate(tradeDTO)  ← 完成所有校验，数据有效
  *          ↓
@@ -64,7 +66,6 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy {
-
     protected final IGoodsService goodsService;
     protected final IGoodsSkuService goodsSkuService;
     protected final IGoodsSkuSpecService goodsSkuSpecService;
@@ -73,30 +74,30 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
 
     /**
      * 主入口：构建订单对象和订单明细
-     * 
+     *
      * 流程：
      * 1. 遍历每个店铺的交易数据
      * 2. 为每个店铺构建一个订单及其订单明细
      * 3. 返回所有构建的订单结果
-     * 
+     *
      * @param tradeDTO 交易信息（已通过校验）
      * @return 构建好的订单结果列表（按店铺分组）
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public List<OrderBuildResult> buildOrders(TradeDTO tradeDTO) {
+    public OrderBuildResult buildOrders(TradeDTO tradeDTO) {
         Long userId = UserContextHolder.getUserId();
         List<TradeShopDTO> shopList = tradeDTO.getTradeItems();
-        List<OrderBuildResult> resultList = new ArrayList<>(shopList.size());
+        List<RawOrderBuild> rawOrderBuilds = new ArrayList<>(shopList.size());
 
         // 按店铺分组处理订单
         for (TradeShopDTO shopDTO : shopList) {
-            OrderBuildResult result = buildOrderForShop(shopDTO);
-            resultList.add(result);
+            RawOrderBuild result = buildOrderForShop(shopDTO);
+            rawOrderBuilds.add(result);
         }
 
         log.info("订单构建成功, userId: {}, 订单类型: {}", userId, getSupportedCartType());
-        return resultList;
+        return createOrderBuildResult(rawOrderBuilds);
     }
 
     /**
@@ -106,7 +107,7 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
      * @param shopDTO 店铺交易数据
      * @return 订单构建结果
      */
-    protected OrderBuildResult buildOrderForShop(TradeShopDTO shopDTO) {
+    protected RawOrderBuild buildOrderForShop(TradeShopDTO shopDTO) {
         Long storeId = shopDTO.getStoreId();
         List<TradeShopItemDTO> itemList = shopDTO.getTradeShopItemList();
 
@@ -133,20 +134,39 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
             orderTotalPrice += itemTotalPrice;
 
             // 构建订单明细
-            OrderItem orderItem = buildOrderItem(goods, itemDTO, sku, skuSpecsSnapshot, itemTotalPrice);
+            OrderItem orderItem = buildOrderItem(
+                    goods,
+                    itemDTO,
+                    sku,
+                    skuSpecsSnapshot,
+                    itemTotalPrice
+            );
             orderItems.add(orderItem);
         }
 
         afterBuildOrderItems(shopDTO, itemList);
 
-        // 构建订单主表
         return buildOrderBuildResult(storeId, itemList.size(), orderTotalPrice, orderItems);
+    }
+
+    private OrderBuildResult createOrderBuildResult(List<RawOrderBuild> rawOrderBuilds) {
+        int size = rawOrderBuilds.size();
+        if (size > 1) {
+            Order parentOrder = createParentOrder(rawOrderBuilds);
+            fillOrderInfo(rawOrderBuilds, parentOrder);
+            return new OrderBuildResult(parentOrder, rawOrderBuilds);
+        }
+
+        Order order = rawOrderBuilds.get(0)
+                                    .getOrder();
+        order.setOrderType(OrderType.NORMAL.getCode());
+        return new OrderBuildResult(order, rawOrderBuilds);
     }
 
     /**
      * 在构建订单明细之前的钩子方法
      * 子类可覆盖此方法以执行自定义的初始化逻辑
-     * 
+     *
      * 使用场景：
      * - 批量加载商品到缓存
      * - 初始化线程本地变量
@@ -161,7 +181,7 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
     /**
      * 获取商品信息
      * 子类实现具体的商品获取逻辑
-     * 
+     *
      * 注意：
      * - 商品已通过校验，肯定存在且已上架
      * - 库存已通过校验，肯定充足
@@ -172,29 +192,6 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
      * @return 商品对象
      */
     protected abstract Goods getGoods(TradeShopDTO shopDTO, TradeShopItemDTO itemDTO);
-
-    /**
-     * 构建订单明细项（支持多规格商品）
-     *
-     * @param goods               商品信息
-     * @param itemDTO             商品项DTO
-     * @param sku                 SKU信息
-     * @param skuSpecsSnapshot    SKU规格快照
-     * @param itemTotalPrice      明细总价
-     * @return 订单明细对象
-     */
-    protected OrderItem buildOrderItem(Goods goods, TradeShopItemDTO itemDTO, GoodsSku sku, String skuSpecsSnapshot, long itemTotalPrice) {
-        return OrderItem.builder()
-                        .skuId(itemDTO.getSkuId())
-                        .goodsId(goods.getId())
-                        .goodsName(goods.getName())
-                        .goodsMainImageUrl(ImageUtil.getMainImageUrl(goods.getDisplayImages()))
-                        .goodsPrice(sku.getPrice())
-                        .quantity(itemDTO.getQuantity())
-                        .totalPrice(itemTotalPrice)
-                        .skuSpecs(skuSpecsSnapshot)
-                        .build();
-    }
 
     /**
      * 构建SKU规格快照字符串
@@ -232,13 +229,44 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
             }
 
             // 追加到字符串
-            specsBuilder.append(spec.getName()).append("=").append(specValue.getValue());
+            specsBuilder.append(spec.getName())
+                        .append("=")
+                        .append(specValue.getValue());
             if (i < skuSpecs.size() - 1) {
                 specsBuilder.append(";");
             }
         }
 
         return specsBuilder.toString();
+    }
+
+    /**
+     * 构建订单明细项（支持多规格商品）
+     *
+     * @param goods               商品信息
+     * @param itemDTO             商品项DTO
+     * @param sku                 SKU信息
+     * @param skuSpecsSnapshot    SKU规格快照
+     * @param itemTotalPrice      明细总价
+     * @return 订单明细对象
+     */
+    protected OrderItem buildOrderItem(
+            Goods goods,
+            TradeShopItemDTO itemDTO,
+            GoodsSku sku,
+            String skuSpecsSnapshot,
+            long itemTotalPrice
+    ) {
+        return OrderItem.builder()
+                        .skuId(itemDTO.getSkuId())
+                        .goodsId(goods.getId())
+                        .goodsName(goods.getName())
+                        .goodsMainImageUrl(ImageUtil.getMainImageUrl(goods.getDisplayImages()))
+                        .goodsPrice(sku.getPrice())
+                        .quantity(itemDTO.getQuantity())
+                        .totalPrice(itemTotalPrice)
+                        .skuSpecs(skuSpecsSnapshot)
+                        .build();
     }
 
     /**
@@ -253,7 +281,8 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
      * @param shopDTO  店铺交易数据
      * @param itemList 商品项列表
      */
-    protected void afterBuildOrderItems(TradeShopDTO shopDTO, List<TradeShopItemDTO> itemList) {}
+    protected void afterBuildOrderItems(TradeShopDTO shopDTO, List<TradeShopItemDTO> itemList) {
+    }
 
     /**
      * 构建订单主表
@@ -265,21 +294,47 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
      * @return 订单构建结果
      */
     @NonNull
-    protected OrderBuildResult buildOrderBuildResult(
+    protected RawOrderBuild buildOrderBuildResult(
             long storeId,
             int quantity,
             long orderTotalPrice,
             List<OrderItem> orderItems
     ) {
         Order order = buildOrder(storeId, quantity, orderTotalPrice);
-        return new OrderBuildResult(order, orderItems);
+        return new RawOrderBuild(order, orderItems);
+    }
+
+    private Order createParentOrder(List<RawOrderBuild> rawOrderBuilds) {
+        // 计算所有子订单的总价
+        long totalPrice = rawOrderBuilds.stream()
+                                        .mapToLong(rawOrderBuild ->
+                                                           rawOrderBuild.getOrder()
+                                                                        .getTotalPrice()
+                                        )
+                                        .sum();
+
+        return Order.builder()
+                    .no(OrderNoUtil.generateParentOrderNo())
+                    .userId(UserContextHolder.getUserId())
+                    .totalPrice(totalPrice)
+                    .quantity(rawOrderBuilds.size())  // 子订单数量
+                    .status(OrderStatus.CREATED.getCode())
+                    .orderType(OrderType.PARENT.getCode())
+                    .build();
+    }
+
+    private void fillOrderInfo(List<RawOrderBuild> rawOrderBuilds, Order parentOrder) {
+        for (RawOrderBuild rawOrderBuild : rawOrderBuilds) {
+            Order order = rawOrderBuild.getOrder();
+            order.setOrderType(OrderType.SUB.getCode());
+            order.setParentId(parentOrder.getId());
+        }
     }
 
     private Order buildOrder(long storeId, int quantity, long orderTotalPrice) {
         Long userId = UserContextHolder.getUserId();
         String orderNo = OrderNoUtil.generateOrderNo();
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expire = now.plusMinutes(30);
 
         return Order.builder()
                     .no(orderNo)
@@ -287,7 +342,7 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
                     .storeId(storeId)
                     .quantity(quantity)
                     .totalPrice(orderTotalPrice)
-                    .createTime(expire)
+                    .createTime(now)
                     .status(getOrderStatus())
                     .build();
     }

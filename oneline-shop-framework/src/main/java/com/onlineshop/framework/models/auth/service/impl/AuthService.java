@@ -1,6 +1,6 @@
 package com.onlineshop.framework.models.auth.service.impl;
 
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.auth.bo.TokenPayload;
 import com.onlineshop.framework.models.auth.dto.LoginDTO;

@@ -23,5 +23,5 @@ public interface OrderValidateStrategy {
      *
      * @return 购物车类型
      */
-    CartType supportCartType();
+    CartType getSupportCartType();
 }

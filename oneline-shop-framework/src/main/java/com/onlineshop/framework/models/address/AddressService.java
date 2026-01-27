@@ -2,7 +2,7 @@ package com.onlineshop.framework.models.address;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.user.UserRole;
 import com.onlineshop.framework.utils.context.UserContextHolder;

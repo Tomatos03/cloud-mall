@@ -19,6 +19,15 @@ spring:
   cache:
     type: redis
 
+rocketmq:
+  producer:
+    group: online-mall-group
+    send-message-timeout: 3000
+    namespace:
+  consumer:
+    group: order_timeout_cancel_group
+  name-server: localhost:9876
+
 auth:
   white-list:
     - '/manager/auth/**'

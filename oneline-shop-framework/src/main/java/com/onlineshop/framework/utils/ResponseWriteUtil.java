@@ -1,7 +1,7 @@
 package com.onlineshop.framework.utils;
 
 import cn.hutool.json.JSONUtil;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;

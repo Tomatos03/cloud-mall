@@ -1,6 +1,6 @@
 package com.onlineshop.framework.exception;
 
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import lombok.Getter;
 
 /**

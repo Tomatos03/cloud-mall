@@ -1,7 +1,7 @@
 package com.onlineshop.framework.models.statistic;
 
 import com.onlineshop.framework.utils.image.Image;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;

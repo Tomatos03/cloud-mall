@@ -33,6 +33,11 @@ public class OrderAggregateVO implements Serializable {
      */
     private LocalDateTime createTime;
 
+    private LocalDateTime expireTime;
+
+    // 订单关闭或取消原因
+    private String reason;
+
     private String totalPrice;
     private Long count; // 订单总商品数量
     private List<StoreOrderVO> storeOrders;

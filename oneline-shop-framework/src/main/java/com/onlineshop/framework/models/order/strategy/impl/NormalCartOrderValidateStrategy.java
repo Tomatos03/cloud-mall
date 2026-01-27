@@ -3,7 +3,7 @@ package com.onlineshop.framework.models.order.strategy.impl;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
 import com.onlineshop.framework.models.order.dto.TradeShopDTO;
 import com.onlineshop.framework.models.order.dto.TradeShopItemDTO;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.models.cart.CartType;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.cart.ICartService;
@@ -67,7 +67,7 @@ public class NormalCartOrderValidateStrategy extends AbstractOrderValidateStrate
     }
 
     @Override
-    public CartType supportCartType() {
+    public CartType getSupportCartType() {
         return CartType.NORMAL;
     }
 }

@@ -78,6 +78,27 @@ public interface IOrderService extends IService<Order> {
     boolean cancelOrder(String orderNo);
 
     /**
+     * 取消订单接口 - 重载方法（指定用户ID）
+     * 功能：取消订单，将订单状态从 CREATED 改为 CANCELED
+     * 检查订单是否处于 CREATED 状态，只有处于该状态才能取消
+     * 支持管理员或其他场景代理用户操作订单
+     *
+     * @param orderNo 订单编号
+     * @param userId 用户ID
+     * @return 是否成功
+     * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在或订单状态不符合要求时
+     */
+    boolean cancelOrder(String orderNo, Long userId);
+
+    /**
+     * 超时关闭订单接口
+     * @param order 订单实体
+     * @return 是否成功
+     * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在或订单状态转换不合法时
+     */
+    boolean closeOrder(Order order);
+
+    /**
      * 用户确认收货接口
      * 功能：确认收货，将订单状态从 SHIPPED 改为 FINISHED
      * 检查订单是否处于 SHIPPED 状态，只有处于该状态才能确认收货
@@ -87,6 +108,8 @@ public interface IOrderService extends IService<Order> {
      * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在或订单状态不符合要求时
      */
     boolean finishOrder(String orderNo);
+
+    boolean finishOrder(Order order);
 
     /**
      * 分页查询所有订单（管理员权限）
@@ -132,4 +155,15 @@ public interface IOrderService extends IService<Order> {
      * @return 订单信息（包含评价内容）
      */
     OrderVO getOrderCommentMerchant(String orderNo);
+
+
+                /**
+     * 自动收货订单
+     * 当订单到达自动收货时间（T + N）时，自动确认收货
+     * 将订单状态从 SHIPPED 改为 FINISHED
+     *
+     * @param order 订单对象，需要包含 autoReceiveTime 字段
+     * @return 是否成功
+     */
+    boolean autoReceiveOrder(Order order);
 }

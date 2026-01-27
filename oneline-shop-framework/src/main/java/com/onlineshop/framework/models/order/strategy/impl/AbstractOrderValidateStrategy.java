@@ -7,7 +7,7 @@ import com.onlineshop.framework.models.order.dto.TradeDTO;
 import com.onlineshop.framework.models.order.dto.TradeShopDTO;
 import com.onlineshop.framework.models.order.dto.TradeShopItemDTO;
 import com.onlineshop.framework.models.goods.spu.Goods;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.order.strategy.OrderValidateStrategy;
@@ -48,7 +48,7 @@ public abstract class AbstractOrderValidateStrategy implements OrderValidateStra
 
     @Override
     public void validate(TradeDTO tradeDTO) {
-        log.info("开始订单校验, cartType: {}", supportCartType());
+        log.info("开始订单校验, cartType: {}", getSupportCartType());
 
         // 1. 校验基本数据
         validateBasicData(tradeDTO);
@@ -61,7 +61,7 @@ public abstract class AbstractOrderValidateStrategy implements OrderValidateStra
         // 3. 子类特定校验(如购物车校验)
         doAdditionalValidate(tradeDTO);
 
-        log.info("订单校验通过, cartType: {}", supportCartType());
+        log.info("订单校验通过, cartType: {}", getSupportCartType());
     }
 
     /**
@@ -195,5 +195,5 @@ public abstract class AbstractOrderValidateStrategy implements OrderValidateStra
      * @return 购物车类型
      */
     @Override
-    public abstract CartType supportCartType();
+    public abstract CartType getSupportCartType();
 }

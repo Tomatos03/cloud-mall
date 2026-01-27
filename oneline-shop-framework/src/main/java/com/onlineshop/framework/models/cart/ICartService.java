@@ -1,12 +1,11 @@
 package com.onlineshop.framework.models.cart;
 
 import com.onlineshop.framework.models.cart.dto.AddCartItemDTO;
-import com.onlineshop.framework.models.cart.dto.CartCacheItemDTO;
 import com.onlineshop.framework.models.cart.dto.UpdateCartItemDTO;
 import com.onlineshop.framework.models.cart.vo.CartStoreItemVO;
 import com.onlineshop.framework.models.cart.vo.CartVO;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * 购物车服务接口 - 支持多规格商品
@@ -47,7 +46,7 @@ public interface ICartService {
      * 批量删除购物车项
      * @param itemList 购物车项列表（包含SKU ID）
      */
-    void removeCartItems(List<CartCacheItemDTO> itemList);
+    void removeCartItems(Collection<Long> ids);
 
     /**
      * 清空购物车

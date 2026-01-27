@@ -2,6 +2,8 @@ package com.onlineshop.framework.models.order.dto;
 
 import lombok.Data;
 
+
+
 /**
  * 一个商品的交易对应一个交易项
  *

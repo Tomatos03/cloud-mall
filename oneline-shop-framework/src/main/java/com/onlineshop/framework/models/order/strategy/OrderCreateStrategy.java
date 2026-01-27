@@ -33,7 +33,7 @@ public interface OrderCreateStrategy {
      * @param tradeDTO 交易信息
      * @return 构建好的订单结果列表（按店铺分组）
      */
-    List<OrderBuildResult> buildOrders(TradeDTO tradeDTO);
+    OrderBuildResult buildOrders(TradeDTO tradeDTO);
     
     /**
      * 获取支持的购物车类型
@@ -48,7 +48,7 @@ public interface OrderCreateStrategy {
      */
     @Data
     @AllArgsConstructor
-    class OrderBuildResult {
+    class RawOrderBuild {
         /**
          * 订单信息
          */
@@ -58,5 +58,19 @@ public interface OrderCreateStrategy {
          * 订单明细列表
          */
         private List<OrderItem> orderItems;
+    }
+
+    @Data
+    @AllArgsConstructor
+    class OrderBuildResult {
+        /**
+         * 实际支付订单
+         */
+        private Order payOrder;
+
+        /**
+         * 订单列表
+         */
+        private List<RawOrderBuild> subOrders;
     }
 }

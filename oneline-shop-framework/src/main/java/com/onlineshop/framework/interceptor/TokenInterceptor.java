@@ -51,7 +51,7 @@ public class TokenInterceptor implements HandlerInterceptor {
                 return true;
             }
         } catch (Exception e) {
-            log.error("解析token异常: {}", e.getMessage(), e);
+            log.error("解析token异常: {}", e.getMessage());
         }
 
         log.info("未授权的请求[{}]", requestUri);

@@ -1,4 +1,4 @@
-package com.onlineshop.framework.mq.order;
+package com.onlineshop.framework.mq.order.consumer;
 
 
 import cn.hutool.json.JSONUtil;
@@ -20,19 +20,23 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @RocketMQMessageListener(
-        topic = "order_timeout_cancel_topic",
-        consumerGroup = "order_timeout_cancel_group",
-        selectorExpression = "*"
+        topic = "${mq.orders.cancel-topic}",
+        consumerGroup = "${rocketmq.consumer.group}"
 )
-public class OrderTimeoutCancelConsumer implements RocketMQListener<String> {
+public class OrderCloseConsumer implements RocketMQListener<String> {
     private final IOrderService orderService;
+    private static final String ORDER_CLOSE_REASON = "订单超时未支付，系统自动关闭";
 
     @Override
     public void onMessage(String message) {
         try {
-            log.info("开始处理订单超时取消消息: {}", message);
             Order order = JSONUtil.toBean(message, Order.class);
-            boolean result = orderService.cancelOrder(order.getNo());
+            order.setReason(ORDER_CLOSE_REASON);
+            if (orderService.closeOrder(order)) {
+                log.debug("订单[{}]已经处理，无需关闭", order.getNo());
+            } else {
+                log.info("关闭超时订单: {}", order.getNo());
+            }
         } catch (Exception e) {
             log.error("处理订单超时取消消息异常: {}", message, e);
             throw new RuntimeException("订单超时取消处理失败", e);

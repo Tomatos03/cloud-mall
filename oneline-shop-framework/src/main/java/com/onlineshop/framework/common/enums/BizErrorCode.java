@@ -1,5 +1,4 @@
-package com.onlineshop.framework.enums;
-
+package com.onlineshop.framework.common.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -129,6 +128,9 @@ public enum BizErrorCode {
     MERCHANT_NO_SHOP(500016, "商家没有关联这个店铺"),
     INSUFFICIENT_PERMISSIONS(500017, "权限不足"),
     INVALID_ROLE(500018, "无效的用户角色"),
+
+    // ==================== 消息相关错误码 (91xxx) ====================
+    INVALID_MESSAGE_STATUS(91000, "无效的消息状态"),
 
     // ==================== 审核相关错误码 (90xxx) ====================
     AUDIT_SUBMIT_PARAMS_INCOMPLETE(90000, "审核申请参数不完整"),

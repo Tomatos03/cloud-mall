@@ -1,7 +1,7 @@
 package com.onlineshop.framework.models.order.wrapper;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.onlineshop.framework.enums.BizErrorCode;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.order.dto.OrderQueryDTO;
 import com.onlineshop.framework.models.order.entity.Order;
