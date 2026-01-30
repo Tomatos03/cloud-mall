@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.order.strategy.impl;
 
+import com.onlineshop.framework.models.address.Address;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
 import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
 import com.onlineshop.framework.models.goods.spec.entity.GoodsSkuSpec;
@@ -21,7 +22,6 @@ import com.onlineshop.framework.models.order.strategy.OrderCreateStrategy;
 import com.onlineshop.framework.utils.OrderNoUtil;
 import com.onlineshop.framework.utils.context.UserContextHolder;
 import com.onlineshop.framework.utils.image.ImageUtil;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,25 +74,26 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
 
     /**
      * 主入口：构建订单对象和订单明细
-     *
+     * <p>
      * 流程：
      * 1. 遍历每个店铺的交易数据
      * 2. 为每个店铺构建一个订单及其订单明细
      * 3. 返回所有构建的订单结果
      *
      * @param tradeDTO 交易信息（已通过校验）
+     * @param address
      * @return 构建好的订单结果列表（按店铺分组）
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public OrderBuildResult buildOrders(TradeDTO tradeDTO) {
+    public OrderBuildResult buildOrders(TradeDTO tradeDTO, Address address) {
         Long userId = UserContextHolder.getUserId();
         List<TradeShopDTO> shopList = tradeDTO.getTradeItems();
         List<RawOrderBuild> rawOrderBuilds = new ArrayList<>(shopList.size());
 
         // 按店铺分组处理订单
         for (TradeShopDTO shopDTO : shopList) {
-            RawOrderBuild result = buildOrderForShop(shopDTO);
+            RawOrderBuild result = buildOrderForShop(shopDTO, address);
             rawOrderBuilds.add(result);
         }
 
@@ -107,7 +108,7 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
      * @param shopDTO 店铺交易数据
      * @return 订单构建结果
      */
-    protected RawOrderBuild buildOrderForShop(TradeShopDTO shopDTO) {
+    protected RawOrderBuild buildOrderForShop(TradeShopDTO shopDTO, Address address) {
         Long storeId = shopDTO.getStoreId();
         List<TradeShopItemDTO> itemList = shopDTO.getTradeShopItemList();
 
@@ -146,14 +147,15 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
 
         afterBuildOrderItems(shopDTO, itemList);
 
-        return buildOrderBuildResult(storeId, itemList.size(), orderTotalPrice, orderItems);
+        Order order = buildOrder(storeId, itemList.size(), orderTotalPrice, address);
+        return new RawOrderBuild(order, orderItems);
     }
 
     private OrderBuildResult createOrderBuildResult(List<RawOrderBuild> rawOrderBuilds) {
         int size = rawOrderBuilds.size();
         if (size > 1) {
             Order parentOrder = createParentOrder(rawOrderBuilds);
-            fillOrderInfo(rawOrderBuilds, parentOrder);
+            supplementOrderInfo(rawOrderBuilds);
             return new OrderBuildResult(parentOrder, rawOrderBuilds);
         }
 
@@ -175,7 +177,6 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
      * @param shopDTO 店铺交易数据
      */
     protected void beforeBuildOrderItems(TradeShopDTO shopDTO) {
-        // 默认实现为空，子类可选择覆盖
     }
 
     /**
@@ -284,26 +285,6 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
     protected void afterBuildOrderItems(TradeShopDTO shopDTO, List<TradeShopItemDTO> itemList) {
     }
 
-    /**
-     * 构建订单主表
-     *
-     * @param storeId         店铺ID
-     * @param quantity        商品项数量
-     * @param orderTotalPrice 订单总价
-     * @param orderItems      订单明细列表
-     * @return 订单构建结果
-     */
-    @NonNull
-    protected RawOrderBuild buildOrderBuildResult(
-            long storeId,
-            int quantity,
-            long orderTotalPrice,
-            List<OrderItem> orderItems
-    ) {
-        Order order = buildOrder(storeId, quantity, orderTotalPrice);
-        return new RawOrderBuild(order, orderItems);
-    }
-
     private Order createParentOrder(List<RawOrderBuild> rawOrderBuilds) {
         // 计算所有子订单的总价
         long totalPrice = rawOrderBuilds.stream()
@@ -313,25 +294,30 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
                                         )
                                         .sum();
 
-        return Order.builder()
-                    .no(OrderNoUtil.generateParentOrderNo())
-                    .userId(UserContextHolder.getUserId())
-                    .totalPrice(totalPrice)
-                    .quantity(rawOrderBuilds.size())  // 子订单数量
-                    .status(OrderStatus.CREATED.getCode())
-                    .orderType(OrderType.PARENT.getCode())
-                    .build();
-    }
-
-    private void fillOrderInfo(List<RawOrderBuild> rawOrderBuilds, Order parentOrder) {
-        for (RawOrderBuild rawOrderBuild : rawOrderBuilds) {
-            Order order = rawOrderBuild.getOrder();
-            order.setOrderType(OrderType.SUB.getCode());
-            order.setParentId(parentOrder.getId());
+        Order.OrderBuilder orderBuilder = Order.builder()
+                                               .no(OrderNoUtil.generateParentOrderNo())
+                                               .userId(UserContextHolder.getUserId())
+                                               .totalPrice(totalPrice)
+                                               .quantity(rawOrderBuilds.size())  // 子订单数量
+                                               .status(OrderStatus.CREATED.getCode())
+                                               .orderType(OrderType.PARENT.getCode());
+        if (!rawOrderBuilds.isEmpty()) {
+            Order firstSubOrder = rawOrderBuilds.get(0)
+                                                .getOrder();
+            orderBuilder.userName(firstSubOrder.getUserName())
+                        .phone(firstSubOrder.getPhone())
+                        .address(firstSubOrder.getAddress());
         }
+        return orderBuilder.build();
     }
 
-    private Order buildOrder(long storeId, int quantity, long orderTotalPrice) {
+    private void supplementOrderInfo(List<RawOrderBuild> rawOrderBuilds) {
+        rawOrderBuilds.forEach(rawOrderBuild ->
+                rawOrderBuild.getOrder().setOrderType(OrderType.SUB.getCode())
+        );
+    }
+
+    private Order buildOrder(long storeId, int quantity, long orderTotalPrice, Address address) {
         Long userId = UserContextHolder.getUserId();
         String orderNo = OrderNoUtil.generateOrderNo();
         LocalDateTime now = LocalDateTime.now();
@@ -344,6 +330,9 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
                     .totalPrice(orderTotalPrice)
                     .createTime(now)
                     .status(getOrderStatus())
+                    .userName(address.getReceiver())
+                    .phone(address.getPhone())
+                    .address(address.getFullAddress() + "/" + address.getDetail())
                     .build();
     }
 

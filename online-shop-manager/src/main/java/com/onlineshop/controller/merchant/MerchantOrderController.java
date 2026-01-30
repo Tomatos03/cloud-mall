@@ -1,6 +1,7 @@
 package com.onlineshop.controller.merchant;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderQueryDTO;
 import com.onlineshop.framework.models.order.service.IOrderService;
 import com.onlineshop.framework.models.order.vo.OrderAggregateVO;
@@ -58,17 +59,17 @@ public class MerchantOrderController {
     }
 
     /**
-     * 取消订单接口（商家权限）
+     * 取消订单接口（商家权限，DTO版本）
      * 功能：取消订单，将订单状态从 CREATED 改为 CANCELED
      * 触发条件：订单状态为 CREATED 时显示"取消订单"按钮
      * 需验证订单是否属于当前商家
      *
-     * @param orderNo 订单编号
+     * @param cancelDTO 取消订单请求DTO
      * @return 是否成功
      */
-    @PostMapping("/cancel/{orderNo}")
-    public boolean cancelOrder(@PathVariable String orderNo) {
-        return orderService.cancelOrderMerchant(orderNo);
+    @PostMapping("/cancel")
+    public boolean cancelOrder(@RequestBody OrderCancelDTO cancelDTO) {
+        return orderService.cancelOrderMerchant(cancelDTO);
     }
 
     /**

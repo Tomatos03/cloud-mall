@@ -10,7 +10,7 @@ import lombok.*;
  */
 @Data
 @Builder
-public class OrderCreatedEvent {
+public class OrderTimeoutCancelEvent {
     private Long orderId;
     private final String orderNo;
 }

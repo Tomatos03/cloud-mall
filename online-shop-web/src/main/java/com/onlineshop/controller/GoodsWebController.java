@@ -2,12 +2,14 @@ package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
+import com.onlineshop.framework.models.goods.application.vo.WebGoodsDetailVO;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
 import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
-import com.onlineshop.framework.models.goods.application.vo.WebGoodsDetailVO;
 import com.onlineshop.framework.models.goods.spu.vo.GoodsVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.onlineshop.framework.models.search.application.ISearchAppService;
+import com.onlineshop.framework.models.search.service.IGoodsEsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,11 +22,13 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/web/goods")
+@RequiredArgsConstructor
 public class GoodsWebController {
-    @Autowired
-    private IGoodsService goodsService;
-    @Autowired
-    private IGoodsAppService goodsAppService;
+    private final IGoodsService goodsService;
+    private final IGoodsAppService goodsAppService;
+    private final ISearchAppService searchAppService;
+    // TODO: 方便开发, 后续删除
+    private final IGoodsEsService goodsEsService;
 
     /**
      * 根据分类ID获取商品列表
@@ -49,11 +53,17 @@ public class GoodsWebController {
      */
     @GetMapping("/search")
     public IPage<GoodsCardVO> searchGoods(GoodsSearchDTO searchDTO) {
-        return goodsService.searchGoods(searchDTO);
+        return searchAppService.searchGoods(searchDTO);
     }
 
     @GetMapping("/detail/{id}")
     public WebGoodsDetailVO getGoodsDetail(@PathVariable Long id) {
         return goodsAppService.getWebGoodsDetail(id);
+    }
+
+    // TODO: 方便开发, 后续删除
+    @GetMapping("/rebuild")
+    public void rebuildGoodsIndex() {
+        goodsEsService.rebuildAllGoodsIndex();
     }
 }

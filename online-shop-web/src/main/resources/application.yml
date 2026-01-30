@@ -18,6 +18,12 @@ spring:
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
+  elasticsearch:
+    uris: http://localhost:9200
+    username: elastic
+    password: zjlljz
+    connection-timeout: 5s
+    socket-timeout: 30s
 
 auth:
   white-list:

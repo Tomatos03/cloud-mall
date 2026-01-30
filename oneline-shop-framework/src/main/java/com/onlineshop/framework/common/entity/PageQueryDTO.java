@@ -24,11 +24,11 @@ public class PageQueryDTO {
      */
     @JsonProperty("page")
     @Builder.Default
-    private Long pageNo = 1L;
+    private Integer pageNo = 1;
 
     /**
      * 每页数量
      */
     @Builder.Default
-    private Long pageSize = 10L;
+    private Integer pageSize = 10;
 }

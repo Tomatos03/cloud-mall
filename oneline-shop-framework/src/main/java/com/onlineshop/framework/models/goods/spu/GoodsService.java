@@ -6,8 +6,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
-import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
-import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
 import com.onlineshop.framework.models.goods.spu.vo.GoodsVO;
 import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
 import com.onlineshop.framework.utils.context.UserContextHolder;
@@ -25,8 +23,6 @@ import java.util.stream.Stream;
 
 @Service
 public class GoodsService extends ServiceImpl<GoodsMapper, Goods> implements IGoodsService {
-    @Autowired
-    private GoodsMapper goodsMapper;
     @Autowired
     private ICategoryService categoryService;
 
@@ -49,27 +45,8 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> implements IGo
                    .in(Goods::getCategoryId, getLeafCategoryById(categoryId))
                    .list()
                    .stream()
-                   .map(this::convertToGoodsVO)
+                   .map(GoodsVO::convertToGoodsVO)
                    .toList();
-    }
-
-    @Override
-    public IPage<GoodsCardVO> searchGoods(GoodsSearchDTO searchDTO) {
-        // 获取分类的所有叶子节点ID
-        List<Long> leafCategoryIds = searchDTO.getCategoryId() != null
-                ? getLeafCategoryById(searchDTO.getCategoryId())
-                : null;
-
-        // 直接使用DTO和分类列表构建搜索条件
-        QueryWrapper<Goods> queryWrapper = GoodsCardVO.buildSearchWrapper(
-                leafCategoryIds,
-                searchDTO
-        );
-
-        Page<Goods> pageObj = new Page<>(searchDTO.getPageNo(), searchDTO.getPageSize());
-        IPage<Goods> goodsPage = this.page(pageObj, queryWrapper);
-
-        return goodsPage.convert(GoodsCardVO::convertGoodsCardVO);
     }
 
     @Override
@@ -156,15 +133,5 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> implements IGo
             }
         }
         return allCategoryIds;
-    }
-
-    private GoodsVO convertToGoodsVO(Goods goods) {
-        return GoodsVO.builder()
-                      .name(goods.getName())
-                      .minPrice(Money.ofCents(goods.getMinPrice()).toYuanString())
-                      .id(goods.getId())
-                      .sellPoint(goods.getSellPoint())
-                      .mainImageUrl(ImageUtil.getMainImageUrl(goods.getDisplayImages()))
-                      .build();
     }
 }

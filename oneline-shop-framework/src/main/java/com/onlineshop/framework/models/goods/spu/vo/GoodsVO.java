@@ -1,5 +1,8 @@
 package com.onlineshop.framework.models.goods.spu.vo;
 
+import com.onlineshop.framework.models.goods.spu.Goods;
+import com.onlineshop.framework.utils.image.ImageUtil;
+import com.onlineshop.framework.utils.money.Money;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,4 +24,14 @@ public class GoodsVO {
     private String sellPoint;
     private String minPrice;
     private String mainImageUrl;
+
+    public static GoodsVO convertToGoodsVO(Goods goods) {
+        return GoodsVO.builder()
+                      .name(goods.getName())
+                      .minPrice(Money.ofCents(goods.getMinPrice()).toYuanString())
+                      .id(goods.getId())
+                      .sellPoint(goods.getSellPoint())
+                      .mainImageUrl(ImageUtil.getMainImageUrl(goods.getDisplayImages()))
+                      .build();
+    }
 }

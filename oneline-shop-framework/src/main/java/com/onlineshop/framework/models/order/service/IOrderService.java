@@ -3,6 +3,7 @@ package com.onlineshop.framework.models.order.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.onlineshop.framework.models.cart.CartType;
+import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.order.dto.OrderQueryDTO;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
@@ -66,37 +67,19 @@ public interface IOrderService extends IService<Order> {
      */
     OrderAggregateVO getOrderDetailByOrderNo(String orderNo);
 
-    /**
-     * 取消订单接口
-     * 功能：取消订单，将订单状态从 CREATED 改为 CANCELED
-     * 检查订单是否处于 CREATED 状态，只有处于该状态才能取消
-     *
-     * @param orderNo 订单编号
-     * @return 是否成功
-     * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在或订单状态不符合要求时
-     */
-    boolean cancelOrder(String orderNo);
-
-    /**
-     * 取消订单接口 - 重载方法（指定用户ID）
-     * 功能：取消订单，将订单状态从 CREATED 改为 CANCELED
-     * 检查订单是否处于 CREATED 状态，只有处于该状态才能取消
-     * 支持管理员或其他场景代理用户操作订单
-     *
-     * @param orderNo 订单编号
-     * @param userId 用户ID
-     * @return 是否成功
-     * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在或订单状态不符合要求时
-     */
-    boolean cancelOrder(String orderNo, Long userId);
-
-    /**
-     * 超时关闭订单接口
-     * @param order 订单实体
-     * @return 是否成功
-     * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在或订单状态转换不合法时
-     */
     boolean closeOrder(Order order);
+
+    /**
+     * 取消订单接口 - DTO版本
+     * 功能：取消订单，将订单状态从 CREATED 改为 CANCELED
+     * 检查订单是否处于 CREATED 状态，只有处于该状态才能取消
+     * 支持用户、商家、管理员等多种场景
+     *
+     * @param cancelDTO 取消订单DTO
+     * @return 是否成功
+     * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在或订单状态不符合要求时
+     */
+    boolean cancelOrder(OrderCancelDTO cancelDTO);
 
     /**
      * 用户确认收货接口
@@ -108,8 +91,6 @@ public interface IOrderService extends IService<Order> {
      * @throws com.onlineshop.framework.exception.BusinessException 当订单不存在或订单状态不符合要求时
      */
     boolean finishOrder(String orderNo);
-
-    boolean finishOrder(Order order);
 
     /**
      * 分页查询所有订单（管理员权限）
@@ -142,10 +123,10 @@ public interface IOrderService extends IService<Order> {
      * 取消订单接口（商家权限 - 验证店铺归属）
      * 功能：取消订单，将订单状态从 CREATED 改为 CANCELED
      *
-     * @param orderNo 订单编号
+     * @param cancelDTO 取消dto对象
      * @return 是否成功
      */
-    boolean cancelOrderMerchant(String orderNo);
+    boolean cancelOrderMerchant(OrderCancelDTO cancelDTO);
 
     /**
      * 查询订单评价信息（商家权限 - 验证店铺归属）

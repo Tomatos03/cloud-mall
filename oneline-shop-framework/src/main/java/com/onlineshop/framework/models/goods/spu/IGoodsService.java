@@ -2,8 +2,6 @@ package com.onlineshop.framework.models.goods.spu;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
-import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
 import com.onlineshop.framework.models.goods.spu.vo.GoodsVO;
 import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
 
@@ -15,14 +13,6 @@ public interface IGoodsService extends IService<Goods> {
     boolean updateGoods(Goods goods);
 
     List<GoodsVO> listByCategoryId(Long categoryId, int limit);
-
-    /**
-     * 商品搜索
-     *
-     * @param searchDTO 搜索条件DTO
-     * @return 分页结果
-     */
-    IPage<GoodsCardVO> searchGoods(GoodsSearchDTO searchDTO);
 
     // ========== 管理员方法 ==========
 

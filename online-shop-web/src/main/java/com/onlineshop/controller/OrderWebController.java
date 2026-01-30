@@ -2,6 +2,7 @@ package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.cart.CartType;
+import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.order.dto.OrderQueryDTO;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * 处理用户端订单相关请求，所有操作基于当前登录用户
  *
  * @author Tomatos
- * @date 2025/12/23
+ * @date 2025-12-23
  */
 @RestController
 @RequestMapping("/web/order")
@@ -67,12 +68,12 @@ public class OrderWebController {
      * 功能：取消订单，将订单状态从 CREATED 改为 CANCELED
      * 触发条件：订单状态为 CREATED 时显示"取消订单"按钮
      *
-     * @param orderNo 订单编号
+     * @param cancelDTO 取消订单请求DTO
      * @return 是否成功
      */
-    @PostMapping("/cancel/{orderNo}")
-    public boolean cancelOrder(@PathVariable String orderNo) {
-        return orderService.cancelOrder(orderNo);
+    @PostMapping("/cancel")
+    public boolean cancelOrder(@RequestBody OrderCancelDTO cancelDTO) {
+        return orderService.cancelOrder(cancelDTO);
     }
 
     /**

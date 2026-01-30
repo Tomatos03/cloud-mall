@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.order.strategy;
 
+import com.onlineshop.framework.models.address.Address;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.entity.OrderItem;
@@ -26,14 +27,15 @@ public interface OrderCreateStrategy {
      * 3. 计算订单金额
      * 4. 构建订单对象和订单明细
      * 5. 执行库存扣减等业务操作
-     * 
+     * <p>
      * 不负责：
      * - 保存订单到数据库（由 OrderService 负责）
      *
      * @param tradeDTO 交易信息
+     * @param address
      * @return 构建好的订单结果列表（按店铺分组）
      */
-    OrderBuildResult buildOrders(TradeDTO tradeDTO);
+    OrderBuildResult buildOrders(TradeDTO tradeDTO, Address address);
     
     /**
      * 获取支持的购物车类型

@@ -1,7 +1,6 @@
 package com.onlineshop.framework.mq.order.consumer;
 
 
-import cn.hutool.json.JSONUtil;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.service.IOrderService;
 import lombok.RequiredArgsConstructor;
@@ -23,22 +22,18 @@ import org.springframework.stereotype.Component;
         topic = "${mq.orders.cancel-topic}",
         consumerGroup = "${rocketmq.consumer.group}"
 )
-public class OrderCloseConsumer implements RocketMQListener<String> {
+public class OrderCloseConsumer implements RocketMQListener<Long> {
     private final IOrderService orderService;
     private static final String ORDER_CLOSE_REASON = "订单超时未支付，系统自动关闭";
 
     @Override
-    public void onMessage(String message) {
+    public void onMessage(Long orderId) {
         try {
-            Order order = JSONUtil.toBean(message, Order.class);
+            Order order = orderService.getById(orderId);
             order.setReason(ORDER_CLOSE_REASON);
-            if (orderService.closeOrder(order)) {
-                log.debug("订单[{}]已经处理，无需关闭", order.getNo());
-            } else {
-                log.info("关闭超时订单: {}", order.getNo());
-            }
+            orderService.closeOrder(order);
         } catch (Exception e) {
-            log.error("处理订单超时取消消息异常: {}", message, e);
+            log.error("处理订单超时取消消息异常: {}", e.getMessage());
             throw new RuntimeException("订单超时取消处理失败", e);
         }
     }

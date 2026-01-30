@@ -151,7 +151,6 @@ public class CategoryService extends ServiceImpl<CategoryMapper, Category> imple
             syncChildrenStatus(children);
         }
         if (!childrenCategory.isEmpty()) {
-            // TODO 事务失效待处理
             updateBatchById(childrenCategory);
         }
     }

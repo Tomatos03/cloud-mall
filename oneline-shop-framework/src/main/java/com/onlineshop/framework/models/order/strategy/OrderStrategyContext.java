@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.order.strategy;
 
+import com.onlineshop.framework.models.address.Address;
 import com.onlineshop.framework.models.cart.CartType;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
 import lombok.RequiredArgsConstructor;
@@ -89,10 +90,14 @@ public class OrderStrategyContext {
      * @param tradeDTO 交易数据
      * @return 构建好的订单结果列表（按店铺分组）
      */
-    public OrderCreateStrategy.OrderBuildResult buildOrders(CartType cartType, TradeDTO tradeDTO) {
+    public OrderCreateStrategy.OrderBuildResult buildOrders(
+            CartType cartType,
+            TradeDTO tradeDTO,
+            Address address
+    ) {
         OrderCreateStrategy strategy = getCreateStrategy(cartType);
         if (strategy != null) {
-            return strategy.buildOrders(tradeDTO);
+            return strategy.buildOrders(tradeDTO, address);
         }
         return null;
     }

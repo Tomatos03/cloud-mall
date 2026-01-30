@@ -1,6 +1,7 @@
 package com.onlineshop.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderQueryDTO;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.service.IOrderService;
@@ -56,17 +57,9 @@ public class AdminOrderController {
         return orderService.getOrderDetailByOrderNo(orderNo);
     }
 
-    /**
-     * 取消订单接口（管理员权限）
-     * 功能：取消订单，将订单状态从 CREATED 改为 CANCELED
-     * 触发条件：订单状态为 CREATED 时显示"取消订单"按钮
-     *
-     * @param orderNo 订单编号（URL路径参数）
-     * @return 是否成功
-     */
-    @PostMapping("/cancel/{orderNo}")
-    public boolean cancelOrder(@PathVariable String orderNo) {
-        return orderService.cancelOrder(orderNo);
+    @PostMapping("/cancel")
+    public boolean cancelOrder(@RequestBody OrderCancelDTO cancelDTO) {
+        return orderService.cancelOrder(cancelDTO);
     }
 
     /**

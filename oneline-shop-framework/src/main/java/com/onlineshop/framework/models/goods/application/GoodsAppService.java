@@ -2,6 +2,8 @@ package com.onlineshop.framework.models.goods.application;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.onlineshop.framework.common.enums.BizErrorCode;
+import com.onlineshop.framework.event.goods.DelGoodsFromEsEvent;
+import com.onlineshop.framework.event.goods.SyncGoodsToEsEvent;
 import com.onlineshop.framework.exception.BusinessException;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.entity.Audit;
@@ -10,7 +12,6 @@ import com.onlineshop.framework.models.audit.enums.AuditType;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
-import com.onlineshop.framework.models.favorite.IFavoriteService;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
 import com.onlineshop.framework.models.goods.application.vo.WebGoodsDetailVO;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
@@ -40,6 +41,7 @@ import com.onlineshop.framework.utils.context.UserContextHolder;
 import com.onlineshop.framework.utils.image.ImageUtil;
 import com.onlineshop.framework.utils.money.Money;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +67,7 @@ public class GoodsAppService implements IGoodsAppService {
     private final ICategoryService categoryService;
     private final IUnitService unitService;
     private final IStoreService storeService;
-    private final IFavoriteService favoriteService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     public void submitGoodsAudit(GoodsDTO payload) {
@@ -228,6 +230,15 @@ public class GoodsAppService implements IGoodsAppService {
         if (!CollectionUtil.isEmpty(specValueIds)) {
             deleteSpecValueIfUnused(new ArrayList<>(specValueIds));
         }
+        publishDelGoodsFromEsEvent(id);
+    }
+
+    private void publishDelGoodsFromEsEvent(Long goodsId) {
+        applicationEventPublisher.publishEvent(
+                DelGoodsFromEsEvent.builder()
+                                   .goodsId(goodsId)
+                                   .build()
+        );
     }
 
     /**
@@ -246,6 +257,16 @@ public class GoodsAppService implements IGoodsAppService {
         } else {
             updateExistingGoods(payload);
         }
+
+        publishSyncGoodsToEsEvent(new Goods());
+    }
+
+    private void publishSyncGoodsToEsEvent(Goods goods) {
+        applicationEventPublisher.publishEvent(
+                SyncGoodsToEsEvent.builder()
+                                  .goods(goods)
+                                  .build()
+        );
     }
 
     // ==================== 私有验证方法 ====================

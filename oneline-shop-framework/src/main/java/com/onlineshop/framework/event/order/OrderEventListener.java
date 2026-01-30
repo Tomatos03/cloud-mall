@@ -21,7 +21,7 @@ public class OrderEventListener {
     private final IOrderProducerFactory orderProducerFactory;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onOrderCreated(OrderCreatedEvent event) {
+    public void onOrderCreated(OrderTimeoutCancelEvent event) {
         IProducer<Order> producer = orderProducerFactory.getProducer(BizType.ORDER_TIMEOUT_CLOSE);
         producer.send(
                 Order.builder()
