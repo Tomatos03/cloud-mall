@@ -1,0 +1,40 @@
+server:
+  port: 7002
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3306/online_shop
+    username: Tomatos
+    password: 20030503
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      username: default
+      password: 'zjlljz'
+  cache:
+    type: redis
+
+rocketmq:
+  producer:
+    group: online-mall-group
+    send-message-timeout: 3000
+    namespace:
+  consumer:
+    group: order_timeout_cancel_group
+  name-server: localhost:9876
+
+jwt:
+  secret: mySecretKeyForJwtToken123456789012345678901234567890  # 请替换为更安全的密钥
+  expire: 86400000  # 24小时（毫秒）
+
+auth:
+  white-list:
+    - /merchant/auth/**
+    - /api/docs/**
+    - /swagger-ui/**

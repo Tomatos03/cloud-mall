@@ -27,7 +27,6 @@ public class GoodsWebController {
     private final IGoodsService goodsService;
     private final IGoodsAppService goodsAppService;
     private final ISearchAppService searchAppService;
-    // TODO: 方便开发, 后续删除
     private final IGoodsEsService goodsEsService;
 
     /**

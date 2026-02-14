@@ -33,6 +33,7 @@ auth:
     - '/web/user/login'
     - '/web/user/register'
     - '/web/goods/**'
+    - '/web/cart/**'
 
 rocketmq:
   producer:

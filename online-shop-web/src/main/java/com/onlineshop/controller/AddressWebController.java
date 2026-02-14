@@ -3,7 +3,7 @@ package com.onlineshop.controller;
 import com.onlineshop.framework.models.address.Address;
 import com.onlineshop.framework.models.address.AddressDTO;
 import com.onlineshop.framework.models.address.IAddressService;
-import com.onlineshop.framework.utils.context.UserContextHolder;
+import com.onlineshop.framework.utils.AuthUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -76,9 +76,8 @@ public class AddressWebController {
      */
     @GetMapping("/default")
     public Address getDefaultAddress() {
-        Long userId = UserContextHolder.getUserId();
         return addressService.lambdaQuery()
-                             .eq(Address::getUserId, userId)
+                             .eq(Address::getUserId, AuthUserUtils.getUserId())
                              .eq(Address::getIsDefault, true)
                              .one();
     }

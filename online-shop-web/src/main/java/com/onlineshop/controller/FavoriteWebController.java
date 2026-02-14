@@ -2,7 +2,7 @@ package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.favorite.IFavoriteService;
-import com.onlineshop.framework.models.favorite.dto.FavoriteQueryDTO;
+import com.onlineshop.framework.models.favorite.dto.FavoriteParamsDTO;
 import com.onlineshop.framework.models.favorite.dto.FavoriteStatusDTO;
 import com.onlineshop.framework.models.favorite.vo.FavoriteVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class FavoriteWebController {
 
     // 分页获取当前用户所有收藏
     @GetMapping
-    public IPage<FavoriteVO> pageFavorites(FavoriteQueryDTO queryDTO) {
+    public IPage<FavoriteVO> pageFavorites(FavoriteParamsDTO queryDTO) {
         return favoriteService.pageUserFavorites(queryDTO);
     }
 

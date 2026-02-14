@@ -3,7 +3,7 @@ package com.onlineshop.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
 import com.onlineshop.framework.models.store.IStoreService;
-import com.onlineshop.framework.models.store.dto.StoreGoodsQueryDTO;
+import com.onlineshop.framework.models.store.dto.StoreGoodsParamsDTO;
 import com.onlineshop.framework.models.store.vo.StoreVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +31,7 @@ public class StoreWebController {
      * 分页获取店铺商品列表
      */
     @GetMapping("/goods")
-    public IPage<GoodsCardVO> pageStoreGoods(StoreGoodsQueryDTO queryDTO) {
+    public IPage<GoodsCardVO> pageStoreGoods(StoreGoodsParamsDTO queryDTO) {
         return storeService.pageStoreGoods(queryDTO);
     }
 }

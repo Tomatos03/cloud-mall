@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.cart.CartType;
 import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
-import com.onlineshop.framework.models.order.dto.OrderQueryDTO;
+import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
 import com.onlineshop.framework.models.order.service.IOrderService;
 import com.onlineshop.framework.models.order.vo.OrderAggregateVO;
@@ -48,7 +48,7 @@ public class OrderWebController {
      * @return 订单聚合视图分页数据
      */
     @GetMapping("/page")
-    public IPage<OrderAggregateVO> pageQuery(OrderQueryDTO queryDTO) {
+    public IPage<OrderAggregateVO> pageQuery(OrderParamsDTO queryDTO) {
         return orderService.pageQueryForUser(queryDTO);
     }
 

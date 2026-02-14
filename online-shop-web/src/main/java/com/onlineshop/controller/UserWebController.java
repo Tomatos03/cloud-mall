@@ -4,8 +4,8 @@ import com.onlineshop.framework.models.auth.dto.LoginDTO;
 import com.onlineshop.framework.models.auth.dto.RegisterDTO;
 import com.onlineshop.framework.models.auth.dto.TokenDTO;
 import com.onlineshop.framework.models.auth.service.IAuthService;
-import com.onlineshop.framework.models.user.IUserService;
-import com.onlineshop.framework.models.user.vo.UserInfoVO;
+import com.onlineshop.framework.models.system.user.IUserService;
+import com.onlineshop.framework.models.system.user.vo.UserInfoVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

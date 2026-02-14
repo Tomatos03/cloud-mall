@@ -2,7 +2,7 @@ package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.comment.IGoodsCommentService;
-import com.onlineshop.framework.models.comment.dto.CommentQueryDTO;
+import com.onlineshop.framework.models.comment.dto.CommentParamsDTO;
 import com.onlineshop.framework.models.comment.dto.CreateCommentDTO;
 import com.onlineshop.framework.models.comment.vo.GoodsCommentVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class CommentWebController {
      * @return 分页评论结果
      */
     @GetMapping
-    public IPage<GoodsCommentVO> pageQueryComment(CommentQueryDTO queryDTO) {
+    public IPage<GoodsCommentVO> pageQueryComment(CommentParamsDTO queryDTO) {
         return goodsCommentService.pageGoodsComment(queryDTO);
     }
 }

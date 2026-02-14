@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>com.onlineMall</groupId>
-            <artifactId>oneline-shop-framework</artifactId>
+            <artifactId>online-shop-framework</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

@@ -10,6 +10,7 @@ spring:
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
   data:
     redis:
       host: localhost
@@ -30,8 +31,7 @@ rocketmq:
 
 auth:
   white-list:
-    - '/manager/auth/**'
-
+    - '/manage/auth/**'
 jwt:
   secret: mySecretKeyForJwtToken123456789012345678901234567890  # 请替换为更安全的密钥
   expire: 86400000  # 24小时（毫秒）

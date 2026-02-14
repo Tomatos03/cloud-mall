@@ -1,19 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="@localhost" uuid="6d33a0e6-470f-480b-a226-56fb4873c566">
-      <driver-ref>mariadb</driver-ref>
-      <synchronize>true</synchronize>
-      <jdbc-driver>org.mariadb.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mariadb://localhost:3306/</jdbc-url>
-      <jdbc-additional-properties>
-        <property name="com.intellij.clouds.kubernetes.db.host.port" />
-        <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
-        <property name="com.intellij.clouds.kubernetes.db.container.port" />
-      </jdbc-additional-properties>
-      <working-dir>$ProjectFileDir$</working-dir>
-    </data-source>
-    <data-source source="LOCAL" name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" group="​OnlineShopWebApplication" uuid="706ea3cf-78cc-4869-8e50-94da02469b17">
+    <data-source source="LOCAL" name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" group="​CloudMallMerchantApplication" uuid="a2af6982-70e6-4ce2-812b-f0bf4a604a3c">
       <driver-ref>mariadb</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>
@@ -21,7 +9,7 @@
       <jdbc-url>jdbc:mariadb://localhost:3306/online_shop</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" group="​OnlineShopManagerApplication" uuid="d5abab10-c0a8-4782-aa78-eb91d9e3cdba">
+    <data-source source="LOCAL" name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" group="​CloudMallMerchantApplication" uuid="5bed897d-6dc1-4a7d-9366-51c7d990154b">
       <driver-ref>mariadb</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>
@@ -29,23 +17,7 @@
       <jdbc-url>jdbc:mariadb://localhost:3306/online_shop</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" group="​OnlineShopManagerApplication" uuid="87e43b65-d531-4e7e-8384-4722004e190e">
-      <driver-ref>mariadb</driver-ref>
-      <synchronize>true</synchronize>
-      <imported>true</imported>
-      <jdbc-driver>org.mariadb.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mariadb://localhost:3306/online_shop</jdbc-url>
-      <working-dir>$ProjectFileDir$</working-dir>
-    </data-source>
-    <data-source source="LOCAL" name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" group="​OnlineShopWebApplication" uuid="321fb588-a465-4471-8704-0df73619ca24">
-      <driver-ref>mariadb</driver-ref>
-      <synchronize>true</synchronize>
-      <imported>true</imported>
-      <jdbc-driver>org.mariadb.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mariadb://localhost:3306/online_shop</jdbc-url>
-      <working-dir>$ProjectFileDir$</working-dir>
-    </data-source>
-    <data-source source="LOCAL" name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" group="​OnlineShopWebApplication" uuid="e39bd143-8aee-4edb-94d2-b45a3d741518">
+    <data-source source="LOCAL" name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" group="​CloudMallManageApplication" uuid="673ba207-c8a3-44b0-aedb-e3df5c397804">
       <driver-ref>mariadb</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>

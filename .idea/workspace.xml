@@ -1,0 +1,883 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="8d274251-6846-49ac-a01b-95894bd80c22" name="Changes" comment="feat: add Elasticsearch integration for goods indexing and search functionality">
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/entity/AssignRolesRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/WebConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/feature/EnableElasticSearch.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/impl/AuthService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/vo/AuditGoodsVO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/vo/GoodsDetailWithAuditVO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/StatisticDataVO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/MerchantInfoDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/application/SystemAppService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/resource/dto/MenuFormData.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/role/IRoleService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/role/RoleService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/role/dto/RoleFormData.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/role/dto/RolePageParamsDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/role/entity/RoleResource.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/IUserService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/RoleMeta.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/UserService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/security/AuthUser.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/security/SecurityBean.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/security/UserLoadService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/security/handler/CustomerAccessDeniedHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/security/handler/CustomerAuthenticationEntryPoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/AssertUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/system/MenuManageController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/system/RoleManageController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/security/SecurityChainConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/security/filter/ManageTokenAuthenticationFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/CloudMallMerchantApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/AuthMerchantController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/CategoryMerchantController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/CommentMerchantController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/CommonMerchantController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/GoodsMerchantController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/OrderMerchantController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/StatisticMerchantController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/UnitMerchantController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/dto/GoodsRepublishDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/controller/dto/GoodsStatusUpdateDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/security/SecurityChainConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/security/filter/MerchantTokenAuthenticationFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/resources/application.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/security/SecurityChainConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/online-shop-web/src/test/java/com/onlineshop/CartServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/GrepConsole.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/data_source_mapping.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/db-forest-config.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/mybatisx/templates.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/refactor/ES_SEARCH_REFACTOR.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/common/aspect/desensitize/Desensitize.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/aspect/desensitize/Desensitize.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/common/aspect/desensitize/DesensitizeAspect.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/aspect/desensitize/DesensitizeAspect.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/common/aspect/desensitize/DesensitizeType.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/aspect/desensitize/DesensitizeType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/common/entity/CommonDO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/entity/CommonDO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/common/entity/PageQueryDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/entity/PageParamsDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/common/enums/BizErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/enums/BizErrorCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/common/enums/BizType.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/enums/BizType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/common/enums/SearchOrderType.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/enums/SearchOrderType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/CacheConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/CacheConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/FrameworkConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/FrameworkConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/RedisConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/RedisConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/SecurityConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/WebConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/WhiteListProperties.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/WhiteListProperties.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/jackson/JacksonConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/jackson/JacksonConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/jackson/LongIdToStringModule.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/jackson/LongIdToStringModule.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/mybatisPlus/MyMetaObjectHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/mybatisPlus/MyMetaObjectHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/config/mybatisPlus/MybatisPlusConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/mybatisPlus/MybatisPlusConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/event/BizEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/event/BizEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/event/cart/CartEventListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/event/cart/CartEventListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/event/cart/ClearCartEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/event/cart/ClearCartEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/event/goods/DelGoodsFromEsEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/event/goods/DelGoodsFromEsEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/event/goods/GoodsEventListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/event/goods/GoodsEventListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/event/goods/SyncGoodsToEsEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/event/goods/SyncGoodsToEsEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/event/order/OrderEventListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/event/order/OrderEventListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/event/order/OrderTimeoutCancelEvent.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/event/order/OrderTimeoutCancelEvent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/exception/BusinessException.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/exception/BizException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/global/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/global/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/global/GlobalResponseHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/global/GlobalResponseHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/interceptor/TokenInterceptor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/address/Address.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/address/Address.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/address/AddressDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/address/AddressDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/address/AddressMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/address/AddressMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/address/AddressService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/address/AddressService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/address/IAddressService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/address/IAddressService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/dto/AuditDecisionDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/dto/AuditDecisionDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/dto/AuditQueryDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/dto/AuditParamsDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/dto/AuditSubmitDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/dto/AuditSubmitDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/entity/Audit.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/entity/Audit.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/enums/AuditStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/enums/AuditStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/enums/AuditType.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/enums/AuditType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/mapper/AuditMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/mapper/AuditMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/service/IAuditService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/service/IAuditService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/service/impl/AuditService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/service/impl/AuditService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/audit/vo/AuditVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/vo/AuditVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/bo/ParsedToken.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/bo/ParsedToken.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/bo/TokenPayload.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/bo/TokenPayload.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/config/JwtProperties.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/config/JwtProperties.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/dto/LoginDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/dto/LoginDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/dto/RegisterDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/dto/RegisterDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/dto/TokenDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/dto/TokenDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/IAuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/IAuthService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/ITokenProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/ITokenService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/impl/AuthService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/impl/JwtProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/impl/JwtService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/banner/Banner.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/banner/Banner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/banner/BannerMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/banner/BannerMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/banner/BannerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/banner/BannerService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/banner/IBannerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/banner/IBannerService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/banner/dto/BannerDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/banner/dto/BannerDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/banner/dto/BannerGoodsUpdateDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/banner/dto/BannerGoodsUpdateDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/banner/vo/BannerVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/banner/vo/BannerVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/banner/vo/HomeBannerVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/banner/vo/HomeBannerVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/Cart.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/Cart.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/CartMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/CartMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/CartService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/CartService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/CartType.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/CartType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/ICartService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/ICartService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/dto/AddCartItemDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/dto/AddCartItemDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/dto/RemoveCartItemDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/dto/RemoveCartItemDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/dto/UpdateCartItemDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/dto/UpdateCartItemDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/vo/CartStoreItemVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/vo/CartStoreItemVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/vo/CartStoreVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/vo/CartStoreVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/cart/vo/CartVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/cart/vo/CartVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/category/Category.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/category/Category.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/category/CategoryMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/category/CategoryMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/category/CategoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/category/CategoryService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/category/CategoryVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/category/CategoryNodeVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/category/ICategoryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/category/ICategoryService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/CommentStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/CommentStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/GoodsComment.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/GoodsComment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/GoodsCommentMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/GoodsCommentMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/GoodsCommentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/GoodsCommentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/IGoodsCommentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/IGoodsCommentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/dto/CommentQueryDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/dto/CommentParamsDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/dto/CreateCommentDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/dto/CreateCommentDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/dto/ReplyCommentDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/dto/ReplyCommentDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/vo/GoodsCommentCardVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/vo/GoodsCommentCardVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/comment/vo/GoodsCommentVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/vo/GoodsCommentVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/Favorite.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/Favorite.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/FavoriteMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/FavoriteMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/FavoriteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/FavoriteService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/IFavoriteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/IFavoriteService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/dto/AddFavoriteDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/dto/AddFavoriteDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/dto/FavoriteQueryDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/dto/FavoriteParamsDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/dto/FavoriteStatusDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/dto/FavoriteStatusDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/vo/FavoriteVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/vo/FavoriteVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/file/Avatar.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/file/Avatar.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/file/FileUploadService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/file/FileUploadService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/file/IFileUploadService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/file/IFileUploadService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/GoodsAppService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/GoodsAppService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/GoodsDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/GoodsDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/IGoodsAppService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/IGoodsAppService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/vo/GoodsDetailVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/vo/GoodsDetailVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/vo/WebGoodsDetailVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/application/vo/WebGoodsDetailVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/GoodsSku.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/GoodsSku.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/GoodsSkuMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/GoodsSkuMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/GoodsSkuService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/GoodsSkuService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/IGoodsSkuService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/IGoodsSkuService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/SelectedSkuDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/SelectedSkuDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/SkuDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/sku/SkuDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/dto/SpeValueDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/dto/SpeValueDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/dto/SpecificationsDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/dto/SpecificationsDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/entity/GoodsSkuSpec.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/entity/GoodsSkuSpec.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/entity/Spec.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/entity/Spec.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/entity/SpecValue.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/entity/SpecValue.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/mapper/GoodsSkuSpecMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/mapper/GoodsSkuSpecMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/mapper/SpecMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/mapper/SpecMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/mapper/SpecValueMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/mapper/SpecValueMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/IGoodsSkuSpecService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/IGoodsSkuSpecService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/ISpecService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/ISpecService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/ISpecValueService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/ISpecValueService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/impl/GoodsSkuSpecService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/impl/GoodsSkuSpecService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/impl/SpecService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/impl/SpecService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/impl/SpecValueService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/service/impl/SpecValueService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/vo/SpecValueVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/vo/SpecValueVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/vo/SpecificationVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spec/vo/SpecificationVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/Goods.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/Goods.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/GoodsMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/GoodsMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/GoodsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/GoodsService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/IGoodsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/IGoodsService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/dto/GoodsSearchDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/dto/GoodsSearchDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/vo/GoodsCardVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/vo/GoodsCardVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/vo/GoodsVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/vo/GoodsVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/vo/SpuVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/vo/SpuVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/vo/WebSpuVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/spu/vo/WebSpuVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/menu/IMenuService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/menu/Menu.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/menu/MenuMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/menu/MenuService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/menu/RoueRecordRawType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/message/IMessageLogService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/message/IMessageLogService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/message/MessageLog.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/message/MessageLog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/message/MessageLogService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/message/MessageLogService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/message/MessageMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/message/MessageMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/message/MessageStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/message/MessageStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/notice/INoticeService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/notice/INoticeService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/notice/Notice.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/notice/Notice.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/notice/NoticeMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/notice/NoticeMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/notice/NoticeService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/notice/NoticeService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/OrderCancelDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/OrderCancelDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/OrderCreateResultDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/OrderCreateResultDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/OrderMessage.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/OrderMessage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/OrderQueryDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/OrderParamsDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/TradeDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/TradeDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/TradeShopDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/TradeShopDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/TradeShopItemDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/TradeShopItemDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/UpdateOrderDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/dto/UpdateOrderDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/entity/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/entity/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/entity/OrderItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/entity/OrderItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/enums/OrderStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/enums/OrderStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/enums/OrderType.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/enums/OrderType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/enums/ParentOrderStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/enums/ParentOrderStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/mapper/OrderItemMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/mapper/OrderItemMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/mapper/OrderMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/mapper/OrderMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/IOrderItemService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/IOrderItemService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/IOrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/IOrderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/impl/OrderItemService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/impl/OrderItemService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/impl/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/impl/OrderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/state/OrderStatusMachine.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/state/OrderStatusMachine.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/OrderCreateStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/OrderCreateStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/OrderStrategyContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/OrderStrategyContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/OrderValidateStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/OrderValidateStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/AbstractOrderCreateStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/AbstractOrderCreateStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/AbstractOrderValidateStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/AbstractOrderValidateStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/InstantBuyOrderCreateStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/InstantBuyOrderCreateStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/InstantBuyOrderValidateStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/InstantBuyOrderValidateStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/NormalCartOrderCreateStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/NormalCartOrderCreateStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/NormalCartOrderValidateStrategy.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/NormalCartOrderValidateStrategy.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/vo/OrderAggregateVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/vo/OrderAggregateVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/vo/OrderVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/vo/OrderVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/vo/StoreOrderItemVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/vo/StoreOrderItemVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/vo/StoreOrderVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/vo/StoreOrderVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/order/wrapper/OrderQueryWrapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/wrapper/OrderQueryWrapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/search/application/ISearchAppService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/search/application/ISearchAppService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/search/application/SearchAppService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/search/application/SearchAppService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/search/enums/SortType.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/search/enums/SortType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/search/index/GoodsIndex.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/search/index/GoodsIndex.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/search/repository/GoodsIndexRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/search/repository/GoodsIndexRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/search/service/IGoodsEsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/search/service/IGoodsEsService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/search/service/impl/GoodsEsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/search/service/impl/GoodsEsService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/IStatisticService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/IStatisticService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/StatisticService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/StatisticService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/CategorySalesRatioVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/CategorySalesRatioVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/DashboardOverviewVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/DashboardOverviewVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/FavoriteGoodsTopVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/FavoriteGoodsTopVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/FavoriteOverviewVO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/GoodsSalesTopVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/GoodsSalesTopVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/RevenueStatisticVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/RevenueStatisticVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/RevenueVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/statistic/vo/RevenueVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/store/IStoreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/IStoreService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/store/Store.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/Store.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/store/StoreMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/StoreMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/store/StoreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/StoreService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/store/StoreUpdateDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/dto/StoreUpdateDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/store/dto/StoreGoodsQueryDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/dto/StoreGoodsParamsDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/store/vo/StoreInfoVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/vo/StoreInfoVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/store/vo/StoreVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/vo/StoreVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/unit/IUnitService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/unit/IUnitService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/unit/Unit.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/unit/Unit.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/unit/UnitMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/unit/UnitMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/unit/UnitService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/unit/UnitService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/user/IUserService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/user/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/entity/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/user/UserMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/mapper/UserMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/user/UserRole.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/UserRole.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/user/UserService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/user/dto/ManagerUserInfoDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/models/user/vo/UserInfoVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/vo/UserInfoVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/mq/IProducer.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/IProducer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/mq/IProducerFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/IProducerFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/mq/order/IOrderProducer.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/IOrderProducer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/mq/order/IOrderProducerFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/IOrderProducerFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/mq/order/OrderMQConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/OrderMQConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/mq/order/consumer/OrderCloseConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/consumer/OrderCloseConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/mq/order/producer/OrderCloseProducer.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/producer/OrderCloseProducer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/mq/order/producer/OrderProducerFactory.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/producer/OrderProducerFactory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/support/BeanSupport.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/support/BeanSupport.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/support/JsonSupport.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/support/JsonSupport.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/task/order/OrderAutoReceiveTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/task/order/OrderAutoReceiveTask.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/task/order/OrderTimeoutCloseTask.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/task/order/OrderTimeoutCloseTask.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/DateTimeUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/DateTimeUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/OrderNoUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/OrderNoUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/PageUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/PageUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/ResponseWriteUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/ResponseWriteUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/Result.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/Result.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/context/UserContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/UserListItemVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/context/UserContextHolder.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/image/Image.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/image/Image.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/image/ImageUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/image/ImageUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/money/Money.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/money/Money.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/java/com/onlineshop/framework/utils/money/MoneyUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/money/MoneyUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/oneline-shop-framework/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-manager/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/OnlineShopManagerApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/CloudMallManageApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/AddressManagerController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/AdminAuditController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/AdminGoodsController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/AdminOrderController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/AdminStatisticController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/AdminUnitManagerController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/BannerManagerController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/CategoryManagerController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/NoticeManagerController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/admin/UserManagerController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/common/AuthController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/common/CategoryController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/common/FileController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/common/MenuController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/common/UserController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/merchant/MerchantAuditController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/merchant/MerchantCategoryController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/merchant/MerchantCommentController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/merchant/MerchantGoodsController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/merchant/MerchantOrderController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/merchant/MerchantStatisticController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/merchant/MerchantStoreInfoController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/java/com/onlineshop/controller/merchant/MerchantUnitController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-manager/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-manager/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/OnlineShopWebApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/CloudMallWebApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/AddressWebController.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/AddressWebController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/CommentWebController.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/CommentWebController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/FavoriteWebController.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/FavoriteWebController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/GoodsWebController.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/GoodsWebController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/OrderWebController.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/OrderWebController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/StoreWebController.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/StoreWebController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/UserWebController.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop/controller/UserWebController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_/home/Tomatos/Projects/design/online-mall" value="36yiCJZcPMvaipHOKDNqNloNCAv" />
+    </persistenceIdMap>
+  </component>
+  <component name="CopilotUserSelectedModel">
+    <selectedModels>
+      <entry key="inline" value="Claude Haiku 4.5" />
+      <entry key="edit-panel" value="GPT-5 mini" />
+      <entry key="chat-panel" value="Claude Haiku 4.5" />
+      <entry key="agent-panel" value="Claude Haiku 4.5" />
+    </selectedModels>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="AnnotationType" />
+        <option value="Record" />
+        <option value="Enum" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Tomatos03&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Tomatos03/cloud-mall.git&quot;,
+    &quot;accountId&quot;: &quot;912362b1-0656-4bc0-9ec7-fd8095f8ed6e&quot;
+  }
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="customMavenHome" value="/usr/share/java/maven" />
+        <option name="localRepository" value="/usr/share/java/maven/repo" />
+        <option name="mavenHomeTypeForPersistence" value="CUSTOM" />
+        <option name="useMavenConfig" value="false" />
+        <option name="userSettingsFile" value="/usr/share/java/maven/conf/settings.xml" />
+      </MavenGeneralSettings>
+    </option>
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="jdkForImporter" value="17" />
+      </MavenImportingSettings>
+    </option>
+  </component>
+  <component name="MavenRunner">
+    <option name="jreName" value="17" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="36yiCJZcPMvaipHOKDNqNloNCAv" />
+  <component name="ProjectViewState">
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.online-mall [org.apache.maven.plugins:maven-clean-plugin:3.4.1:clean].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;New/updated database configurations found&quot;,
+    &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Spring Boot.CloudMallManageApplication.executor&quot;: &quot;Debug&quot;,
+    &quot;Spring Boot.CloudMallMerchantApplication.executor&quot;: &quot;Debug&quot;,
+    &quot;Spring Boot.CloudMallWebApplication.executor&quot;: &quot;Debug&quot;,
+    &quot;Spring Boot.OnlineMallApplication.executor&quot;: &quot;Debug&quot;,
+    &quot;Spring Boot.OnlineShopManagerApplication.executor&quot;: &quot;Debug&quot;,
+    &quot;Spring Boot.OnlineShopWebApplication.executor&quot;: &quot;Debug&quot;,
+    &quot;database.data.extractors.current.export.id&quot;: &quot;SQL Inserts&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/Tomatos/Projects/design/online-mall/online-shop-merchant/src/main/java/com/onlineshop/security&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.22790697&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.34455445&quot;,
+    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.grazie&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mariadb&quot;
+    ]
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.onlineshop.controller" />
+      <recent name="com.onlineshop.framework.config.jackson" />
+      <recent name="com.onlineshop.framework.models.auth.bo" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/security" />
+      <recent name="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop" />
+      <recent name="$PROJECT_DIR$/online-shop-web/src/main/java/com/onlineshop" />
+      <recent name="$PROJECT_DIR$/oneline-shop-framework/src/main/resources" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/oneline-shop-framework/src" />
+      <recent name="$PROJECT_DIR$/oneline-shop-framework/src/main" />
+      <recent name="$PROJECT_DIR$/oneline-shop-framework/src/main/resources" />
+      <recent name="$PROJECT_DIR$/online-manager/src/main/resources" />
+      <recent name="$PROJECT_DIR$/online-manager/src/main/java" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.onlineshop" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.onlineshop.framework.cart" />
+      <recent name="com.onlineshop.framework.order" />
+      <recent name="com.onlineshop.config" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="KtorApplicationConfigurationType" />
+        <option value="MicronautRunConfigurationType" />
+        <option value="QuarkusRunConfigurationType" />
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+    <option name="hiddenConfigurations">
+      <map>
+        <entry key="SpringBootApplicationConfigurationType">
+          <value>
+            <set>
+              <option value="CloudMallManageApplication" />
+              <option value="CloudMallMerchantApplication" />
+            </set>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="shownConfigurations">
+      <map>
+        <entry key="SpringBootApplicationConfigurationType">
+          <value>
+            <set>
+              <option value="CloudMallWebApplication" />
+            </set>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="configurationStatuses">
+      <map>
+        <entry key="SpringBootApplicationConfigurationType">
+          <value>
+            <map>
+              <entry key="CloudMallWebApplication" value="STOPPED" />
+            </map>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="excludedNewTypes">
+      <set>
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+  </component>
+  <component name="RunManager" selected="Spring Boot.CloudMallManageApplication">
+    <configuration name="CloudMallManageApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="online-shop-manager" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.onlineshop.CloudMallManageApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.onlineshop.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CloudMallMerchantApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="online-shop-merchant" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.onlineshop.CloudMallMerchantApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.onlineshop.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CloudMallWebApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="online-shop-web" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.onlineshop.CloudMallWebApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.onlineshop.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Spring Boot.CloudMallManageApplication" />
+        <item itemvalue="Spring Boot.CloudMallMerchantApplication" />
+        <item itemvalue="Spring Boot.CloudMallWebApplication" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.30387.90" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="StructureViewState">
+    <option name="selectedTab" value="Physical" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8d274251-6846-49ac-a01b-95894bd80c22" name="Changes" comment="" />
+      <created>1765985082487</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1765985082487</updated>
+      <workItem from="1765985083697" duration="7955000" />
+      <workItem from="1766028482844" duration="4246000" />
+      <workItem from="1766045416787" duration="13391000" />
+      <workItem from="1766126316354" duration="2543000" />
+      <workItem from="1766135448311" duration="3436000" />
+      <workItem from="1766199011986" duration="94000" />
+      <workItem from="1766199128603" duration="5887000" />
+      <workItem from="1766206479302" duration="7397000" />
+      <workItem from="1766214678927" duration="7659000" />
+      <workItem from="1766238333020" duration="1862000" />
+      <workItem from="1766240908569" duration="182000" />
+      <workItem from="1766241134130" duration="13932000" />
+      <workItem from="1766295760654" duration="27096000" />
+      <workItem from="1766386098754" duration="12768000" />
+      <workItem from="1766411381347" duration="4021000" />
+      <workItem from="1766416385943" duration="4608000" />
+      <workItem from="1766464105224" duration="16058000" />
+      <workItem from="1766481673819" duration="23904000" />
+      <workItem from="1766549729387" duration="57392000" />
+      <workItem from="1766650925554" duration="18405000" />
+      <workItem from="1766676914913" duration="22440000" />
+      <workItem from="1766750566987" duration="3571000" />
+      <workItem from="1766809901747" duration="4271000" />
+      <workItem from="1766814214732" duration="5615000" />
+      <workItem from="1766824227134" duration="7314000" />
+      <workItem from="1766898363275" duration="14148000" />
+      <workItem from="1766927202826" duration="21555000" />
+      <workItem from="1766994787635" duration="3972000" />
+      <workItem from="1766999156684" duration="22472000" />
+      <workItem from="1767160388091" duration="8114000" />
+      <workItem from="1767243239264" duration="2060000" />
+      <workItem from="1767246164113" duration="20650000" />
+      <workItem from="1767282956490" duration="18933000" />
+      <workItem from="1767357800296" duration="13589000" />
+      <workItem from="1767419645610" duration="14516000" />
+      <workItem from="1767509316581" duration="4622000" />
+      <workItem from="1767513959680" duration="3476000" />
+      <workItem from="1767593411427" duration="21760000" />
+      <workItem from="1767702420537" duration="36000" />
+      <workItem from="1767702494526" duration="138000" />
+      <workItem from="1767702650895" duration="16000" />
+      <workItem from="1767702686790" duration="141000" />
+      <workItem from="1767702845053" duration="58000" />
+      <workItem from="1767702913988" duration="51000" />
+      <workItem from="1767702976068" duration="393000" />
+      <workItem from="1767703388946" duration="364000" />
+      <workItem from="1767703775080" duration="488000" />
+      <workItem from="1767704344459" duration="69000" />
+      <workItem from="1767704435172" duration="202000" />
+      <workItem from="1767704656578" duration="192000" />
+      <workItem from="1767704868524" duration="85000" />
+      <workItem from="1767704974061" duration="451000" />
+      <workItem from="1767705447972" duration="358000" />
+      <workItem from="1767705918157" duration="33000" />
+      <workItem from="1767705970046" duration="3927000" />
+      <workItem from="1767711391614" duration="587000" />
+      <workItem from="1767711997841" duration="1157000" />
+      <workItem from="1767713202151" duration="1010000" />
+      <workItem from="1767714231072" duration="197000" />
+      <workItem from="1767791094725" duration="762000" />
+      <workItem from="1767791872485" duration="29000" />
+      <workItem from="1767792511116" duration="493000" />
+      <workItem from="1767793023499" duration="9366000" />
+      <workItem from="1767859412374" duration="1000" />
+      <workItem from="1767961271562" duration="30000" />
+      <workItem from="1767969244770" duration="35385000" />
+      <workItem from="1768056088220" duration="9406000" />
+      <workItem from="1768111286808" duration="24250000" />
+      <workItem from="1768139700830" duration="11427000" />
+      <workItem from="1768151153963" duration="50916000" />
+      <workItem from="1768554456372" duration="74000" />
+      <workItem from="1768554545537" duration="13845000" />
+      <workItem from="1768577224884" duration="7065000" />
+      <workItem from="1768626011895" duration="9254000" />
+      <workItem from="1768900021989" duration="418000" />
+      <workItem from="1768900474009" duration="12417000" />
+      <workItem from="1769077564877" duration="26724000" />
+      <workItem from="1769186118559" duration="69000" />
+      <workItem from="1769186199340" duration="675000" />
+      <workItem from="1769235706325" duration="141000" />
+      <workItem from="1769235860714" duration="1221000" />
+      <workItem from="1769237825365" duration="30806000" />
+      <workItem from="1769323809346" duration="11456000" />
+      <workItem from="1769345311192" duration="7677000" />
+      <workItem from="1769355089466" duration="6059000" />
+      <workItem from="1769407686169" duration="14405000" />
+      <workItem from="1769500062763" duration="8642000" />
+      <workItem from="1769511913454" duration="15155000" />
+      <workItem from="1769579796794" duration="649000" />
+      <workItem from="1769580469371" duration="537000" />
+      <workItem from="1769581034890" duration="7710000" />
+      <workItem from="1769670514126" duration="51000" />
+      <workItem from="1769672331376" duration="10019000" />
+      <workItem from="1769690253306" duration="20965000" />
+      <workItem from="1769752803811" duration="8542000" />
+      <workItem from="1769765137064" duration="8000" />
+      <workItem from="1769774026158" duration="1842000" />
+      <workItem from="1769854289937" duration="227000" />
+      <workItem from="1769857887754" duration="3046000" />
+      <workItem from="1769931736832" duration="1733000" />
+      <workItem from="1769933499441" duration="11619000" />
+      <workItem from="1770026269523" duration="1043000" />
+      <workItem from="1770035698773" duration="10187000" />
+      <workItem from="1770047770480" duration="11825000" />
+      <workItem from="1770098299844" duration="14627000" />
+      <workItem from="1770114672625" duration="4501000" />
+      <workItem from="1770131620390" duration="26000" />
+      <workItem from="1770131993359" duration="8845000" />
+      <workItem from="1770194468820" duration="150000" />
+      <workItem from="1770194635967" duration="17317000" />
+      <workItem from="1770219720828" duration="3058000" />
+      <workItem from="1770278562553" duration="1481000" />
+      <workItem from="1770300086400" duration="8929000" />
+      <workItem from="1770386578024" duration="2924000" />
+      <workItem from="1770447591309" duration="434000" />
+      <workItem from="1770448051637" duration="4339000" />
+      <workItem from="1770453437536" duration="6591000" />
+      <workItem from="1770533507686" duration="22123000" />
+      <workItem from="1770613432172" duration="2000" />
+      <workItem from="1770621483396" duration="18000" />
+      <workItem from="1770621531210" duration="5577000" />
+      <workItem from="1770704318136" duration="222000" />
+      <workItem from="1770704554330" duration="5000" />
+      <workItem from="1770712324111" duration="1137000" />
+      <workItem from="1770713476600" duration="4432000" />
+      <workItem from="1770732436945" duration="9796000" />
+      <workItem from="1770800004432" duration="11949000" />
+      <workItem from="1770816767857" duration="2177000" />
+      <workItem from="1770818964342" duration="176000" />
+      <workItem from="1770819159211" duration="188000" />
+      <workItem from="1770819380672" duration="1120000" />
+      <workItem from="1770820545196" duration="12318000" />
+      <workItem from="1770874065657" duration="10555000" />
+      <workItem from="1770888337963" duration="7869000" />
+      <workItem from="1770958180067" duration="2000" />
+      <workItem from="1770964810129" duration="3895000" />
+      <workItem from="1770968717439" duration="11953000" />
+      <workItem from="1770981486299" duration="2008000" />
+      <workItem from="1770986009986" duration="27761000" />
+      <workItem from="1771077373938" duration="5540000" />
+    </task>
+    <task id="LOCAL-00001" summary="refactor: reorganize goods-related classes and add new specifications&#10;&#10;- Moved GoodsVO and GoodsDetailVO to the 'spu' package.&#10;- Renamed Goods class and its related interfaces to reflect the new package structure.&#10;- Added new classes for SKU and specifications, including GoodsSku, Spec, and SpecValue.&#10;- Introduced new mappers and services for SKU and specifications management.&#10;- Updated UserContextHolder to include a method for retrieving the username.&#10;- Added XML configuration for version control settings.">
+      <option name="closed" value="true" />
+      <created>1767848214246</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1767848214246</updated>
+    </task>
+    <task id="LOCAL-00002" summary="refactor: reorganize goods-related classes and add new specifications&#10;&#10;- Moved GoodsVO and GoodsDetailVO to the 'spu' package.&#10;- Renamed Goods class and its related interfaces to reflect the new package structure.&#10;- Added new classes for SKU and specifications, including GoodsSku, Spec, and SpecValue.&#10;- Introduced new mappers and services for SKU and specifications management.&#10;- Updated UserContextHolder to include a method for retrieving the username.&#10;- Added XML configuration for version control settings.">
+      <option name="closed" value="true" />
+      <created>1767973415549</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1767973415549</updated>
+    </task>
+    <task id="LOCAL-00003" summary="refactor: reorganize goods-related classes and add new specifications&#10;&#10;- Moved GoodsVO and GoodsDetailVO to the 'spu' package.&#10;- Renamed Goods class and its related interfaces to reflect the new package structure.&#10;- Added new classes for SKU and specifications, including GoodsSku, Spec, and SpecValue.&#10;- Introduced new mappers and services for SKU and specifications management.&#10;- Updated UserContextHolder to include a method for retrieving the username.&#10;- Added XML configuration for version control settings.">
+      <option name="closed" value="true" />
+      <created>1767973421681</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1767973421681</updated>
+    </task>
+    <task id="LOCAL-00004" summary="refactor: update data models and improve caching configuration">
+      <option name="closed" value="true" />
+      <created>1769327583910</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1769327583910</updated>
+    </task>
+    <task id="LOCAL-00005" summary="refactor: update data models and improve caching configuration">
+      <option name="closed" value="true" />
+      <created>1769327587632</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1769327587632</updated>
+    </task>
+    <task id="LOCAL-00006" summary="feat: implement order timeout cancellation with messaging support">
+      <option name="closed" value="true" />
+      <created>1769354577203</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1769354577203</updated>
+    </task>
+    <task id="LOCAL-00007" summary="feat: implement order timeout handling with messaging and auto-cancellation features">
+      <option name="closed" value="true" />
+      <created>1769527917384</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1769527917384</updated>
+    </task>
+    <task id="LOCAL-00008" summary="feat: add Elasticsearch integration for goods indexing and search functionality">
+      <option name="closed" value="true" />
+      <created>1769763739619</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1769763739619</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="refactor: reorganize goods-related classes and add new specifications&#10;&#10;- Moved GoodsVO and GoodsDetailVO to the 'spu' package.&#10;- Renamed Goods class and its related interfaces to reflect the new package structure.&#10;- Added new classes for SKU and specifications, including GoodsSku, Spec, and SpecValue.&#10;- Introduced new mappers and services for SKU and specifications management.&#10;- Updated UserContextHolder to include a method for retrieving the username.&#10;- Added XML configuration for version control settings." />
+    <MESSAGE value="refactor: update data models and improve caching configuration" />
+    <MESSAGE value="feat: implement order timeout cancellation with messaging support" />
+    <MESSAGE value="feat: implement order timeout handling with messaging and auto-cancellation features" />
+    <MESSAGE value="feat: add Elasticsearch integration for goods indexing and search functionality" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add Elasticsearch integration for goods indexing and search functionality" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/strategy/impl/AbstractOrderValidateStrategy.java</url>
+          <line>198</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/GoodsCommentService.java</url>
+          <line>62</line>
+          <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/security/handler/CustomerAccessDeniedHandler.java</url>
+          <line>27</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="java.lang.ThreadLocal" memberName="threadLocalHashCode" />
+        <PinnedItemInfo parentTag="com.onlineshop.controller.AddressController" memberName="addressService" />
+      </pinned-members>
+    </pin-to-top-manager>
+    <watches-manager>
+      <configuration name="SpringBootApplicationConfigurationType">
+        <watch expression="录&#10;            skuService.removeByGoodsId(g" />
+        <watch expression="ss)&#10;    public Result handleException(" />
+      </configuration>
+    </watches-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>
