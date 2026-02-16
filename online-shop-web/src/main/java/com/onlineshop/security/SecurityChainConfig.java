@@ -3,15 +3,16 @@ package com.onlineshop.security;
 import com.onlineshop.framework.config.WhiteListProperties;
 import com.onlineshop.framework.security.handler.CustomerAccessDeniedHandler;
 import com.onlineshop.framework.security.handler.CustomerAuthenticationEntryPoint;
+import com.onlineshop.security.filter.WebTokenAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
@@ -27,6 +28,7 @@ public class SecurityChainConfig {
     private final CustomerAccessDeniedHandler accessDeniedHandler;
     private final WhiteListProperties whiteList;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final WebTokenAuthenticationFilter webTokenAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -49,6 +51,7 @@ public class SecurityChainConfig {
                            .sessionManagement(session -> {
                                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                            })
+                           .addFilterAfter(webTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                            .cors(cors -> {
                                cors.configurationSource(corsConfigurationSource);
                            })

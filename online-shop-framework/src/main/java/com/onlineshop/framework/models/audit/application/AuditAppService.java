@@ -2,14 +2,18 @@ package com.onlineshop.framework.models.audit.application;
 
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
+import com.onlineshop.framework.models.audit.dto.AuditStatusDTO;
 import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
 import com.onlineshop.framework.models.audit.enums.AuditType;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.utils.AssertUtils;
+import com.onlineshop.framework.utils.AuthUserUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 /**
  * 审核应用服务实现
@@ -24,6 +28,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuditAppService implements IAuditAppService {
     private final IAuditService auditService;
     private final AuditDelegateFactory auditFactory;
+
+    @Override
+    public AuditStatusDTO queryUserCreateStoreAuditStatus() {
+        Audit audit = auditService.lambdaQuery()
+                                  .eq(Audit::getTargetType, AuditType.STORE_REGISTER.getCode())
+                                  .eq(Audit::getApplicantId, AuthUserUtils.getUserId())
+                                  .one();
+        if (Objects.isNull(audit)) {
+            return new AuditStatusDTO();
+        }
+
+        return AuditStatusDTO.builder()
+                             .status(audit.getStatus())
+                             .build();
+    }
 
     @Override
     public void submitAudit(AuditType type, Object payload) {

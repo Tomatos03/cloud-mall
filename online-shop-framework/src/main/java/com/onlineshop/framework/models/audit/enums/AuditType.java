@@ -18,6 +18,7 @@ public enum AuditType {
      * 商品(SPU)
      */
     GOODS("GOODS", "商品"),
+    STORE_REGISTER("STORE_REGISTER", "店铺注册")
     ;
 
     private final String code;

@@ -69,7 +69,7 @@ public class AuditVO {
     /**
      * 扩展信息: 可存储SKU组合/商品规格等JSON
      */
-    private String extraInfo;
+    private String snapshot;
 
     /**
      * 申请时间

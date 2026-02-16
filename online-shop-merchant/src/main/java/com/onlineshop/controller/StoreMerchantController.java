@@ -1,12 +1,9 @@
 package com.onlineshop.controller;
 
-import cn.hutool.system.UserInfo;
 import com.onlineshop.framework.models.store.IStoreService;
-import com.onlineshop.framework.models.store.MerchantInfoDTO;
+import com.onlineshop.framework.models.store.StoreInfoDTO;
 import com.onlineshop.framework.models.store.dto.StoreUpdateDTO;
 import com.onlineshop.framework.models.store.vo.StoreVO;
-import com.onlineshop.framework.models.system.user.vo.UserInfoVO;
-import com.onlineshop.framework.utils.AuthUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +20,7 @@ public class StoreMerchantController {
     private IStoreService storeService;
 
     @GetMapping("/info")
-    public MerchantInfoDTO getMerchantInfo() {
+    public StoreInfoDTO getMerchantInfo() {
         return storeService.getMerchantInfo();
     }
 
@@ -42,9 +39,8 @@ public class StoreMerchantController {
      * @param updateDTO 更新的店铺信息 (支持 name, info, avatarUrl, banner)
      * @return 更新结果
      */
-    @PatchMapping("/{id}")
-    public void updateStore(@PathVariable Long id, @RequestBody StoreUpdateDTO updateDTO) {
-        Long userId = AuthUserUtils.getUserId();
-        storeService.updateStore(id, userId, updateDTO);
+    @PostMapping
+    public void updateStore(@RequestBody StoreUpdateDTO updateDTO) {
+        storeService.updateStore(updateDTO);
     }
 }

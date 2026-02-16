@@ -27,7 +27,7 @@ import java.util.Collections;
  */
 @Slf4j
 @Component
-public class MerchantTokenAuthenticationFilter extends OncePerRequestFilter {
+public class WebTokenAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private ITokenService tokenService;
 
@@ -78,7 +78,6 @@ public class MerchantTokenAuthenticationFilter extends OncePerRequestFilter {
                 Collections.emptyList()
         );
         authUser.setUserId(parsedToken.getUserId());
-        authUser.setStoreId(parsedToken.getStoreId());
         return authUser;
     }
 }

@@ -40,5 +40,31 @@
         </introspection-scope>
       </schema-mapping>
     </data-source>
+    <data-source name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" uuid="7f2f9be6-54e0-4ce5-b70a-cf7f4ccffea0">
+      <database-info product="MariaDB" version="12.0.2-MariaDB-log" jdbc-version="4.2" driver-name="MariaDB Connector/J" driver-version="3.3.3" dbms="MARIADB" exact-version="12.0.2" exact-driver-version="3.3">
+        <extra-name-characters>#@</extra-name-characters>
+        <identifier-quote-string>`</identifier-quote-string>
+      </database-info>
+      <case-sensitivity plain-identifiers="exact" quoted-identifiers="exact" />
+      <user-name>Tomatos</user-name>
+      <schema-mapping>
+        <introspection-scope>
+          <node kind="schema" qname="@" />
+        </introspection-scope>
+      </schema-mapping>
+    </data-source>
+    <data-source name="jdbc:mariadb://localhost:3306/online_shop [DEBUG]" uuid="0441873a-b33c-49e7-a852-c28d7c2e1f36">
+      <database-info product="MariaDB" version="12.0.2-MariaDB-log" jdbc-version="4.2" driver-name="MariaDB Connector/J" driver-version="3.3.3" dbms="MARIADB" exact-version="12.0.2" exact-driver-version="3.3">
+        <extra-name-characters>#@</extra-name-characters>
+        <identifier-quote-string>`</identifier-quote-string>
+      </database-info>
+      <case-sensitivity plain-identifiers="exact" quoted-identifiers="exact" />
+      <user-name>Tomatos</user-name>
+      <schema-mapping>
+        <introspection-scope>
+          <node kind="schema" qname="@" />
+        </introspection-scope>
+      </schema-mapping>
+    </data-source>
   </component>
 </project>

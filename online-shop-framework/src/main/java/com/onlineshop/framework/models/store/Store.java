@@ -18,6 +18,7 @@ import java.util.Date;
 public class Store implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
+    private String no;
 
     /**
      * 店铺名称

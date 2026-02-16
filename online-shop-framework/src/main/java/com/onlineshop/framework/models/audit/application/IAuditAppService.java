@@ -1,6 +1,8 @@
 package com.onlineshop.framework.models.audit.application;
 
 import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
+import com.onlineshop.framework.models.audit.dto.AuditStatusDTO;
+import com.onlineshop.framework.models.audit.enums.AuditStatus;
 import com.onlineshop.framework.models.audit.enums.AuditType;
 
 /**
@@ -9,6 +11,8 @@ import com.onlineshop.framework.models.audit.enums.AuditType;
  * @date 2026/1/12
  */
 public interface IAuditAppService {
+    AuditStatusDTO queryUserCreateStoreAuditStatus();
+
     /**
      * 提交审核
      * 将业务对象信息序列化后提交到审核系统

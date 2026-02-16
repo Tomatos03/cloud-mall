@@ -9,14 +9,13 @@ import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
-import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
+import com.onlineshop.framework.models.audit.dto.AuditSubmit;
 import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
 import com.onlineshop.framework.models.audit.enums.AuditType;
 import com.onlineshop.framework.models.audit.mapper.AuditMapper;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.audit.vo.AuditVO;
-import com.onlineshop.framework.support.JsonSupport;
 import com.onlineshop.framework.utils.AssertUtils;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import lombok.NonNull;
@@ -37,7 +36,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAuditService {
     @Override
-    public void submitAudit(AuditSubmitDTO submitDTO) {
+    public void submitAudit(AuditSubmit submitDTO) {
         validateSubmitDTO(submitDTO);
         Audit audit = buildNewAudit(submitDTO, AuthUserUtils.getUserId(), AuthUserUtils.getUsername());
         save(audit);
@@ -53,19 +52,14 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
     @Override
     public AuditVO getAuditById(Long auditId) {
         Audit audit = this.getById(auditId);
-        if (audit == null) {
-            throw new BizException(BizErrorCode.AUDIT_LOG_NOT_EXISTS);
-        }
-
+        AssertUtils.notNull(audit, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
         return convertToVO(audit);
     }
 
     @Override
     public boolean withdrawAudit(Long auditId) {
         Audit audit = this.getById(auditId);
-        if (audit == null) {
-            throw new BizException(BizErrorCode.AUDIT_LOG_NOT_EXISTS);
-        }
+        AssertUtils.notNull(audit, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
 
         validateWithdrawPermission(audit);
         AssertUtils.isEqual(audit.getStatus(), AuditStatus.PENDING.getCode(), BizErrorCode.AUDIT_LOG_NOT_EXISTS);
@@ -102,35 +96,8 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
     }
 
     @Override
-    public void updateAudit(Long auditId, AuditStatus status, Long targetId, Object payload) {
-        String extraInfo = JsonSupport.toJson(payload);
-        this.lambdaUpdate()
-            .eq(Audit::getId, auditId)
-            .set(Audit::getStatus, status.getCode())
-            .set(Audit::getTargetId, targetId)
-            .set(Audit::getReason, null)
-            .set(Audit::getExtraInfo, extraInfo)
-            .update();
-    }
-
-    @Override
-    public void updateAudit(Long auditId, AuditStatus status, Long targetId, String reason) {
-        this.lambdaUpdate()
-            .eq(Audit::getId, auditId)
-            .set(Audit::getStatus, status.getCode())
-            .set(Audit::getTargetId, targetId)
-            .set(Audit::getReason, reason)
-            .update();
-    }
-
-    @Override
-    public void updateAudit(Long targetId, AuditStatus status, Object payload) {
-        this.lambdaUpdate()
-            .set(Audit::getStatus, status.getCode())
-            .set(Audit::getTargetId, targetId)
-            .set(Audit::getExtraInfo, payload)
-            .set(Audit::getReason, null)
-            .update();
+    public void updateAudit(Audit audit) {
+        this.updateById(audit);
     }
 
     /**
@@ -174,7 +141,7 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
                       .applicantName(audit.getApplicantName())
                       .auditorId(audit.getAuditorId())
                       .auditorName(audit.getAuditorName())
-                      .extraInfo(audit.getExtraInfo())
+                      .snapshot(audit.getSnapshot())
                       .createTime(audit.getCreateTime())
                       .auditTime(audit.getAuditTime())
                       .build();
@@ -183,7 +150,7 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
     /**
      * 验证提交审核DTO
      */
-    private void validateSubmitDTO(AuditSubmitDTO submitDTO) {
+    private void validateSubmitDTO(AuditSubmit submitDTO) {
         if (submitDTO.getTargetType() == null || submitDTO.getTargetId() == null) {
             throw new BizException(BizErrorCode.AUDIT_SUBMIT_PARAMS_INCOMPLETE);
         }
@@ -192,20 +159,29 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
     /**
      * 从提交DTO构建审核记录
      */
-    private Audit buildNewAudit(AuditSubmitDTO submitDTO, Long applicantId, String applicantName) {
+    private Audit buildNewAudit(AuditSubmit submitDTO, Long applicantId, String applicantName) {
         return Audit.builder()
                     .targetType(submitDTO.getTargetType())
                     .targetId(submitDTO.getTargetId())
                     .status(AuditStatus.PENDING.getCode())
                     .applicantId(applicantId)
                     .applicantName(applicantName)
-                    .extraInfo(submitDTO.getExtraInfo())
+                    .snapshot(submitDTO.getSnapShot())
                     .createTime(LocalDateTime.now())
                     .build();
     }
 
     public void updateAudit(AuditDecisionDTO decisionDTO, Long targetId) {
         this.updateById(buildAudit(decisionDTO, targetId));
+    }
+
+    @Override
+    public AuditStatus queryAuditStatus(AuditType type, Long targetId) {
+        Audit audit = queryLatestAudit(type, targetId);
+        if (audit == null) {
+            return null;
+        }
+        return AuditStatus.of(audit.getStatus());
     }
 
     private Audit buildAudit(AuditDecisionDTO decisionDTO, Long targetId) {

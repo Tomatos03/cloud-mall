@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MerchantInfoDTO {
+public class StoreInfoDTO {
     private String uid;
     private String username;
     private String nickname;

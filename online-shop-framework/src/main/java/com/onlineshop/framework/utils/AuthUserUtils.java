@@ -8,6 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
+import com.onlineshop.framework.common.enums.BizErrorCode;
+import com.onlineshop.framework.utils.AssertUtils;
+
 /**
  * SecurityUserUtils
  * 便捷获取和设置认证用户信息
@@ -32,45 +35,39 @@ public final class AuthUserUtils {
      */
     public static AuthUser getAuthUser() {
         Authentication authentication = getAuthentication();
-        if (authentication == null) {
-            return null;
-        }
+        AssertUtils.notNull(authentication, BizErrorCode.USER_NOT_AUTHENTICATED);
+
         Object principal = authentication.getPrincipal();
-        if (principal instanceof UserDetails) {
-            return (AuthUser) principal;
-        }
-        return null;
+        AssertUtils.isTrue(principal instanceof UserDetails, BizErrorCode.USER_NOT_AUTHENTICATED);
+        return (AuthUser) principal;
     }
 
     /**
      * 获取当前用户ID
      */
     public static Long getUserId() {
-        return getAuthUser() != null ? getAuthUser().getUserId() : null;
+        return getAuthUser().getUserId();
     }
 
     /**
      * 获取当前用户名
      */
     public static String getUsername() {
-        return getAuthUser() != null ? getAuthUser().getUsername() : null;
+        return getAuthUser().getUsername();
     }
 
     public static List<String> getRoles() {
-        AuthUser authUser = getAuthUser();
-        if (authUser != null) {
-            return authUser.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .toList();
-        }
-        return null;
+        return getAuthUser().getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
     }
 
     /**
      * 获取当前用户店铺ID
      */
     public static Long getStoreId() {
-        return getAuthUser() != null ? getAuthUser().getStoreId() : null;
+        //        AssertUtils.notNull(storeId, BizErrorCode.USER_STORE_ID_NULL);
+        return getAuthUser().getStoreId();
     }
 
     /**

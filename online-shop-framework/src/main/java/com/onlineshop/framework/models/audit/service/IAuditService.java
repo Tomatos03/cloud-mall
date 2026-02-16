@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
-import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
+import com.onlineshop.framework.models.audit.dto.AuditSubmit;
 import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
 import com.onlineshop.framework.models.audit.enums.AuditType;
@@ -26,7 +26,7 @@ public interface IAuditService extends IService<Audit> {
      * @param submitDTO 审核提交数据
      * @throws BizException 当参数验证失败时
      */
-    void submitAudit(AuditSubmitDTO submitDTO);
+    void submitAudit(AuditSubmit submitDTO);
 
     /**
      * 分页查询审核记录（支持多条件筛选）
@@ -77,18 +77,21 @@ public interface IAuditService extends IService<Audit> {
      */
     List<Audit> queryLatestAuditByTypeBatch(AuditType type, Collection<? extends Serializable> targetIds);
     /**
-     * 更新审核记录的状态、目标ID和额外信息
-     * 用于重新提交审核时，更新审核状态为待审核，同时更新序列化后的数据和目标ID
+     * 更新审核记录
+     * 根据提供的Audit对象更新审核记录，支持更新状态、目标ID、备注和快照等信息
      *
-     * @param auditId 审核记录ID
-     * @param status 新的审核状态
-     * @param targetId 被审核对象的ID
-     * @param payload 被审核对象的数据（会被序列化为JSON存储到extraInfo）
+     * @param audit 审核记录对象，包含需要更新的字段信息
      * @throws BizException 当审核记录不存在时
      */
-    void updateAudit(Long auditId, AuditStatus status, Long targetId, Object payload);
+    void updateAudit(Audit audit);
 
-    void updateAudit(Long auditId, AuditStatus status, Long targetId, String reason);
-
-    void updateAudit(Long targetId, AuditStatus status, Object payload);
+    /**
+     * 查询指定目标的审核状态
+     * 获取该目标最新审核记录的状态码和状态名称
+     *
+     * @param type 目标类型（如 GOODS、STORE 等）
+     * @param targetId 目标ID
+     * @return 审核状态枚举，如果不存在审核记录则返回null
+     */
+    AuditStatus queryAuditStatus(AuditType type, Long targetId);
 }

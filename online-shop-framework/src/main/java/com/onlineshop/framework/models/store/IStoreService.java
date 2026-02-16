@@ -6,7 +6,6 @@ import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
 import com.onlineshop.framework.models.store.dto.StoreGoodsParamsDTO;
 import com.onlineshop.framework.models.store.dto.StoreUpdateDTO;
 import com.onlineshop.framework.models.store.vo.StoreVO;
-import com.onlineshop.framework.models.system.user.vo.UserInfoVO;
 
 /**
  * 店铺相关业务 Service
@@ -36,14 +35,14 @@ public interface IStoreService extends IService<Store> {
 
     /**
      * 更新店铺信息（部分更新）
-     * @param storeId 店铺ID
-     * @param userId 用户ID（用于权限校验）
+     *
+     * @param storeId   店铺ID
+     * @param userId    用户ID（用于权限校验）
      * @param updateDTO 更新信息
-     * @return 更新是否成功
      */
-    boolean updateStore(Long storeId, Long userId, StoreUpdateDTO updateDTO);
+    void updateStore(StoreUpdateDTO updateDTO);
 
     Store queryStoreByUserId(Long userId);
 
-    MerchantInfoDTO getMerchantInfo();
+    StoreInfoDTO getMerchantInfo();
 }

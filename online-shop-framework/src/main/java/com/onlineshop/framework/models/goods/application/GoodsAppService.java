@@ -6,7 +6,7 @@ import com.onlineshop.framework.event.goods.DelGoodsFromEsEvent;
 import com.onlineshop.framework.event.goods.SyncGoodsToEsEvent;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.audit.application.IAuditDelegate;
-import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
+import com.onlineshop.framework.models.audit.dto.AuditSubmit;
 import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
 import com.onlineshop.framework.models.audit.enums.AuditType;
@@ -50,6 +50,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -94,11 +95,17 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
                 } else {
                     goodsService.updateGoodsAuditStatus(goodsId, status);
                 }
-                auditService.updateAudit(goodsId, status, JsonSupport.toJson(goodsDTO));
+                auditService.updateAudit(buildUpdateAudit(
+                        auditService.queryLatestAudit(AuditType.GOODS, goodsId).getId(),
+                        status,
+                        goodsId,
+                        JsonSupport.toJson(goodsDTO),
+                        null
+                ));
             } else {
                 Goods goods = addNewGoods(goodsDTO);
-                AuditSubmitDTO auditSubmitDTO = buildAuditSubmit(goods.getId(), JsonSupport.toJson(goodsDTO));
-                auditService.submitAudit(auditSubmitDTO);
+                AuditSubmit auditSubmit = buildAuditSubmit(goods.getId(), JsonSupport.toJson(goodsDTO));
+                auditService.submitAudit(auditSubmit);
             }
         }
     }
@@ -106,16 +113,28 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void onAuditApproved(Audit audit) {
-        GoodsDTO payload = JsonSupport.fromJson(audit.getExtraInfo(), GoodsDTO.class);
+        GoodsDTO payload = JsonSupport.fromJson(audit.getSnapshot(), GoodsDTO.class);
         Goods goods = updateGoods(payload, AuditStatus.APPROVED);
         publishSyncGoodsToEsEvent(goods);
-        auditService.updateAudit(audit.getId(), AuditStatus.APPROVED, goods.getId(), payload);
+        auditService.updateAudit(buildAuditDecision(
+                audit.getId(),
+                AuditStatus.APPROVED,
+                goods.getId(),
+                JsonSupport.toJson(payload),
+                null
+        ));
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void onAuditRejected(Audit audit, String reason) {
-        auditService.updateAudit(audit.getId(), AuditStatus.REJECTED, audit.getTargetId(), reason);
+        auditService.updateAudit(buildAuditDecision(
+                audit.getId(),
+                AuditStatus.REJECTED,
+                audit.getTargetId(),
+                null,
+                reason
+        ));
 
         Goods goods = goodsService.getById(audit.getTargetId());
         goods.setAuditStatus(AuditStatus.REJECTED.getCode());
@@ -418,7 +437,13 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
         AssertUtils.isEqual(AuthUserUtils.getStoreId(), goods.getStoreId(), BizErrorCode.NO_PERMISSION);
 
         validateAndFillInfo(payload);
-        auditService.updateAudit(auditId, AuditStatus.PENDING, goods.getId(), payload);
+        auditService.updateAudit(buildUpdateAudit(
+                auditId,
+                AuditStatus.PENDING,
+                goods.getId(),
+                JsonSupport.toJson(payload),
+                null
+        ));
     }
 
     // ==================== 私有审核方法 ====================
@@ -657,9 +682,9 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
                                                                .createTime(audit.getCreateTime());
 
         // 如果存在待审核的商品信息，则反序列化并构建PendingGoodsInfo
-        if (audit.getExtraInfo() != null && !audit.getExtraInfo()
-                                                  .isEmpty()) {
-            GoodsDTO goodsDTO = JsonSupport.fromJson(audit.getExtraInfo(), GoodsDTO.class);
+        if (audit.getSnapshot() != null && !audit.getSnapshot()
+                                                 .isEmpty()) {
+            GoodsDTO goodsDTO = JsonSupport.fromJson(audit.getSnapshot(), GoodsDTO.class);
             if (goodsDTO != null) {
                 AuditGoodsVO.PendingGoodsInfo pendingGoodsInfo =
                         AuditGoodsVO.PendingGoodsInfo.builder()
@@ -868,11 +893,40 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
         return goods;
     }
 
-    private static AuditSubmitDTO buildAuditSubmit(Long goodsId, String goodsJson) {
-        return AuditSubmitDTO.builder()
-                             .targetType(AuditType.GOODS.getCode())
-                             .targetId(goodsId)
-                             .extraInfo(goodsJson)
-                             .build();
+    private static AuditSubmit buildAuditSubmit(Long goodsId, String snapshot) {
+        return AuditSubmit.builder()
+                          .targetType(AuditType.GOODS.getCode())
+                          .targetId(goodsId)
+                          .snapShot(snapshot)
+                          .build();
+    }
+
+    /**
+     * 构建审核更新对象（用于重新提交审核）
+     */
+    private Audit buildUpdateAudit(Long auditId, AuditStatus status, Long targetId, String snapshot, String reason) {
+        return Audit.builder()
+                .id(auditId)
+                .status(status.getCode())
+                .targetId(targetId)
+                .snapshot(snapshot)
+                .reason(reason)
+                .build();
+    }
+
+    /**
+     * 构建审核决策对象（审核通过/拒绝）
+     */
+    private Audit buildAuditDecision(Long auditId, AuditStatus status, Long targetId, String snapshot, String reason) {
+        return Audit.builder()
+                .id(auditId)
+                .status(status.getCode())
+                .targetId(targetId)
+                .snapshot(snapshot)
+                .reason(reason)
+                .auditorId(AuthUserUtils.getUserId())
+                .auditorName(AuthUserUtils.getUsername())
+                .auditTime(LocalDateTime.now())
+                .build();
     }
 }

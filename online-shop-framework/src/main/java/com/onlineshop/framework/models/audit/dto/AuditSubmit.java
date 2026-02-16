@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuditSubmitDTO {
+public class AuditSubmit {
     /**
      * 被审核对象类型: GOODS / SKU / OTHER
      */
@@ -26,5 +26,5 @@ public class AuditSubmitDTO {
     /**
      * 扩展信息: 可存储SKU组合/商品规格等JSON
      */
-    private String extraInfo;
+    private String snapShot;
 }

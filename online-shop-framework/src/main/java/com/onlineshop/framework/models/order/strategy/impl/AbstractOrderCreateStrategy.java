@@ -20,7 +20,7 @@ import com.onlineshop.framework.models.order.enums.OrderStatus;
 import com.onlineshop.framework.models.order.enums.OrderType;
 import com.onlineshop.framework.models.order.strategy.OrderCreateStrategy;
 import com.onlineshop.framework.utils.AuthUserUtils;
-import com.onlineshop.framework.utils.OrderNoUtil;
+import com.onlineshop.framework.utils.IDNumber;
 import com.onlineshop.framework.utils.image.ImageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -295,7 +295,7 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
                                         .sum();
 
         Order.OrderBuilder orderBuilder = Order.builder()
-                                               .no(OrderNoUtil.generateParentOrderNo())
+                                               .no(IDNumber.generateParentOrderNo())
                                                .userId(AuthUserUtils.getUserId())
                                                .totalPrice(totalPrice)
                                                .quantity(rawOrderBuilds.size())  // 子订单数量
@@ -319,7 +319,7 @@ public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy
 
     private Order buildOrder(long storeId, int quantity, long orderTotalPrice, Address address) {
         Long userId = AuthUserUtils.getUserId();
-        String orderNo = OrderNoUtil.generateOrderNo();
+        String orderNo = IDNumber.generateOrderNo();
         LocalDateTime now = LocalDateTime.now();
 
         return Order.builder()

@@ -31,8 +31,6 @@ public class AuditManageController {
     /**
      * 分页查询审核记录
      * 管理员权限：查询所有审核记录
-     * 商家权限：查询自己店铺的审核记录
-     * 来自 admin/AdminAuditController + merchant/MerchantAuditController
      *
      * @param auditQueryDTO 查询条件
      * @return 审核记录分页结果
@@ -40,15 +38,6 @@ public class AuditManageController {
     @GetMapping("/page")
     public IPage<AuditVO> pageQuery(AuditParamsDTO auditQueryDTO) {
         return auditService.pageQuery(auditQueryDTO);
-    }
-
-    /**
-     * 使用 POST 方式分页查询审核记录（兼容性）
-     * 来自 admin/AdminAuditController
-     */
-    @PostMapping("/page")
-    public IPage<AuditVO> pageQueryPost(@RequestBody AuditParamsDTO queryDTO) {
-        return auditService.pageQuery(queryDTO);
     }
 
     /**
@@ -69,7 +58,7 @@ public class AuditManageController {
      *
      * @param decisionDTO 审核决定数据（包含auditLogId, approved, reason）
      */
-    @PostMapping("/goods/decision")
+    @PostMapping("/decision")
     @PreAuthorize("hasAuthority('audit:edit')")
     public void auditGoodsDecision(@Valid @RequestBody AuditDecisionDTO decisionDTO) {
         auditAppService.handleAuditDecision(decisionDTO);

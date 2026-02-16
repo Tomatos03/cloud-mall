@@ -23,6 +23,8 @@ public enum BizErrorCode {
     USER_ALREADY_EXISTS(10002, "用户已经存在"),
     USER_NOT_EXISTS(10003, "用户不存在"),
     PASSWORD_NOT_MATCH(10004, "密码不匹配"),
+    USER_NOT_AUTHENTICATED(10005, "用户未认证"),
+    USER_STORE_ID_NULL(10006, "用户店铺ID为空"),
 
     // ==================== 商品分类相关错误码 (20xxx) ====================
     CATEGORY_BEYOND_MAX_LEVEL(20000, "分类层级超出最大限制"),
