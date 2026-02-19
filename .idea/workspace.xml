@@ -4,71 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8d274251-6846-49ac-a01b-95894bd80c22" name="Changes" comment="feat: 添加简单的商家入驻审核">
-      <change afterPath="$PROJECT_DIR$/.idea/GrepConsole.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/data_source_mapping.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/im/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/im/src/main/java/com/onlineshop/IMApplication.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/im/src/main/java/com/onlineshop/im/config/WebSocketConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/im/src/main/java/com/onlineshop/security/SecurityChainConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/im/src/main/java/com/onlineshop/security/filter/IMTokenAuthenticationFilter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/im/src/main/resources/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/chat/MessageType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/chat/application/ChatAppService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/chat/application/IChatAppService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/chat/dto/CreateSessionResult.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/security/filter/MerchantTokenAuthenticationFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/0217d5f9-e4e9-4410-811c-81adfbf1d367.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/0217d5f9-e4e9-4410-811c-81adfbf1d367/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/19ab4d82-b72e-46d3-bed2-3871fabef526.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/19ab4d82-b72e-46d3-bed2-3871fabef526/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1a95afc5-cb4d-4a04-9d4b-5b7c5d99d9f4.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1a95afc5-cb4d-4a04-9d4b-5b7c5d99d9f4/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1ed4cc76-f44f-4e38-90ea-90d74ad26c90.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/1ed4cc76-f44f-4e38-90ea-90d74ad26c90/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/27335224-abc5-49ba-824e-058e7010f853.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/27335224-abc5-49ba-824e-058e7010f853/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/350a1825-bbbe-4bd3-bfbd-fb6228a60dfa.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/350a1825-bbbe-4bd3-bfbd-fb6228a60dfa/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/3f16ef60-0edb-406f-bed6-acdacfcc56f6.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/3f16ef60-0edb-406f-bed6-acdacfcc56f6/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/4f1450b7-a568-4003-bc3f-d4d958235ab0.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/4f1450b7-a568-4003-bc3f-d4d958235ab0/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/756a4c8e-729b-48f8-abc4-9234c031ee4e.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/756a4c8e-729b-48f8-abc4-9234c031ee4e/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
+    <list default="true" id="8d274251-6846-49ac-a01b-95894bd80c22" name="Changes" comment="feat: 实现基本的IM模块">
       <change beforePath="$PROJECT_DIR$/.idea/dataSources/a2af6982-70e6-4ce2-812b-f0bf4a604a3c.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/a2af6982-70e6-4ce2-812b-f0bf4a604a3c.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/ab35aa33-ba24-4b75-8449-b2393f3923c2.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/ab35aa33-ba24-4b75-8449-b2393f3923c2/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/db-forest-config.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/db-forest-config.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/ai_instruction.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/database.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/entity/PageParamsDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/entity/PageParamsDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/enums/BizErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/enums/BizErrorCode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/mybatisPlus/MyMetaObjectHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/config/mybatisPlus/MyMetaObjectHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/service/impl/AuditService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/audit/service/impl/AuditService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/impl/JwtService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/auth/service/impl/JwtService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/GoodsCommentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/comment/GoodsCommentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/FavoriteService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/favorite/FavoriteService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/unit/UnitService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/goods/unit/UnitService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/impl/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/order/service/impl/OrderService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/search/service/impl/GoodsEsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/search/service/impl/GoodsEsService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/StoreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/store/StoreService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/role/RoleService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/role/RoleService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/system/user/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/consumer/OrderCloseConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/consumer/OrderCloseConsumer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/producer/OrderCloseProducer.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/mq/order/producer/OrderCloseProducer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/security/handler/CustomerAccessDeniedHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/security/handler/CustomerAccessDeniedHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/AuthUserUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/utils/AuthUserUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/security/SecurityChainConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-merchant/src/main/java/com/onlineshop/security/SecurityChainConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-web/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-web/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/feature/EnableElasticSearch.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -493,7 +432,7 @@
       <workItem from="1771388729852" duration="19000" />
       <workItem from="1771392048246" duration="27086000" />
       <workItem from="1771478104260" duration="10000" />
-      <workItem from="1771488155035" duration="624000" />
+      <workItem from="1771488155035" duration="1939000" />
     </task>
     <task id="LOCAL-00001" summary="refactor: reorganize goods-related classes and add new specifications&#10;&#10;- Moved GoodsVO and GoodsDetailVO to the 'spu' package.&#10;- Renamed Goods class and its related interfaces to reflect the new package structure.&#10;- Added new classes for SKU and specifications, including GoodsSku, Spec, and SpecValue.&#10;- Introduced new mappers and services for SKU and specifications management.&#10;- Updated UserContextHolder to include a method for retrieving the username.&#10;- Added XML configuration for version control settings.">
       <option name="closed" value="true" />
@@ -567,7 +506,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771250632375</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="feat: 实现基本的IM模块">
+      <option name="closed" value="true" />
+      <created>1771489540307</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1771489540307</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -591,7 +538,8 @@
     <MESSAGE value="feat: implement order timeout handling with messaging and auto-cancellation features" />
     <MESSAGE value="feat: add Elasticsearch integration for goods indexing and search functionality" />
     <MESSAGE value="feat: 添加简单的商家入驻审核" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: 添加简单的商家入驻审核" />
+    <MESSAGE value="feat: 实现基本的IM模块" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: 实现基本的IM模块" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
