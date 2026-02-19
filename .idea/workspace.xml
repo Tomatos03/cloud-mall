@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8d274251-6846-49ac-a01b-95894bd80c22" name="Changes" comment="feat: 实现基本的IM模块">
+    <list default="true" id="8d274251-6846-49ac-a01b-95894bd80c22" name="Changes" comment="step: 新建秒杀模块">
       <change beforePath="$PROJECT_DIR$/.idea/dataSources/a2af6982-70e6-4ce2-812b-f0bf4a604a3c.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/a2af6982-70e6-4ce2-812b-f0bf4a604a3c.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/ai_instruction.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/feature/EnableElasticSearch.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -432,7 +431,7 @@
       <workItem from="1771388729852" duration="19000" />
       <workItem from="1771392048246" duration="27086000" />
       <workItem from="1771478104260" duration="10000" />
-      <workItem from="1771488155035" duration="1939000" />
+      <workItem from="1771488155035" duration="2360000" />
     </task>
     <task id="LOCAL-00001" summary="refactor: reorganize goods-related classes and add new specifications&#10;&#10;- Moved GoodsVO and GoodsDetailVO to the 'spu' package.&#10;- Renamed Goods class and its related interfaces to reflect the new package structure.&#10;- Added new classes for SKU and specifications, including GoodsSku, Spec, and SpecValue.&#10;- Introduced new mappers and services for SKU and specifications management.&#10;- Updated UserContextHolder to include a method for retrieving the username.&#10;- Added XML configuration for version control settings.">
       <option name="closed" value="true" />
@@ -514,7 +513,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771489540307</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="step: 新建秒杀模块">
+      <option name="closed" value="true" />
+      <created>1771490909914</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1771490909914</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -539,7 +546,8 @@
     <MESSAGE value="feat: add Elasticsearch integration for goods indexing and search functionality" />
     <MESSAGE value="feat: 添加简单的商家入驻审核" />
     <MESSAGE value="feat: 实现基本的IM模块" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: 实现基本的IM模块" />
+    <MESSAGE value="step: 新建秒杀模块" />
+    <option name="LAST_COMMIT_MESSAGE" value="step: 新建秒杀模块" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
