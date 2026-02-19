@@ -156,7 +156,21 @@ public enum BizErrorCode {
     AUDIT_TARGET_TYPE_MISMATCH(90012, "审核对象类型不匹配"),
     AUDIT_ONLY_APPROVED(90013, "只能操作已通过的审核记录"),
     AUDIT_INVALID_STATUS(90014, "非法的审核状态"),
-    UNSUPPORTED_AUDIT_TYPE(90015, "不支持的审核对象类型");
+    UNSUPPORTED_AUDIT_TYPE(90015, "不支持的审核对象类型"),
+
+    // ==================== 秒杀相关错误码 (92xxx) ====================
+    SECKILL_ACTIVITY_NOT_EXIST(92000, "秒杀活动不存在"),
+    SECKILL_NOT_STARTED(92001, "秒杀活动还未开始"),
+    SECKILL_ALREADY_ENDED(92002, "秒杀活动已结束"),
+    SECKILL_STOCK_INSUFFICIENT(92003, "秒杀商品库存不足"),
+    SECKILL_RATE_LIMIT_EXCEEDED(92004, "你的操作过于频繁，请稍后再试"),
+    SECKILL_ORDER_NOT_EXIST(92005, "秒杀订单不存在"),
+    SECKILL_ORDER_NOT_BELONG_TO_USER(92006, "秒杀订单不属于当前用户"),
+    SECKILL_ORDER_CANNOT_CANCEL(92007, "该秒杀订单无法取消"),
+    SECKILL_QUANTITY_INVALID(92008, "秒杀购买数量无效"),
+    SECKILL_CACHE_INIT_FAILED(92009, "秒杀库存缓存初始化失败"),
+    SECKILL_FAILED(92010, "秒杀操作失败"),
+    SECKILL_ORDER_INVALID_STATUS(92011, "秒杀订单状态无效，无法执行此操作");
 
     final int code;
     final String errorMessage;

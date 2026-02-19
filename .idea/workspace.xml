@@ -4,9 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8d274251-6846-49ac-a01b-95894bd80c22" name="Changes" comment="step: 新建秒杀模块">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/a2af6982-70e6-4ce2-812b-f0bf4a604a3c.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/a2af6982-70e6-4ce2-812b-f0bf4a604a3c.xml" afterDir="false" />
+    <list default="true" id="8d274251-6846-49ac-a01b-95894bd80c22" name="Changes" comment="step: 添加秒杀订单相关实现">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/5bed897d-6dc1-4a7d-9366-51c7d990154b.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/5bed897d-6dc1-4a7d-9366-51c7d990154b/storage_v2/_src_/schema/information_schema.FNRwLQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/data_source_mapping.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/data_source_mapping.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docs/ai_instruction.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/enums/BizErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/common/enums/BizErrorCode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/chat/service/impl/ChatMessageService.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/chat/service/impl/ChatMessageService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/seckill/entity/SeckillOrder.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/seckill/entity/SeckillOrder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/seckill/exception/InsufficientStockException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/seckill/exception/SeckillEndedException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/seckill/exception/SeckillException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/seckill/exception/SeckillNotStartedException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/seckill/exception/SeckillRateLimitException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/seckill/manager/SeckillManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/online-shop-framework/src/main/java/com/onlineshop/framework/models/seckill/manager/SeckillManager.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,47 +94,47 @@
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.online-mall [org.apache.maven.plugins:maven-clean-plugin:3.4.1:clean].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;New/updated database configurations found&quot;,
-    &quot;Notification.DoNotAsk-DatabaseConfigFileWatcher.found&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Spring Boot.CloudMallManageApplication.executor&quot;: &quot;Debug&quot;,
-    &quot;Spring Boot.CloudMallMerchantApplication.executor&quot;: &quot;Debug&quot;,
-    &quot;Spring Boot.CloudMallWebApplication.executor&quot;: &quot;Debug&quot;,
-    &quot;Spring Boot.IMApplication.executor&quot;: &quot;Debug&quot;,
-    &quot;Spring Boot.OnlineMallApplication.executor&quot;: &quot;Debug&quot;,
-    &quot;Spring Boot.OnlineShopManagerApplication.executor&quot;: &quot;Debug&quot;,
-    &quot;Spring Boot.OnlineShopWebApplication.executor&quot;: &quot;Debug&quot;,
-    &quot;database.data.extractors.current.export.id&quot;: &quot;SQL Inserts&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/Tomatos/Projects/design/online-mall/im/src/main/java/com/onlineshop&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.22790697&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.34455445&quot;,
-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.grazie&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Run",
+    "Maven.online-mall [org.apache.maven.plugins:maven-clean-plugin:3.4.1:clean].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Notification.DisplayName-DoNotAsk-DatabaseConfigFileWatcher.found": "New/updated database configurations found",
+    "Notification.DoNotAsk-DatabaseConfigFileWatcher.found": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.CloudMallManageApplication.executor": "Debug",
+    "Spring Boot.CloudMallMerchantApplication.executor": "Debug",
+    "Spring Boot.CloudMallWebApplication.executor": "Debug",
+    "Spring Boot.IMApplication.executor": "Run",
+    "Spring Boot.OnlineMallApplication.executor": "Debug",
+    "Spring Boot.OnlineShopManagerApplication.executor": "Debug",
+    "Spring Boot.OnlineShopWebApplication.executor": "Debug",
+    "database.data.extractors.current.export.id": "SQL Inserts",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/Tomatos/Projects/design/online-mall/im/src/main/java/com/onlineshop",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.22790697",
+    "project.structure.side.proportion": "0.34455445",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.grazie",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;mariadb&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mariadb"
     ]
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="com.onlineshop.controller" />
@@ -203,7 +215,7 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.CloudMallMerchantApplication">
+  <component name="RunManager" selected="Spring Boot.CloudMallWebApplication">
     <configuration name="CloudMallManageApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
       <module name="online-shop-manager" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.onlineshop.CloudMallManageApplication" />
@@ -258,9 +270,9 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Spring Boot.CloudMallMerchantApplication" />
-        <item itemvalue="Spring Boot.IMApplication" />
         <item itemvalue="Spring Boot.CloudMallWebApplication" />
+        <item itemvalue="Spring Boot.IMApplication" />
+        <item itemvalue="Spring Boot.CloudMallMerchantApplication" />
         <item itemvalue="Spring Boot.CloudMallManageApplication" />
       </list>
     </recent_temporary>
@@ -431,7 +443,8 @@
       <workItem from="1771388729852" duration="19000" />
       <workItem from="1771392048246" duration="27086000" />
       <workItem from="1771478104260" duration="10000" />
-      <workItem from="1771488155035" duration="2360000" />
+      <workItem from="1771488155035" duration="2409000" />
+      <workItem from="1771491374927" duration="1699000" />
     </task>
     <task id="LOCAL-00001" summary="refactor: reorganize goods-related classes and add new specifications&#10;&#10;- Moved GoodsVO and GoodsDetailVO to the 'spu' package.&#10;- Renamed Goods class and its related interfaces to reflect the new package structure.&#10;- Added new classes for SKU and specifications, including GoodsSku, Spec, and SpecValue.&#10;- Introduced new mappers and services for SKU and specifications management.&#10;- Updated UserContextHolder to include a method for retrieving the username.&#10;- Added XML configuration for version control settings.">
       <option name="closed" value="true" />
@@ -521,7 +534,39 @@
       <option name="project" value="LOCAL" />
       <updated>1771490909914</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="step: 添加秒杀订单相关实现">
+      <option name="closed" value="true" />
+      <created>1771491308592</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1771491308592</updated>
+    </task>
+    <task id="LOCAL-00013" summary="step: 添加秒杀订单相关实现">
+      <option name="closed" value="true" />
+      <created>1771491313227</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1771491313227</updated>
+    </task>
+    <task id="LOCAL-00014" summary="step: 添加秒杀订单相关实现">
+      <option name="closed" value="true" />
+      <created>1771491324858</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1771491324858</updated>
+    </task>
+    <task id="LOCAL-00015" summary="step: 添加秒杀订单相关实现">
+      <option name="closed" value="true" />
+      <created>1771491395406</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1771491395406</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -547,7 +592,8 @@
     <MESSAGE value="feat: 添加简单的商家入驻审核" />
     <MESSAGE value="feat: 实现基本的IM模块" />
     <MESSAGE value="step: 新建秒杀模块" />
-    <option name="LAST_COMMIT_MESSAGE" value="step: 新建秒杀模块" />
+    <MESSAGE value="step: 添加秒杀订单相关实现" />
+    <option name="LAST_COMMIT_MESSAGE" value="step: 添加秒杀订单相关实现" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

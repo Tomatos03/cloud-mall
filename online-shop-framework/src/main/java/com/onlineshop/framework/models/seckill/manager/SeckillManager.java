@@ -1,13 +1,10 @@
 package com.onlineshop.framework.models.seckill.manager;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.onlineshop.framework.common.enums.BizErrorCode;
+import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.seckill.entity.SeckillActivity;
 import com.onlineshop.framework.models.seckill.entity.SeckillOrder;
 import com.onlineshop.framework.models.seckill.enums.SeckillStatusEnum;
-import com.onlineshop.framework.models.seckill.exception.InsufficientStockException;
-import com.onlineshop.framework.models.seckill.exception.SeckillEndedException;
-import com.onlineshop.framework.models.seckill.exception.SeckillNotStartedException;
-import com.onlineshop.framework.models.seckill.exception.SeckillRateLimitException;
 import com.onlineshop.framework.models.seckill.service.SeckillActivityService;
 import com.onlineshop.framework.models.seckill.service.SeckillOrderService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +27,6 @@ public class SeckillManager {
 
     private static final String SECKILL_STOCK_KEY_PREFIX = "seckill:stock:";
     private static final String SECKILL_RATE_LIMIT_KEY_PREFIX = "seckill:rate_limit:";
-    private static final String SECKILL_USER_LOCK_KEY_PREFIX = "seckill:user_lock:";
     private static final Integer RATE_LIMIT_COUNT = 10; // 每分钟最多请求10次
     private static final Long RATE_LIMIT_PERIOD = 60L; // 限流时间窗口：60秒
 
@@ -43,7 +40,7 @@ public class SeckillManager {
     private RedisTemplate<String, Object> redisTemplate;
 
     /**
-     * 检查秒杀活动是否有效
+     * 检查秒杀活动状态
      * 
      * @param seckillId 秒杀活动ID
      * @return 秒杀活动状态
@@ -51,7 +48,7 @@ public class SeckillManager {
     public Integer checkSeckillStatus(Long seckillId) {
         SeckillActivity activity = seckillActivityService.getById(seckillId);
         if (activity == null) {
-            throw new IllegalArgumentException("秒杀活动不存在");
+            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -81,29 +78,32 @@ public class SeckillManager {
         // 2. 活动状态检查
         Integer status = checkSeckillStatus(seckillId);
         if (status.equals(SeckillStatusEnum.NOT_STARTED.getCode())) {
-            throw new SeckillNotStartedException("秒杀活动未开始");
+            throw new BizException(BizErrorCode.SECKILL_NOT_STARTED);
         } else if (status.equals(SeckillStatusEnum.ENDED.getCode())) {
-            throw new SeckillEndedException("秒杀活动已结束");
+            throw new BizException(BizErrorCode.SECKILL_ALREADY_ENDED);
         }
 
         // 3. 获取秒杀活动信息
         SeckillActivity activity = seckillActivityService.getById(seckillId);
         if (activity == null) {
-            throw new IllegalArgumentException("秒杀活动不存在");
+            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
         }
 
         // 4. Redis中扣减库存（原子性操作）
         String stockKey = SECKILL_STOCK_KEY_PREFIX + seckillId;
-        Long remainingStock = (Long) redisTemplate.opsForValue().get(stockKey);
+        Object stockObj = redisTemplate.opsForValue().get(stockKey);
+        Long remainingStock = null;
         
-        if (remainingStock == null) {
+        if (stockObj == null) {
             // 初始化库存到Redis
             remainingStock = activity.getStock().longValue();
             redisTemplate.opsForValue().set(stockKey, remainingStock);
+        } else {
+            remainingStock = Long.parseLong(stockObj.toString());
         }
 
         if (remainingStock < quantity) {
-            throw new InsufficientStockException("秒杀商品库存不足");
+            throw new BizException(BizErrorCode.SECKILL_STOCK_INSUFFICIENT);
         }
 
         // 原子性扣减库存
@@ -111,7 +111,7 @@ public class SeckillManager {
         if (deductedStock < 0) {
             // 回滚
             redisTemplate.opsForValue().increment(stockKey, quantity);
-            throw new InsufficientStockException("秒杀商品库存不足");
+            throw new BizException(BizErrorCode.SECKILL_STOCK_INSUFFICIENT);
         }
 
         // 5. 生成秒杀订单
@@ -147,7 +147,7 @@ public class SeckillManager {
         }
         
         if (count > RATE_LIMIT_COUNT) {
-            throw new SeckillRateLimitException("请求过于频繁，请稍后再试");
+            throw new BizException(BizErrorCode.SECKILL_RATE_LIMIT_EXCEEDED);
         }
     }
 
@@ -162,16 +162,19 @@ public class SeckillManager {
         log.info("开始同步秒杀活动 {} 的库存到数据库", seckillId);
         
         String stockKey = SECKILL_STOCK_KEY_PREFIX + seckillId;
-        Long remainingStock = (Long) redisTemplate.opsForValue().get(stockKey);
+        Object stockObj = redisTemplate.opsForValue().get(stockKey);
         
-        if (remainingStock != null) {
+        if (stockObj != null) {
+            Long remainingStock = Long.parseLong(stockObj.toString());
             SeckillActivity activity = seckillActivityService.getById(seckillId);
-            activity.setStock(remainingStock.intValue());
-            seckillActivityService.updateById(activity);
-            
-            // 清除Redis缓存
-            redisTemplate.delete(stockKey);
-            log.info("秒杀活动 {} 库存已同步到数据库，剩余库存：{}", seckillId, remainingStock);
+            if (activity != null) {
+                activity.setStock(remainingStock.intValue());
+                seckillActivityService.updateById(activity);
+                
+                // 清除Redis缓存
+                redisTemplate.delete(stockKey);
+                log.info("秒杀活动 {} 库存已同步到数据库，剩余库存：{}", seckillId, remainingStock);
+            }
         }
     }
 
@@ -183,7 +186,7 @@ public class SeckillManager {
     public void initializeStock(Long seckillId) {
         SeckillActivity activity = seckillActivityService.getById(seckillId);
         if (activity == null) {
-            throw new IllegalArgumentException("秒杀活动不存在");
+            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
         }
 
         String stockKey = SECKILL_STOCK_KEY_PREFIX + seckillId;
@@ -210,7 +213,7 @@ public class SeckillManager {
             return activity.getStock().longValue();
         }
         
-        return (Long) stock;
+        return Long.parseLong(stock.toString());
     }
 
     /**

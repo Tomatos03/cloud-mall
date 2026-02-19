@@ -66,6 +66,11 @@ public class SeckillOrder implements Serializable {
     private Integer status;
 
     /**
+     * 取消原因
+     */
+    private String cancelReason;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;

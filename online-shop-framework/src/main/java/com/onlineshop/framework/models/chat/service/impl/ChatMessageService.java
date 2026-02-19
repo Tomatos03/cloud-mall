@@ -40,7 +40,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageMapper, ChatMessa
                                 .userId(msg.getSenderId())
                                 .content(msg.getContent())
                                 .type(msg.getType())
-                                .time(msg.getCreateTime())
+                                .time(msg.getCreateTime().toString())
                                 .build()
         );
     }
