@@ -136,6 +136,9 @@ public enum BizErrorCode {
 
     // ==================== 消息相关错误码 (91xxx) ====================
     INVALID_MESSAGE_STATUS(91000, "无效的消息状态"),
+    INVALID_MESSAGE_TYPE(91001, "无效的消息类型"),
+    CONVERSATION_NOT_EXIST(91002, "会话不存在"),
+    MESSAGE_CONTENT_EMPTY(91003, "消息内容不能为空"),
 
     // ==================== 审核相关错误码 (90xxx) ====================
     AUDIT_SUBMIT_PARAMS_INCOMPLETE(90000, "审核申请参数不完整"),

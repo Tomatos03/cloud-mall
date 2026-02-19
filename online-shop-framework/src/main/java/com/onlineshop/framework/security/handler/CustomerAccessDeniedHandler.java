@@ -22,7 +22,7 @@ public class CustomerAccessDeniedHandler implements AccessDeniedHandler {
     private static final String UNAUTHORIZED = "未授权";
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
-        log.warn("未授权的请求{}", request.getRequestURI());
+        log.warn("未授权的请求{}", request.getRequestURI(), accessDeniedException);
         ResponseWriteUtil.writeUnauthorized(response, UNAUTHORIZED);
     }
 }

@@ -42,7 +42,7 @@ public class RoleService extends ServiceImpl<RoleMapper, Role> implements IRoleS
 
     @Override
     public IPage<Role> queryRoleList(RolePageParamsDTO query) {
-        Page<Role> pageParam = new Page<>(query.getPageNo(), query.getPageSize());
+        Page<Role> pageParam = new Page<>(query.getPage(), query.getPageSize());
         return lambdaQuery()
                 .like(StringUtils.hasText(query.getName()), Role::getName, query.getName())
                 .page(pageParam);

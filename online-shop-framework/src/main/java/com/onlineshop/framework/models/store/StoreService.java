@@ -55,7 +55,7 @@ public class StoreService extends ServiceImpl<StoreMapper, Store> implements ISt
         wrapper.eq("store_id", queryDTO.getStoreId())
                .eq("status", true);
 
-        Page<Goods> page = new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize());
+        Page<Goods> page = new Page<>(queryDTO.getPage(), queryDTO.getPageSize());
 
         return goodsService.page(page, wrapper)
                            .convert(GoodsCardVO::convertGoodsCardVO);
@@ -93,7 +93,7 @@ public class StoreService extends ServiceImpl<StoreMapper, Store> implements ISt
         User user = userService.getById(AuthUserUtils.getUserId());
         return StoreInfoDTO.builder()
                            .uid(user.getId()
-                                       .toString())
+                                    .toString())
                            .storeId(store.getId())
                            .storeName(store.getName())
                            .nickname(user.getNickname())
@@ -189,15 +189,6 @@ public class StoreService extends ServiceImpl<StoreMapper, Store> implements ISt
         save(buildNewStore(validatedAudit.getApplicantId()));
     }
 
-    private Store buildNewStore(Long userId) {
-        final String DEFAULT_STORE_NAME = AuthUserUtils.getUsername() +  "的店铺";
-        return Store.builder()
-                    .no(IDNumber.generateStoreNo())
-                    .userId(userId)
-                    .name(DEFAULT_STORE_NAME)
-                    .build();
-    }
-
     @Override
     public void onAuditRejected(Audit audit, String reason) {
         auditService.updateAudit(buildAuditDecision(
@@ -222,6 +213,15 @@ public class StoreService extends ServiceImpl<StoreMapper, Store> implements ISt
                     .auditorId(AuthUserUtils.getUserId())
                     .auditorName(AuthUserUtils.getUsername())
                     .auditTime(LocalDateTime.now())
+                    .build();
+    }
+
+    private Store buildNewStore(Long userId) {
+        final String DEFAULT_STORE_NAME = AuthUserUtils.getUsername() + "的店铺";
+        return Store.builder()
+                    .no(IDNumber.generateStoreNo())
+                    .userId(userId)
+                    .name(DEFAULT_STORE_NAME)
                     .build();
     }
 }

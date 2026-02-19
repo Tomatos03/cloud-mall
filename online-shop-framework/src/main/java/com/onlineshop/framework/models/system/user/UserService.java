@@ -37,7 +37,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements IUserS
 
     @Override
     public IPage<UserListItemVO> getUsersPage(PageParamsDTO pageParams) {
-        Page<User> page = new Page<>(pageParams.getPageNo(), pageParams.getPageSize());
+        Page<User> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
         return this.page(page)
                    .convert(this::convertToUserListItemVO);
     }

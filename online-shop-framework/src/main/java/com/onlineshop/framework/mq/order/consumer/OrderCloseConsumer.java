@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
         topic = "${mq.orders.cancel-topic}",
         consumerGroup = "${rocketmq.consumer.group}"
 )
+@ConditionalOnProperty(name = "rocketmq.name-server")
 public class OrderCloseConsumer implements RocketMQListener<Long> {
     private final IOrderService orderService;
     private static final String ORDER_CLOSE_REASON = "订单超时未支付，系统自动关闭";

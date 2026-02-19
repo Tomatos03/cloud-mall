@@ -90,7 +90,7 @@ public class GoodsEsService implements IGoodsEsService {
     @Override
     public IPage<GoodsCardVO> searchGoods(@NonNull GoodsSearchDTO searchDTO) {
         try {
-            int pageNum = searchDTO.getPageNo();
+            int pageNum = searchDTO.getPage();
             int pageSize = searchDTO.getPageSize();
 
             // es分页从0开始
@@ -100,13 +100,13 @@ public class GoodsEsService implements IGoodsEsService {
             SearchHits<GoodsIndex> searchHits = elasticsearchOperations.search(query,
                                                                                GoodsIndex.class);
 
-            IPage<GoodsIndex> page = PageUtil.toIPage(searchHits, searchDTO.getPageNo(),
+            IPage<GoodsIndex> page = PageUtil.toIPage(searchHits, searchDTO.getPage(),
                                                       searchDTO.getPageSize());
             log.debug("商品搜索成功，关键词: {}，结果数: {}", searchDTO.getKeyword(), page.getSize());
             return page.convert(GoodsCardVO::convertGoodsCardVO);
         } catch (Exception e) {
             log.error("商品搜索失败", e);
-            return new Page<>(searchDTO.getPageNo(), searchDTO.getPageSize(), 0);
+            return new Page<>(searchDTO.getPage(), searchDTO.getPageSize(), 0);
         }
     }
 

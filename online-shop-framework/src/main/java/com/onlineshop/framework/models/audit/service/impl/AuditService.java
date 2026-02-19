@@ -45,7 +45,7 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
     @Override
     public IPage<AuditVO> pageQuery(AuditParamsDTO queryDTO) {
         LambdaQueryWrapper<Audit> wrapper = buildQueryWrapper(queryDTO);
-        IPage<Audit> page = this.page(new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize()), wrapper);
+        IPage<Audit> page = this.page(new Page<>(queryDTO.getPage(), queryDTO.getPageSize()), wrapper);
         return page.convert(this::convertToVO);
     }
 

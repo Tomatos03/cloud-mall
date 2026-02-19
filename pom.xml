@@ -19,6 +19,7 @@
         <module>online-shop-web</module>
         <module>online-shop-framework</module>
         <module>online-shop-merchant</module>
+        <module>im</module>
     </modules>
 
     <properties>

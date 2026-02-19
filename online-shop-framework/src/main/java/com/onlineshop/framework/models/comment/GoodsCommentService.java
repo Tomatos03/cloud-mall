@@ -66,7 +66,7 @@ public class GoodsCommentService extends ServiceImpl<GoodsCommentMapper, GoodsCo
         wrapper.eq("goods_id", queryDTO.getGoodsId());
         wrapper.orderByDesc("create_time");
 
-        Page<GoodsComment> pageObj = new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize());
+        Page<GoodsComment> pageObj = new Page<>(queryDTO.getPage(), queryDTO.getPageSize());
         IPage<GoodsComment> page = this.page(pageObj, wrapper);
 
         List<GoodsComment> deduplicatedComments = deduplicateCommentsByGoodsAndUser(page.getRecords());

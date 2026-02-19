@@ -42,7 +42,7 @@ public class FavoriteService extends ServiceImpl<FavoriteMapper, Favorite> imple
         wrapper.eq(Favorite::getUserId, userId)
                .orderByDesc(Favorite::getAddedAt);
 
-        return this.page(new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize()), wrapper)
+        return this.page(new Page<>(queryDTO.getPage(), queryDTO.getPageSize()), wrapper)
                    .convert(FavoriteVO::convertFavoriteVO);
     }
 

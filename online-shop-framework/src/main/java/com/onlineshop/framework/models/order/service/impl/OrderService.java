@@ -79,7 +79,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         // TODO: 待处理
         UserRole role = UserRole.of(UserRole.NORMAL.getCode());
 
-        Page<Order> page = new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize());
+        Page<Order> page = new Page<>(queryDTO.getPage(), queryDTO.getPageSize());
         LambdaQueryWrapper<Order> wrapper = OrderQueryWrapper.build(role, queryDTO, null);
 
         IPage<Order> orderPage = page(page, wrapper);
@@ -608,7 +608,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         LambdaQueryWrapper<Order> wrapper = OrderQueryWrapper.build(role, queryDTO, null);
 
         // 执行分页查询
-        Page<Order> page = new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize());
+        Page<Order> page = new Page<>(queryDTO.getPage(), queryDTO.getPageSize());
         IPage<Order> orderPage = this.page(page, wrapper);
 
         // 转换为OrderVO
@@ -626,7 +626,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         wrapper.orderByDesc(Order::getCreateTime);
 
         // 执行分页查询
-        Page<Order> page = new Page<>(queryDTO.getPageNo(), queryDTO.getPageSize());
+        Page<Order> page = new Page<>(queryDTO.getPage(), queryDTO.getPageSize());
         return this.page(page, wrapper).convert(OrderVO::buildOrderVO);
     }
 

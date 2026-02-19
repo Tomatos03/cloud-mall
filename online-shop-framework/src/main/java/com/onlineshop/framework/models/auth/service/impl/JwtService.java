@@ -59,6 +59,14 @@ public class JwtService implements ITokenService {
         return claims;
     }
 
+    private @NonNull ParsedToken buildParsedToken(Claims claims) {
+        Long userId = claims.get("userId", Long.class);
+        String username = claims.get("username", String.class);
+        List<String> roles = extractRoles(claims);
+        Long storeId = claims.get("storeId", Long.class);
+        return new ParsedToken(userId, username, roles, storeId);
+    }
+
     @Override
     public ParsedToken parse(String token) {
         String secret = jwtProperties.getSecret();
@@ -72,14 +80,6 @@ public class JwtService implements ITokenService {
                             .getPayload();
 
         return buildParsedToken(claims);
-    }
-
-    private @NonNull ParsedToken buildParsedToken(Claims claims) {
-        Long userId = claims.get("userId", Long.class);
-        String username = claims.get("username", String.class);
-        List<String> roles = extractRoles(claims);
-        Long storeId = claims.get("storeId", Long.class);
-        return new ParsedToken(userId, username, roles, storeId);
     }
 
     /**

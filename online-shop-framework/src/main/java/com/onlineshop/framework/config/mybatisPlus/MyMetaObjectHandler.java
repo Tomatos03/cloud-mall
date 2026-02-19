@@ -21,20 +21,32 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     @Override
     public void insertFill(MetaObject metaObject) {
         // 插入时自动填充 createTime / updateTime
-        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        if (metaObject.hasSetter("createTime")) {
+            this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
+        }
+        if (metaObject.hasSetter("updateTime")) {
+            this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        }
 
         // 插入时自动填充 createUser / updateUser，如果有登录用户可动态获取
-        this.strictInsertFill(metaObject, "createUser", String.class, getOperateUser());
-        this.strictInsertFill(metaObject, "updateUser", String.class, getOperateUser());
+        if (metaObject.hasSetter("createUser")) {
+            this.strictInsertFill(metaObject, "createUser", String.class, getOperateUser());
+        }
+        if (metaObject.hasSetter("updateUser")) {
+            this.strictInsertFill(metaObject, "updateUser", String.class, getOperateUser());
+        }
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
-        // 更新时自动填充 updateTime
-        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-        // 更新人
-        this.strictUpdateFill(metaObject, "updateUser", String.class, getOperateUser());
+        // 检查字段是否存在，再进行填充
+        if (metaObject.hasSetter("updateTime")) {
+            this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+        }
+
+        if (metaObject.hasSetter("updateUser")) {
+            this.strictUpdateFill(metaObject, "updateUser", String.class, getOperateUser());
+        }
     }
 
     private String getOperateUser() {

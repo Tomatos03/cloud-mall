@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 /**
  * 公共分页查询基类
  * 子类可通过继承来扩展特定模块的分页查询条件
@@ -19,8 +20,7 @@ public class PageParamsDTO {
     /**
      * 当前页码（从1开始）
      */
-    @JsonProperty("page")
-    private Integer pageNo = 1;
+    private Integer page = 1;
 
     /**
      * 每页数量

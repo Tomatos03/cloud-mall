@@ -22,7 +22,7 @@ public class UnitService extends ServiceImpl<UnitMapper, Unit> implements IUnitS
 
     @Override
     public IPage<Unit> pageUnits(PageParamsDTO params) {
-        Page<Unit> pageRequest = new Page<>(params.getPageNo(), params.getPageSize());
+        Page<Unit> pageRequest = new Page<>(params.getPage(), params.getPageSize());
         return this.page(pageRequest);
     }
 

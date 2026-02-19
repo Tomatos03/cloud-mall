@@ -66,7 +66,6 @@ public final class AuthUserUtils {
      * 获取当前用户店铺ID
      */
     public static Long getStoreId() {
-        //        AssertUtils.notNull(storeId, BizErrorCode.USER_STORE_ID_NULL);
         return getAuthUser().getStoreId();
     }
 
