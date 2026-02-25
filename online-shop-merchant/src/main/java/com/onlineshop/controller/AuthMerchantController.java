@@ -2,6 +2,7 @@ package com.onlineshop.controller;
 
 import com.onlineshop.framework.models.auth.dto.LoginDTO;
 import com.onlineshop.framework.models.auth.dto.TokenDTO;
+import com.onlineshop.framework.models.auth.enums.AccountType;
 import com.onlineshop.framework.models.auth.service.IAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,6 @@ public class AuthMerchantController {
 
     @PostMapping("/login")
     public TokenDTO login(@RequestBody LoginDTO loginDTO) {
-        return authService.login(loginDTO);
+        return authService.login(loginDTO, AccountType.MERCHANT);
     }
 }

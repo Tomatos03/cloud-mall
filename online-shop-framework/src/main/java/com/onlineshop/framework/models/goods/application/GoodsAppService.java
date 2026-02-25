@@ -1,18 +1,18 @@
 package com.onlineshop.framework.models.goods.application;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.event.goods.DelGoodsFromEsEvent;
-import com.onlineshop.framework.event.goods.SyncGoodsToEsEvent;
 import com.onlineshop.framework.exception.BizException;
-import com.onlineshop.framework.models.audit.application.IAuditDelegate;
-import com.onlineshop.framework.models.audit.dto.AuditSubmit;
 import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
 import com.onlineshop.framework.models.audit.enums.AuditType;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
+import com.onlineshop.framework.models.category.vo.CategoryGoodsSectionVO;
+import com.onlineshop.framework.models.category.vo.CategoryTabVO;
 import com.onlineshop.framework.models.goods.application.vo.AuditGoodsVO;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailWithAuditVO;
@@ -33,9 +33,8 @@ import com.onlineshop.framework.models.goods.spec.vo.SpecValueVO;
 import com.onlineshop.framework.models.goods.spec.vo.SpecificationVO;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
 import com.onlineshop.framework.models.goods.spu.vo.WebSpuVO;
-import com.onlineshop.framework.models.goods.unit.IUnitService;
-import com.onlineshop.framework.models.goods.unit.Unit;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.Store;
 import com.onlineshop.framework.models.store.vo.StoreInfoVO;
@@ -50,7 +49,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,134 +61,94 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
+public class GoodsAppService implements IGoodsAppService {
+    private static final Integer GOODS_LIMIT = 8;
     private final IGoodsService goodsService;
     private final IGoodsSkuService skuService;
     private final ISpecService specService;
     private final ISpecValueService specValueService;
     private final IGoodsSkuSpecService skuSpecService;
     private final IAuditService auditService;
-    private final ICategoryService categoryService;
-    private final IUnitService unitService;
     private final IStoreService storeService;
+    private final ICategoryService categoryService;
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    /**
+     * 发布商品（创建或更新）
+     * <p>
+     * 用于审核通过后或直接发布商品到平台
+     * <p>
+     * 处理流程：
+     * 1. 根据 goodsId 判断是新增还是更新
+     * 2. 构建 Goods 实体（计算最低/最高价格）
+     * 3. 保存 Goods 到数据库
+     * 4. 保存规格、规格值和 SKU 到数据库
+     * <p>
+     * 规格和规格值的处理：
+     * - 自动查询或创建不存在的规格
+     * - 自动查询或创建不存在的规格值
+     * - 创建 SKU 与规格值的多对多关联
+     *
+     * @param command 商品发布命令，包含发布所需的所有数据
+     * @return 发布后的商品对象
+     * @throws BizException 如果发布失败
+     */
     @Override
-    public AuditType getSupportAuditType() {
-        return AuditType.GOODS;
-    }
+    @Transactional(rollbackFor = Exception.class)
+    public Goods publishGoods(GoodsPublishCommand command) {
+        Long goodsId = command.getGoodsId();
 
-    @Override
-    public void submitAudit(Object payload) {
-        if (payload instanceof GoodsDTO goodsDTO) {
-            validateAndFillInfo(goodsDTO);
-            Long goodsId = goodsDTO.getGoodsId();
-            if (goodsId != null) {
-                Goods goods = goodsService.getById(goodsId);
-                AuditStatus status = AuditStatus.of(goods.getAuditStatus()) == AuditStatus.APPROVED
-                        ? AuditStatus.REAUDIT
-                        : AuditStatus.PENDING;
-                if (status != AuditStatus.REAUDIT) {
-                    updateGoods(goodsDTO, status);
-                } else {
-                    goodsService.updateGoodsAuditStatus(goodsId, status);
-                }
-                auditService.updateAudit(buildUpdateAudit(
-                        auditService.queryLatestAudit(AuditType.GOODS, goodsId).getId(),
-                        status,
-                        goodsId,
-                        JsonSupport.toJson(goodsDTO),
-                        null
-                ));
-            } else {
-                Goods goods = addNewGoods(goodsDTO);
-                AuditSubmit auditSubmit = buildAuditSubmit(goods.getId(), JsonSupport.toJson(goodsDTO));
-                auditService.submitAudit(auditSubmit);
-            }
+        Goods goods = buildGoodsFromCommand(command);
+        goodsService.saveOrUpdate(goods);
+
+        boolean isUpdate = goodsId != null;
+        if (isUpdate) {
+            skuService.removeByGoodsId(goodsId);
         }
-    }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void onAuditApproved(Audit audit) {
-        GoodsDTO payload = JsonSupport.fromJson(audit.getSnapshot(), GoodsDTO.class);
-        Goods goods = updateGoods(payload, AuditStatus.APPROVED);
-        publishSyncGoodsToEsEvent(goods);
-        auditService.updateAudit(buildAuditDecision(
-                audit.getId(),
-                AuditStatus.APPROVED,
-                goods.getId(),
-                JsonSupport.toJson(payload),
-                null
-        ));
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void onAuditRejected(Audit audit, String reason) {
-        auditService.updateAudit(buildAuditDecision(
-                audit.getId(),
-                AuditStatus.REJECTED,
-                audit.getTargetId(),
-                null,
-                reason
-        ));
-
-        Goods goods = goodsService.getById(audit.getTargetId());
-        goods.setAuditStatus(AuditStatus.REJECTED.getCode());
-        goodsService.updateById(goods);
-    }
-
-    private Goods updateGoods(GoodsDTO payload, AuditStatus status) {
-        Goods updatedGoods = createGoods(payload, status);
-        goodsService.updateById(updatedGoods);
-
-        Long goodsId = payload.getGoodsId();
-        skuService.removeByGoodsId(goodsId);
-        saveSpecificationsAndSkus(goodsId, payload);
-        return updatedGoods;
-    }
-
-    private void publishSyncGoodsToEsEvent(Goods goods) {
-        applicationEventPublisher.publishEvent(
-                SyncGoodsToEsEvent.builder()
-                                  .goods(goods)
-                                  .build()
-        );
+        // 将生成的商品ID回填到命令对象中，供后续保存规格和SKU使用
+        command.setGoodsId(goods.getId());
+        saveSpecificationsAndSkusFromCommand(command);
+        return goods;
     }
 
     /**
-     * 构建商品对象
+     * 从发布命令构建 Goods 对象
+     *
+     * @param command 商品发布命令
+     * @return Goods 对象
      */
-    private Goods createGoods(GoodsDTO payload, AuditStatus status) {
-        Map.Entry<Long, Long> minAndMaxPriceEntry = calculateSkuPriceRange(payload.getSkus());
+    private Goods buildGoodsFromCommand(GoodsPublishCommand command) {
+        Map.Entry<Long, Long> minAndMaxPriceEntry = calculateSkuPriceRange(command.getSkus());
+        String categoryIdPath = categoryService.buildCategoryPathByLeafCategoryId(command.getCategoryId());
 
         return Goods.builder()
-                    .id(payload.getGoodsId())
-                    .name(payload.getGoodsName())
-                    .categoryId(payload.getCategoryId())
-                    .categoryIdPath(payload.getCategoryIdPath())
-                    .unitId(payload.getUnitId())
-                    .unitName(payload.getUnitName())
-                    .sellPoint(payload.getSellPoint())
-                    .displayImages(ImageUtil.joinImageUrls(payload.getDisplayImageUrls()))
-                    .descriptionImages(ImageUtil.joinImageUrls(payload.getDescriptionImageUrls()))
-                    .storeId(payload.getStoreId())
-                    .storeName(payload.getStoreName())
-                    .status(payload.getStatus())
+                    .id(command.getGoodsId())
+                    .name(command.getGoodsName())
+                    .categoryId(command.getCategoryId())
+                    .categoryIdPath(categoryIdPath)
+                    .unitId(command.getUnitId())
+                    .unitName(command.getUnitName())
+                    .sellPoint(command.getSellPoint())
+                    .displayImages(ImageUtil.joinImageUrls(command.getDisplayImageUrls()))
+                    .descriptionImages(ImageUtil.joinImageUrls(command.getDescriptionImageUrls()))
+                    .storeId(command.getStoreId())
+                    .storeName(command.getStoreName())
+                    .status(command.getStatus())
                     .minPrice(minAndMaxPriceEntry.getKey())
                     .maxPrice(minAndMaxPriceEntry.getValue())
-                    .auditStatus(status.getCode())
                     .build();
     }
 
     /**
-     * 保存规格和SKU
+     * 从发布命令保存规格和 SKU
+     *
+     * @param command 商品发布命令
      */
-    private void saveSpecificationsAndSkus(Long goodsId, GoodsDTO payload) {
-        Map<String, Long> specNameMap = createSpecNameMap(payload);
-        Map<String, Long> specValueMap = createSpecValueMap(payload, specNameMap);
-        saveSkusAndSpecs(goodsId, payload, specNameMap, specValueMap);
+    private void saveSpecificationsAndSkusFromCommand(GoodsPublishCommand command) {
+        Map<String, Long> specNameMap = createSpecNameMap(command.getSpecifications());
+        Map<String, Long> specValueMap = createSpecValueMap(command.getSpecifications(), specNameMap);
+        saveSkusAndSpecs(command.getGoodsId(), command.getSkus(), specNameMap, specValueMap);
     }
 
     /**
@@ -199,26 +157,38 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
      *
      * @param skus SKU列表
      * @return Map.Entry，key为最低价，value为最高价
+     * @throws BizException 如果SKU列表为空
      */
     private Map.Entry<Long, Long> calculateSkuPriceRange(List<SkuDTO> skus) {
         if (CollectionUtil.isEmpty(skus)) {
             throw new BizException(BizErrorCode.SKUS_CANNOT_BE_EMPTY);
         }
 
-        String price = skus.get(0)
-                           .getPrice();
-        Money minPrice = Money.ofYuan(price);
-        Money maxPrice = Money.ofYuan(price);
+        Money minPrice = null;
+        Money maxPrice = null;
+
+        for (SkuDTO sku : skus) {
+            Money price = Money.ofYuan(sku.getPrice());
+            if (minPrice == null || price.less(minPrice)) {
+                minPrice = price;
+            }
+            if (maxPrice == null || price.greater(maxPrice)) {
+                maxPrice = price;
+            }
+        }
 
         return new AbstractMap.SimpleEntry<>(minPrice.getCents(), maxPrice.getCents());
     }
 
     /**
      * 创建规格名映射表
+     *
+     * @param specifications 规格列表
+     * @return 规格名 → 规格ID 的映射表
      */
-    private Map<String, Long> createSpecNameMap(GoodsDTO payload) {
+    private Map<String, Long> createSpecNameMap(List<SpecificationsDTO> specifications) {
         Map<String, Long> specNameMap = new HashMap<>();
-        for (SpecificationsDTO spec : payload.getSpecifications()) {
+        for (SpecificationsDTO spec : specifications) {
             Spec specEntity = specService.getSpecByName(spec.getName());
             if (specEntity == null) {
                 specEntity = addNewSpec(spec);
@@ -230,11 +200,15 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
 
     /**
      * 创建规格值映射表
+     *
+     * @param specifications 规格列表
+     * @param specNameMap    规格名映射表
+     * @return "规格名_规格值" → 规格值ID 的映射表
      */
-    private Map<String, Long> createSpecValueMap(GoodsDTO payload,
+    private Map<String, Long> createSpecValueMap(List<SpecificationsDTO> specifications,
                                                  Map<String, Long> specNameMap) {
         Map<String, Long> specValueMap = new HashMap<>();
-        for (SpecificationsDTO spec : payload.getSpecifications()) {
+        for (SpecificationsDTO spec : specifications) {
             Long specId = specNameMap.get(spec.getName());
             for (String value : spec.getValues()) {
                 SpecValue specValue = specValueService.getBySpecIdAndValue(specId, value);
@@ -249,12 +223,17 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
 
     /**
      * 保存SKU和规格关联
+     *
+     * @param goodsId      商品ID
+     * @param skus         SKU列表
+     * @param specNameMap  规格名映射表
+     * @param specValueMap 规格值映射表
      */
-    private void saveSkusAndSpecs(Long goodsId, GoodsDTO payload,
+    private void saveSkusAndSpecs(Long goodsId, List<SkuDTO> skus,
                                   Map<String, Long> specNameMap, Map<String, Long> specValueMap) {
         List<GoodsSkuSpec> skuSpecList = new ArrayList<>();
 
-        for (SkuDTO skuDto : payload.getSkus()) {
+        for (SkuDTO skuDto : skus) {
             GoodsSku sku = buildGoodsSku(goodsId, skuDto);
             saveGoodsSku(sku);
 
@@ -414,78 +393,244 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
         return builder.build();
     }
 
-    /**
-     * 重新发布处于撤销状态的审核商品
-     * 直接修改已有审核记录的扩展信息，无需创建新的审核记录
-     *
-     * @param auditId 被撤销的审核记录ID
-     * @param payload 新的商品发布请求对象
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public void republishGoodsFromAudit(Long auditId, GoodsDTO payload) {
-        Audit audit = auditService.getById(auditId);
-        AuditStatus status = AuditStatus.of(audit.getStatus());
-        AssertUtils.notNull(audit, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
-        AssertUtils.anyTrue(
-                BizErrorCode.AUDIT_INVALID_STATUS,
-                AuditStatus.REVOKED == status,
-                AuditStatus.REJECTED == status
-        );
+    // ==================== 私有保存方法 ====================
 
-        Goods goods = goodsService.getById(payload.getGoodsId());
-        AssertUtils.notNull(goods, BizErrorCode.GOODS_OR_SHOP_NOT_EXIST);
-        AssertUtils.isEqual(AuthUserUtils.getStoreId(), goods.getStoreId(), BizErrorCode.NO_PERMISSION);
+    @Override
+    public List<CategoryGoodsSectionVO> getCategoryGoodsSections() {
+        // 一次性查询所有一级和二级分类
+        List<Category> firstLevelCategories = categoryService.getCategoryListByLevel(1);
+        List<Category> secondLevelCategories = categoryService.getCategoryListByLevel(2);
 
-        validateAndFillInfo(payload);
-        auditService.updateAudit(buildUpdateAudit(
-                auditId,
-                AuditStatus.PENDING,
-                goods.getId(),
-                JsonSupport.toJson(payload),
-                null
-        ));
-    }
+        List<CategoryGoodsSectionVO> result = new ArrayList<>();
 
-    // ==================== 私有审核方法 ====================
-
-    private void validateAndFillInfo(GoodsDTO payload) {
-        Store store = storeService.getById(payload.getStoreId());
-        AssertUtils.notNull(store, BizErrorCode.GOODS_NOT_EXIST);
-        payload.setStoreName(store.getName());
-
-        Unit unit = unitService.getById(payload.getUnitId());
-        AssertUtils.notNull(unit, BizErrorCode.GOODS_NOT_EXIST);
-        payload.setUnitName(unit.getName());
-
-        Category category = categoryService.queryEnableCategoryById(payload.getCategoryId());
-        AssertUtils.notNull(category, BizErrorCode.CATEGORY_NOT_EXIST_OR_NO_ENABLE);
-        payload.setCategoryIdPath(categoryService.buildCategoryIdPath(category.getId(), category.getParentId()));
-        validateSpecificationsAndSkus(payload);
-    }
-
-    /**
-     * 验证规格和SKU信息
-     * 确保规格和SKU数据的完整性和有效性
-     */
-    private void validateSpecificationsAndSkus(GoodsDTO payload) {
-        // 验证SKU中的规格引用有效性
-        for (SkuDTO skuDto : payload.getSkus()) {
-
-            // 验证SKU中的规格名称都在规格列表中
-            Set<String> specNames = payload.getSpecifications()
-                                           .stream()
-                                           .map(SpecificationsDTO::getName)
-                                           .collect(Collectors.toSet());
-
-            for (SpeValueDTO speValueDTO : skuDto.getSpecs()) {
-                if (!specNames.contains(speValueDTO.getName())) {
-                    throw new BizException(BizErrorCode.SKU_SPEC_NOT_MATCH);
-                }
+        // 遍历一级分类，构建分类商品区域
+        for (Category firstLevel : firstLevelCategories) {
+            CategoryGoodsSectionVO section = buildCategoryGoodsSection(
+                    firstLevel,
+                    secondLevelCategories
+            );
+            if (section != null) {
+                result.add(section);
             }
         }
+        return result;
     }
 
-    // ==================== 私有保存方法 ====================
+    /**
+     * 构建一级分类的商品区域信息
+     *
+     * @param firstLevel            一级分类
+     * @param secondLevelCategories 所有二级分类列表
+     * @return 分类商品区域VO，如果没有二级分类则返回null
+     */
+    private CategoryGoodsSectionVO buildCategoryGoodsSection(
+            Category firstLevel,
+            List<Category> secondLevelCategories
+    ) {
+        // 筛选属于该一级分类的所有二级分类
+        List<Category> childCategories = filterChildCategoriesSorted(firstLevel.getId(), secondLevelCategories);
+
+        if (childCategories.isEmpty()) {
+            return null;
+        }
+
+        // 构建一级分类信息
+        CategoryTabVO categoryTabVO = buildCategoryTabVO(firstLevel);
+
+        // 构建二级分类标签列表
+        List<CategoryTabVO> tabs = buildCategoryTabVOList(childCategories);
+
+        // 构建所有二级分类的商品映射
+        Map<Long, List<GoodsCardVO>> goodsMap = buildGoodsMapForAllChildren(childCategories);
+
+        return CategoryGoodsSectionVO.builder()
+                                     .category(categoryTabVO)
+                                     .tabs(tabs)
+                                     .goodsMap(goodsMap)
+                                     .build();
+    }
+
+    /**
+     * 筛选指定一级分类的所有二级分类，按sort排序
+     *
+     * @param parentId              一级分类ID
+     * @param secondLevelCategories 所有二级分类列表
+     * @return 筛选并排序后的二级分类列表
+     */
+    private List<Category> filterChildCategoriesSorted(
+            Long parentId,
+            List<Category> secondLevelCategories
+    ) {
+        return secondLevelCategories.stream()
+                                    .filter(cat -> cat.getParentId()
+                                                      .equals(parentId))
+                                    .sorted(Comparator.comparingInt(Category::getSort))
+                                    .collect(Collectors.toList());
+    }
+
+    /**
+     * 构建分类标签VO
+     *
+     * @param category 分类实体
+     * @return 分类标签VO
+     */
+    private CategoryTabVO buildCategoryTabVO(Category category) {
+        return CategoryTabVO.builder()
+                            .id(category.getId())
+                            .name(category.getName())
+                            .build();
+    }
+
+    /**
+     * 构建分类标签VO列表
+     *
+     * @param categories 分类列表
+     * @return 分类标签VO列表
+     */
+    private List<CategoryTabVO> buildCategoryTabVOList(List<Category> categories) {
+        return categories.stream()
+                         .map(this::buildCategoryTabVO)
+                         .collect(Collectors.toList());
+    }
+
+     /**
+      * 构建所有二级分类的商品映射 - 优化版本
+      * 使用批量查询代替逐个查询，显著提升性能（减少N+1查询问题）
+      *
+      * 优化思路：
+      * 1. 为每个二级分类构建"分类树映射"（记录该分类及其所有子分类的ID）
+      * 2. 收集所有需要查询的分类ID（二级 + 三级）
+      * 3. 一次查询所有商品，而不是逐个分类查询
+      * 4. 在内存中按分类分组、排序、截取
+      *
+      * @param childCategories 二级分类列表
+      * @return 分类ID -> 商品列表的映射
+      */
+      private Map<Long, List<GoodsCardVO>> buildGoodsMapForAllChildren(List<Category> childCategories) {
+          Map<Long, List<GoodsCardVO>> goodsMap = new HashMap<>(childCategories.size());
+
+          // 第一步：为每个二级分类构建"分类树映射表"
+          // 用来记录"这个二级分类及其所有子分类"包含哪些分类ID
+          Map<Long, List<Long>> categoryWithChildrenMap = new HashMap<>();
+          List<Long> allCategoryIdsToQuery = new ArrayList<>();
+          
+          for (Category category : childCategories) {
+              // 获取该分类及其所有子分类的ID（深度最多3层）
+              List<Long> relatedCategoryIds = getCategoryIdAndChildren(category.getId());
+              categoryWithChildrenMap.put(category.getId(), relatedCategoryIds);
+              allCategoryIdsToQuery.addAll(relatedCategoryIds);
+          }
+          
+          // 去重：可能有多个分类指向同一个子分类
+          allCategoryIdsToQuery = allCategoryIdsToQuery.stream()
+              .distinct()
+              .collect(Collectors.toList());
+          
+          // 第二步：检查是否有分类需要查询
+          if (allCategoryIdsToQuery.isEmpty()) {
+              return goodsMap;
+          }
+
+          int totalLimit = GOODS_LIMIT * childCategories.size();
+          List<Goods> allGoods = goodsService.queryGoodsByMultipleCategoryIds(
+              allCategoryIdsToQuery,
+              totalLimit
+          );
+          
+          // 第四步：在内存中按分类分组和处理
+          for (Category category : childCategories) {
+              // 获取这个分类及其子分类的ID列表
+              List<Long> relatedCategoryIds = categoryWithChildrenMap.get(category.getId());
+              
+              // 筛选出属于这个分类体系的商品，按销量排序，取前GOODS_LIMIT个
+              List<GoodsCardVO> categoryGoods = allGoods.stream()
+                  .filter(goods -> relatedCategoryIds.contains(goods.getCategoryId()))
+                  .sorted((g1, g2) -> Integer.compare(
+                      g2.getSales() != null ? g2.getSales() : 0,
+                      g1.getSales() != null ? g1.getSales() : 0
+                  ))
+                  .limit(GOODS_LIMIT)
+                  .map(GoodsCardVO::convertGoodsCardVO)
+                  .collect(Collectors.toList());
+              
+              goodsMap.put(category.getId(), categoryGoods);
+          }
+         
+         return goodsMap;
+     }
+
+     /**
+      * 按分类ID查询商品（包含子分类）
+      * 递归查询指定分类及其所有子分类下的商品
+      *
+      * @param categoryId 分类ID
+      * @param limit      查询结果数量限制
+      * @return 商品列表
+      */
+     @Override
+     public List<Goods> queryGoodsByCategoryId(Long categoryId, int limit) {
+         // 获取该分类及所有子分类的商品ID列表
+         List<Long> categoryIds = getCategoryIdAndChildren(categoryId);
+
+         if (categoryIds.isEmpty()) {
+             return Collections.emptyList();
+         }
+
+         // 查询这些分类下的商品
+         return goodsService.lambdaQuery()
+                            .eq(Goods::getStatus, true)
+                            .in(Goods::getCategoryId, categoryIds)
+                            .last("limit " + limit)
+                            .list();
+     }
+
+    /**
+     * 获取分类及其所有子分类的ID列表（BFS算法）
+     *
+     * @param categoryId 分类ID
+     * @return 包含该分类及所有子分类的ID列表
+     */
+    private List<Long> getCategoryIdAndChildren(Long categoryId) {
+        List<Long> allCategoryIds = new ArrayList<>();
+        allCategoryIds.add(categoryId);
+
+        Queue<Long> queue = new LinkedList<>();
+        queue.add(categoryId);
+
+        while (!queue.isEmpty()) {
+            Long currentId = queue.poll();
+            List<Category> children = categoryService.list(
+                    new QueryWrapper<Category>().eq("parent_id", currentId)
+            );
+            for (Category child : children) {
+                allCategoryIds.add(child.getId());
+                queue.add(child.getId());
+            }
+        }
+        return allCategoryIds;
+    }
+
+     /**
+      * 按销量排序商品并转换为GoodsCardVO
+      * 销量高的排在前面
+      *
+      * @param goods 商品列表
+     * @return 排序后的商品卡片VO列表
+     */
+    private List<GoodsCardVO> sortGoodsBySalesAndConvert(List<Goods> goods) {
+        return goods.stream()
+                    .sorted((g1, g2) -> {
+                        // 销量降序排列
+                        return Integer.compare(
+                                g2.getSales() != null ? g2.getSales() : 0,
+                                g1.getSales() != null ? g1.getSales() : 0
+                        );
+                    })
+                    .map(GoodsCardVO::convertGoodsCardVO)
+                    .collect(Collectors.toList());
+    }
+
+    // ==================== Web详情相关方法 ====================
 
     @Override
     public WebGoodsDetailVO getWebGoodsDetail(Long id) {
@@ -881,52 +1026,5 @@ public class GoodsAppService implements IGoodsAppService, IAuditDelegate {
             }
         }
         return specValueIds;
-    }
-
-    /**
-     * 保存新商品
-     */
-    private Goods addNewGoods(GoodsDTO payload) {
-        Goods goods = createGoods(payload, AuditStatus.PENDING);
-        goodsService.save(goods);
-        saveSpecificationsAndSkus(goods.getId(), payload);
-        return goods;
-    }
-
-    private static AuditSubmit buildAuditSubmit(Long goodsId, String snapshot) {
-        return AuditSubmit.builder()
-                          .targetType(AuditType.GOODS.getCode())
-                          .targetId(goodsId)
-                          .snapShot(snapshot)
-                          .build();
-    }
-
-    /**
-     * 构建审核更新对象（用于重新提交审核）
-     */
-    private Audit buildUpdateAudit(Long auditId, AuditStatus status, Long targetId, String snapshot, String reason) {
-        return Audit.builder()
-                .id(auditId)
-                .status(status.getCode())
-                .targetId(targetId)
-                .snapshot(snapshot)
-                .reason(reason)
-                .build();
-    }
-
-    /**
-     * 构建审核决策对象（审核通过/拒绝）
-     */
-    private Audit buildAuditDecision(Long auditId, AuditStatus status, Long targetId, String snapshot, String reason) {
-        return Audit.builder()
-                .id(auditId)
-                .status(status.getCode())
-                .targetId(targetId)
-                .snapshot(snapshot)
-                .reason(reason)
-                .auditorId(AuthUserUtils.getUserId())
-                .auditorName(AuthUserUtils.getUsername())
-                .auditTime(LocalDateTime.now())
-                .build();
     }
 }

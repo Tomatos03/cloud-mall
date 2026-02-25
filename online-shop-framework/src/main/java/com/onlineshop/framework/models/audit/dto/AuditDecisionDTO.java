@@ -19,7 +19,6 @@ public class AuditDecisionDTO {
      */
     @NotNull
     private Long auditId;
-
     /**
      * 审核结果: true-通过, false-拒绝
      */

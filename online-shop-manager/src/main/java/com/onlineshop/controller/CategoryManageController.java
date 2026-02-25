@@ -2,7 +2,7 @@ package com.onlineshop.controller;
 
 import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
-import com.onlineshop.framework.models.category.CategoryNodeVO;
+import com.onlineshop.framework.models.category.vo.CategoryNodeVO;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;

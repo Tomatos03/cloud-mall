@@ -26,10 +26,7 @@ public class AuditParamsDTO extends PageParamsDTO {
      */
     private Long targetId;
 
-    /**
-     * 审核状态: PENDING-待审核, APPROVED-通过, REJECTED-拒绝, REVOKED-已撤销
-     */
-    private List<String> status;
+    private String status;
 
     /**
      * 申请人ID

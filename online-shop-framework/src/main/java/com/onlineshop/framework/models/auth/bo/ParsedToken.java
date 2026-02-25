@@ -1,7 +1,6 @@
 package com.onlineshop.framework.models.auth.bo;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.*;
 
 import java.util.List;
 
@@ -11,11 +10,12 @@ import java.util.List;
  * @author : Tomatos
  * @date : 2025/12/31
  */
-@Getter
+@Data
 @AllArgsConstructor
 public class ParsedToken {
-    private final Long userId;
-    private final String username;
-    private final List<String> roles;
-    private final Long storeId;
+    private Long userId;
+    private String username;
+    private List<String> roles;
+    private Long storeId;
+    private String accountType;
 }

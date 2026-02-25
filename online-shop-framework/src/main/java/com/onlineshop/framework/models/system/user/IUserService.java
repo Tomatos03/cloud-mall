@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.onlineshop.framework.common.entity.PageParamsDTO;
 import com.onlineshop.framework.models.system.role.entity.Role;
+import com.onlineshop.framework.models.system.user.dto.UserUpdateDTO;
 import com.onlineshop.framework.models.system.user.entity.User;
 import com.onlineshop.framework.models.system.user.vo.UserInfoVO;
 
@@ -39,4 +40,11 @@ public interface IUserService extends IService<User> {
      * @param roleIds 角色ID列表
      */
     void assignRolesToUser(Long userId, List<Long> roleIds);
+
+    /**
+     * 修改用户信息（包含角色）
+     *
+     * @param updateDTO 用户更新信息
+     */
+    void updateUser(UserUpdateDTO updateDTO);
 }

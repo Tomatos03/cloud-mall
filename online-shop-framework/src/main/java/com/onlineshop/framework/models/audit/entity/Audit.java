@@ -12,6 +12,11 @@ import java.time.LocalDateTime;
 
 /**
  * 审核日志实体类
+ * 
+ * 设计说明：
+ * - snapshot字段存储审核请求的完整JSON序列化
+ * - 通过targetType可以确定具体的AuditRequest类型
+ * - 审核决策时可以通过snapshot恢复出原始的审核请求对象
  */
 @Data
 @TableName("audit")
@@ -26,7 +31,8 @@ public class Audit {
     private Long id;
 
     /**
-     * 被审核对象类型: GOODS / SKU / OTHER
+     * 被审核对象类型: GOODS / STORE_REGISTER / SECKILL_ACTIVITY
+     * 此字段用于标识审核请求的业务类型，Auditor工厂使用此字段获取对应的处理器
      */
     private String targetType;
 
@@ -66,7 +72,8 @@ public class Audit {
     private String auditorName;
 
     /**
-     * 扩展信息: 可存储SKU组合/商品规格等JSON
+     * 审核请求快照 - JSON格式
+     *
      */
     private String snapshot;
 

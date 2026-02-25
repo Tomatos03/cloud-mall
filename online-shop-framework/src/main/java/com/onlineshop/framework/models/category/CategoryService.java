@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
+import com.onlineshop.framework.models.category.vo.CategoryNodeVO;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -25,14 +28,6 @@ import java.util.stream.Collectors;
 public class CategoryService extends ServiceImpl<CategoryMapper, Category> implements ICategoryService {
     private final static Long TREE_ROOT = 0L;
     private final static Integer MAX_LEVEL = 3;
-
-    @Override
-    public Category queryEnableCategoryById(Long categoryId) {
-        return lambdaQuery()
-                .eq(Category::getId, categoryId)
-                .eq(Category::getStatus, true)
-                .one();
-    }
 
     @CacheEvict(value = "category", allEntries = true)
     @Override
@@ -103,6 +98,24 @@ public class CategoryService extends ServiceImpl<CategoryMapper, Category> imple
             String parentPath = buildCategoryIdPath(parentId, parentCategory.getParentId());
             return parentPath + "/" + categoryId;
         }
+    }
+
+    @Override
+    public String buildCategoryPathByLeafCategoryId(Long categoryId) {
+        Category category = getById(categoryId);
+        if (category == null) {
+            throw new BizException(BizErrorCode.CATEGORY_NOT_EXIST_OR_NO_ENABLE);
+        }
+        return buildCategoryIdPath(categoryId, category.getParentId());
+    }
+
+    @Override
+    public List<Category> getCategoryListByLevel(Integer level) {
+        return lambdaQuery()
+                .eq(Category::getLevel, level)
+                .eq(Category::getStatus, true)
+                .orderByAsc(Category::getSort)
+                .list();
     }
 
     private List<CategoryNodeVO> buildChildrenTree(List<Category> categories, Long parent) {

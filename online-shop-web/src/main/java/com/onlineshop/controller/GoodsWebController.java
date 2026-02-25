@@ -1,12 +1,13 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.onlineshop.framework.models.audit.application.IAuditAppService;
+import com.onlineshop.framework.models.audit.domain.GoodsAuditRequest;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
 import com.onlineshop.framework.models.goods.application.vo.WebGoodsDetailVO;
-import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
 import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
-import com.onlineshop.framework.models.goods.spu.vo.GoodsVO;
 import com.onlineshop.framework.models.search.application.ISearchAppService;
 import com.onlineshop.framework.models.search.service.IGoodsEsService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,6 @@ import java.util.List;
 @RequestMapping("/web/goods")
 @RequiredArgsConstructor
 public class GoodsWebController {
-    private final IGoodsService goodsService;
     private final IGoodsAppService goodsAppService;
     private final ISearchAppService searchAppService;
     private final IGoodsEsService goodsEsService;
@@ -37,11 +37,11 @@ public class GoodsWebController {
      * @return 商品列表
      */
     @GetMapping("/listByCategory")
-    public List<GoodsVO> listByCategory(
+    public List<Goods> listByCategory(
             @RequestParam Long categoryId,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return goodsService.listByCategoryId(categoryId, limit);
+        return goodsAppService.queryGoodsByCategoryId(categoryId, limit);
     }
 
     /**

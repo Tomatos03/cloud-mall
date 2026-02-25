@@ -83,6 +83,10 @@ public class SystemAppService implements ISystemAppService {
     }
 
     private static List<Long> convertRoleId(List<Role> userRoles) {
+        if (CollectionUtils.isEmpty(userRoles)) {
+            return Collections.emptyList();
+        }
+
         return userRoles.stream()
                         .map(Role::getId)
                         .collect(Collectors.toList());

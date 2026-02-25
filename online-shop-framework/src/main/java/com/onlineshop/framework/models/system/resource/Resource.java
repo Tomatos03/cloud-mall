@@ -33,7 +33,6 @@ public class Resource {
 
     private Integer sort;
 
-    private String description;
     private Boolean enable;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

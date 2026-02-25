@@ -1,6 +1,6 @@
 package com.onlineshop.controller;
 
-import com.onlineshop.framework.models.category.CategoryNodeVO;
+import com.onlineshop.framework.models.category.vo.CategoryNodeVO;
 import com.onlineshop.framework.models.category.ICategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

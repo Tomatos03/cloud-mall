@@ -32,11 +32,7 @@ public enum AuditStatus {
      * 已撤销
      */
     REVOKED("REVOKED", "已撤销"),
-
-    /**
-     * 需重新审核（商品修改了需要审核的字段）
-     */
-    REAUDIT("REAUDIT", "需重新审核");
+    ;
 
     private final String code;
     private final String name;

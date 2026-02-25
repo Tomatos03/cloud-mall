@@ -25,8 +25,6 @@ import java.util.stream.Stream;
 @Service
 @RequiredArgsConstructor
 public class GoodsService extends ServiceImpl<GoodsMapper, Goods> implements IGoodsService {
-    private final ICategoryService categoryService;
-
     @Override
     public List<Goods> queryEnableGoodsList() {
         Long storeId = AuthUserUtils.getStoreId();
@@ -42,18 +40,6 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> implements IGo
             return Collections.emptyList();
         }
         return listByIds(ids);
-    }
-
-    @Override
-    public List<GoodsVO> listByCategoryId(Long categoryId, int limit) {
-        return this.lambdaQuery()
-                   .eq(Goods::getStatus, true)
-                   .last("limit " + limit)
-                   .in(Goods::getCategoryId, getLeafCategoryById(categoryId))
-                   .list()
-                   .stream()
-                   .map(GoodsVO::convertToGoodsVO)
-                   .toList();
     }
 
     @Override
@@ -119,22 +105,18 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> implements IGo
                       .update();
     }
 
-    private List<Long> getLeafCategoryById(Long categoryId) {
-        List<Long> allCategoryIds = new ArrayList<>();
-        allCategoryIds.add(categoryId);
-
-        Queue<Long> queue = new LinkedList<>();
-        queue.add(categoryId);
-        while (!queue.isEmpty()) {
-            Long currentId = queue.poll();
-            List<Category> children = categoryService.list(
-                    new QueryWrapper<Category>().eq("parent_id", currentId)
-            );
-            for (Category child : children) {
-                allCategoryIds.add(child.getId());
-                queue.add(child.getId());
-            }
+    @Override
+    public List<Goods> queryGoodsByMultipleCategoryIds(List<Long> categoryIds, int limit) {
+        if (CollectionUtil.isEmpty(categoryIds)) {
+            return Collections.emptyList();
         }
-        return allCategoryIds;
+
+        // 一次查询所有分类的商品，按销量降序排列
+        return lambdaQuery()
+                .eq(Goods::getStatus, true)
+                .in(Goods::getCategoryId, categoryIds)
+                .orderByDesc(Goods::getSales)
+                .last("limit " + limit)
+                .list();
     }
 }

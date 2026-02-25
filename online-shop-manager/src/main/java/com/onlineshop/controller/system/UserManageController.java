@@ -5,6 +5,7 @@ import com.onlineshop.framework.common.entity.PageParamsDTO;
 import com.onlineshop.framework.models.system.application.ISystemAppService;
 import com.onlineshop.framework.models.system.user.IUserService;
 import com.onlineshop.framework.models.system.user.UserListItemVO;
+import com.onlineshop.framework.models.system.user.dto.UserUpdateDTO;
 import com.onlineshop.framework.models.system.user.entity.User;
 import com.onlineshop.framework.models.system.user.vo.UserInfoVO;
 import lombok.RequiredArgsConstructor;
@@ -75,15 +76,15 @@ public class UserManageController {
     /**
      * 修改用户信息（管理员权限）
      *
-     * @param user 用户信息
+     * @param updateDTO 用户更新信息
      * @return 是否成功
      */
     @PutMapping
     @PreAuthorize("hasAuthority('user:edit')")
-    public boolean updateUser(@RequestBody User user) {
-        return userService.updateById(user);
+    public void updateUser(@RequestBody UserUpdateDTO updateDTO) {
+        userService.updateUser(updateDTO);
     }
-
+    
     /**
      * 删除用户（管理员权限）
      *
@@ -111,7 +112,6 @@ public class UserManageController {
      * 为用户分配角色（管理员权限）
      *
      * @param userId 用户ID
-     * @param request 分配角色请求
      * @return 是否成功
      */
     @PutMapping("/{userId}/roles")

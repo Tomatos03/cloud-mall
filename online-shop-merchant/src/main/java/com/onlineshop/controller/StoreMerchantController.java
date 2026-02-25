@@ -35,7 +35,6 @@ public class StoreMerchantController {
 
     /**
      * 部分更新店铺信息
-     * @param id 店铺 ID
      * @param updateDTO 更新的店铺信息 (支持 name, info, avatarUrl, banner)
      * @return 更新结果
      */

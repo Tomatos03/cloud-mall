@@ -1,10 +1,9 @@
 package com.onlineshop.framework.utils;
 
 import cn.hutool.json.JSONUtil;
-import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.exception.BizException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,127 +23,12 @@ public class ResponseWriteUtil {
 
     private static final String CONTENT_TYPE = "application/json;charset=UTF-8";
 
-    /**
-     * 写入业务异常响应
-     *
-     * @param response              HttpServletResponse
-     * @param bizException     业务异常
-     * @throws IOException 写入异常
-     */
-    public static void writeBusinessException(HttpServletResponse response, BizException bizException) throws IOException {
-        BizErrorCode bizErrorCode = bizException.getBizErrorCode();
-        writeErrorResponse(response, bizErrorCode.getErrorMessage(), bizErrorCode.getCode(), 400);
-    }
-
-    /**
-     * 写入业务异常响应（带自定义消息）
-     *
-     * @param response              HttpServletResponse
-     * @param bizException     业务异常
-     * @param customMessage         自定义消息
-     * @throws IOException 写入异常
-     */
-    public static void writeBusinessException(HttpServletResponse response, BizException bizException, String customMessage) throws IOException {
-        BizErrorCode bizErrorCode = bizException.getBizErrorCode();
-        String message = customMessage != null ? customMessage : bizErrorCode.getErrorMessage();
-        writeErrorResponse(response, message, bizErrorCode.getCode(), 400);
-    }
-
-    /**
-     * 写入通用异常响应
-     *
-     * @param response  HttpServletResponse
-     * @param exception 通用异常
-     * @throws IOException 写入异常
-     */
-    public static void writeException(HttpServletResponse response, Exception exception) throws IOException {
-        log.error("系统异常", exception);
-        writeErrorResponse(response, "服务器内部错误，请联系管理员", Result.INTERNAL_ERROR_CODE, 500);
-    }
-
-    /**
-     * 写入通用异常响应（带自定义消息）
-     *
-     * @param response      HttpServletResponse
-     * @param exception     通用异常
-     * @param customMessage 自定义消息
-     * @throws IOException 写入异常
-     */
-    public static void writeException(HttpServletResponse response, Exception exception, String customMessage) throws IOException {
-        log.error("系统异常: {}", customMessage, exception);
-        String message = customMessage != null ? customMessage : "服务器内部错误，请联系管理员";
-        writeErrorResponse(response, message, Result.INTERNAL_ERROR_CODE, 500);
-    }
-
-    /**
-     * 写入通用异常响应（带自定义消息和状态码）
-     *
-     * @param response      HttpServletResponse
-     * @param exception     通用异常
-     * @param customMessage 自定义消息
-     * @param code          自定义状态码
-     * @throws IOException 写入异常
-     */
-    public static void writeException(HttpServletResponse response, Exception exception, String customMessage, int code) throws IOException {
-        log.error("系统异常: {}", customMessage, exception);
-        String message = customMessage != null ? customMessage : "服务器内部错误，请联系管理员";
-        writeErrorResponse(response, message, code, 500);
-    }
-
-    /**
-     * 写入未授权的错误响应 (401)
-     *
-     * @param response HttpServletResponse
-     * @param message  错误消息
-     * @param code     业务错误码
-     * @throws IOException 写入异常
-     */
-    public static void writeUnauthorized(HttpServletResponse response, String message, int code) throws IOException {
-        writeErrorResponse(response, message, code, 401);
-    }
-
     public static void writeUnauthorized(HttpServletResponse response, String message) throws IOException {
-        writeErrorResponse(response, message, 0, 401);
-    }
-
-    /**
-     * 写入权限拒绝的错误响应 (403)
-     *
-     * @param response HttpServletResponse
-     * @param message  错误消息
-     * @param code     业务错误码
-     * @throws IOException 写入异常
-     */
-    public static void writeForbidden(HttpServletResponse response, String message, int code) throws IOException {
-        writeErrorResponse(response, message, code, 403);
+        writeErrorResponse(response, message, HttpStatus.UNAUTHORIZED.value());
     }
 
     public static void writeForbidden(HttpServletResponse response, String message) throws IOException {
-        writeErrorResponse(response, message, 0, 403);
-    }
-
-    /**
-     * 写入资源不存在的错误响应 (404)
-     *
-     * @param response HttpServletResponse
-     * @param message  错误消息
-     * @param code     业务错误码
-     * @throws IOException 写入异常
-     */
-    public static void writeNotFound(HttpServletResponse response, String message, int code) throws IOException {
-        writeErrorResponse(response, message, code, 404);
-    }
-
-    /**
-     * 写入错误响应（默认HTTP状态码400）
-     *
-     * @param response HttpServletResponse
-     * @param message  错误消息
-     * @param code     业务错误码
-     * @throws IOException 写入异常
-     */
-    public static void writeErrorResponse(HttpServletResponse response, String message, int code) throws IOException {
-        writeErrorResponse(response, message, code, 400);
+        writeErrorResponse(response, message, HttpStatus.FORBIDDEN.value());
     }
 
     /**
@@ -156,60 +40,9 @@ public class ResponseWriteUtil {
      * @param httpStatus HTTP状态码
      * @throws IOException 写入异常
      */
-    public static void writeErrorResponse(HttpServletResponse response, String message, int code, int httpStatus) throws IOException {
+    public static void writeErrorResponse(HttpServletResponse response, String message, int httpStatus) throws IOException {
         Map<String, Object> result = new HashMap<>();
-        result.put("code", code);
         result.put("message", message);
-        result.put("data", null);
-        writeResponse(response, result, httpStatus);
-    }
-
-    /**
-     * 写入成功响应
-     *
-     * @param response HttpServletResponse
-     * @param data     响应数据
-     * @throws IOException 写入异常
-     */
-    public static void writeSuccessResponse(HttpServletResponse response, Object data) throws IOException {
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", Result.SUCCESS_CODE);
-        result.put("message", "操作成功");
-        result.put("data", data);
-        writeResponse(response, result, 200);
-    }
-
-    /**
-     * 写入成功响应（带自定义消息）
-     *
-     * @param response HttpServletResponse
-     * @param message  自定义消息
-     * @param data     响应数据
-     * @throws IOException 写入异常
-     */
-    public static void writeSuccessResponse(HttpServletResponse response, String message, Object data) throws IOException {
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", Result.SUCCESS_CODE);
-        result.put("message", message);
-        result.put("data", data);
-        writeResponse(response, result, 200);
-    }
-
-    /**
-     * 写入自定义响应
-     *
-     * @param response    HttpServletResponse
-     * @param code        业务码
-     * @param message     消息
-     * @param data        数据
-     * @param httpStatus  HTTP状态码
-     * @throws IOException 写入异常
-     */
-    public static void writeCustomResponse(HttpServletResponse response, int code, String message, Object data, int httpStatus) throws IOException {
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", code);
-        result.put("message", message);
-        result.put("data", data);
         writeResponse(response, result, httpStatus);
     }
 

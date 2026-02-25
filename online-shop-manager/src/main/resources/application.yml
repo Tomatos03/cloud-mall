@@ -3,22 +3,27 @@ server:
   
 spring:
   datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/online_shop
-    username: Tomatos
-    password: 20030503
+    driver-class-name: ${app.datasource.driver-class-name}
+    url: ${app.datasource.url}
+    username: ${app.datasource.username}
+    password: ${app.datasource.password}
+  data:
+    redis:
+      host: ${app.redis.host}
+      port: 6379
+      password: ${app.redis.password}
+      database: ${app.redis.database}
+  elasticsearch:
+    uris: ${app.elasticsearch.uris}
+    username: ${app.elasticsearch.username}
+    password: ${app.elasticsearch.password}
+    connection-timeout: 5s
+    socket-timeout: 15s
+  cache:
+    type: redis
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
-    default-property-inclusion: non_null
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      username: default
-      password: 'zjlljz'
-  cache:
-    type: redis
 
 rocketmq:
   producer:
@@ -27,11 +32,30 @@ rocketmq:
     namespace:
   consumer:
     group: order_timeout_cancel_group
-  name-server: localhost:9876
+  name-server: ${app.rocketmq.name-server}
 
 auth:
   white-list:
     - '/manage/auth/**'
+    - '/manage/files/**'
+
 jwt:
-  secret: mySecretKeyForJwtToken123456789012345678901234567890  # 请替换为更安全的密钥
+  secret: ${app.jwt.secret}
   expire: 86400000  # 24小时（毫秒）
+
+file:
+  storage-type: minio
+  upload:
+    max-size: 5242880
+    allowed-extensions:
+      - jpg
+      - jpeg
+      - png
+    allowed-mime-types:
+      - image/jpeg
+      - image/png
+  minio:
+    url: ${app.minio.url}
+    access-key: ${app.minio.access-key}
+    secret-key: ${app.minio.secret-key}
+    bucket-name: ${app.minio.bucket-name}

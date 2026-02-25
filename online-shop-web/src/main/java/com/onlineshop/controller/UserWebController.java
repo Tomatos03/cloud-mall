@@ -3,11 +3,14 @@ package com.onlineshop.controller;
 import com.onlineshop.framework.models.auth.dto.LoginDTO;
 import com.onlineshop.framework.models.auth.dto.RegisterDTO;
 import com.onlineshop.framework.models.auth.dto.TokenDTO;
+import com.onlineshop.framework.models.auth.enums.AccountType;
 import com.onlineshop.framework.models.auth.service.IAuthService;
 import com.onlineshop.framework.models.system.user.IUserService;
 import com.onlineshop.framework.models.system.user.vo.UserInfoVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 
 /**
@@ -19,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/web/user")
 public class UserWebController {
-
     @Autowired
     private IAuthService authService;
     @Autowired
@@ -32,7 +34,7 @@ public class UserWebController {
      */
     @PostMapping("/login")
     public TokenDTO login(@RequestBody LoginDTO loginDTO) {
-        return authService.login(loginDTO);
+        return authService.login(loginDTO, AccountType.NORMAL);
     }
 
     /**

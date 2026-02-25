@@ -1,6 +1,7 @@
 package com.onlineshop.security.filter;
 
 import com.onlineshop.framework.models.auth.bo.ParsedToken;
+import com.onlineshop.framework.models.auth.enums.AccountType;
 import com.onlineshop.framework.models.auth.service.ITokenService;
 import com.onlineshop.framework.models.system.role.IRoleService;
 import com.onlineshop.framework.security.AuthUser;
@@ -53,6 +54,11 @@ public class ManageTokenAuthenticationFilter extends OncePerRequestFilter {
                     (token = getTokenFromRequest(request)) != null
                             && (parsedToken = tokenService.parse(token)) != null
             ) {
+                if (!AccountType.ADMIN.getCode().equals(parsedToken.getAccountType())) {
+                    ResponseWriteUtil.writeUnauthorized(response, "未授权");
+                    return;
+                }
+
                 AuthUser authUser = convertToAuthUser(parsedToken);
 
                 // 从token中的roles转换为资源代码

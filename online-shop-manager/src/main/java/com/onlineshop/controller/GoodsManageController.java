@@ -1,7 +1,7 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.category.CategoryNodeVO;
+import com.onlineshop.framework.models.category.vo.CategoryNodeVO;
 import com.onlineshop.framework.models.category.ICategoryService;
 import com.onlineshop.framework.models.goods.application.GoodsDTO;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
@@ -135,23 +135,6 @@ public class GoodsManageController {
     @PreAuthorize("hasAuthority('goods:delete')")
     public void deleteGoods(@PathVariable @NotNull Long id) {
         goodsAppService.deleteGoods(id);
-    }
-
-    /**
-     * 重新发布处于撤销状态的审核商品
-     * 用于商家在审核被撤销后，重新提交商品审核
-     * 来自 merchant/MerchantGoodsController
-     *
-     * @param auditId 被撤销的审核记录ID
-     * @param payload 新的商品发布请求对象
-     */
-    @PostMapping("/republish/{auditId}")
-    @PreAuthorize("hasAuthority('goods:add')")
-    public void republishGoodsFromAudit(
-            @PathVariable Long auditId,
-            @Valid @RequestBody GoodsDTO payload
-    ) {
-        goodsAppService.republishGoodsFromAudit(auditId, payload);
     }
 
     /**

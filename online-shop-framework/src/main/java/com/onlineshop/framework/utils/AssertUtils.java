@@ -58,6 +58,12 @@ public class AssertUtils {
         }
     }
 
+    public static void isNull(Object obj, BizErrorCode errorCode) {
+        if (obj != null) {
+            throw new BizException(errorCode);
+        }
+    }
+
     /**
      * 断言对象为空，如果不为空则抛出业务异常
      *
@@ -136,6 +142,24 @@ public class AssertUtils {
             }
         }
         throw new BizException(errorCode);
+    }
+
+    public static void isIn(String value, String[] allowedValues, BizErrorCode errorCode) {
+        if (value == null) {
+            throw new BizException(errorCode);
+        }
+        for (String allowed : allowedValues) {
+            if (value.equals(allowed)) {
+                return;
+            }
+        }
+        throw new BizException(errorCode);
+    }
+
+    public static void contains(Collection<?> collection, Object element, BizErrorCode errorCode) {
+        if (collection == null || !collection.contains(element)) {
+            throw new BizException(errorCode);
+        }
     }
 }
 

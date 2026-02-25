@@ -1,6 +1,7 @@
 package com.onlineshop.security.filter;
 
 import com.onlineshop.framework.models.auth.bo.ParsedToken;
+import com.onlineshop.framework.models.auth.enums.AccountType;
 import com.onlineshop.framework.models.auth.service.ITokenService;
 import com.onlineshop.framework.security.AuthUser;
 import com.onlineshop.framework.utils.AuthUserUtils;
@@ -46,13 +47,18 @@ public class WebTokenAuthenticationFilter extends OncePerRequestFilter {
                     (token = getTokenFromRequest(request)) != null
                             && (parsedToken = tokenService.parse(token)) != null
             ) {
+                if (!AccountType.NORMAL.getCode().equals(parsedToken.getAccountType())) {
+                    ResponseWriteUtil.writeUnauthorized(response, "未授权");
+                    return;
+                }
+
                 AuthUser authUser = convertToAuthUser(parsedToken);
                 UsernamePasswordAuthenticationToken authenticatedToken =
                         new UsernamePasswordAuthenticationToken(
-                        authUser,
-                        null,
-                        Collections.emptyList()
-                );
+                                authUser,
+                                null,
+                                Collections.emptyList()
+                        );
                 AuthUserUtils.setAuthentication(authenticatedToken);
             }
         } catch (Exception e) {

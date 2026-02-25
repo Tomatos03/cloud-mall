@@ -1,6 +1,5 @@
 package com.onlineshop.framework.models.system.user;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.common.entity.PageParamsDTO;
 import com.onlineshop.framework.models.system.role.RoleService;
 import com.onlineshop.framework.models.system.role.entity.Role;
+import com.onlineshop.framework.models.system.user.dto.UserUpdateDTO;
 import com.onlineshop.framework.models.system.user.entity.User;
 import com.onlineshop.framework.models.system.user.entity.UserRoles;
 import com.onlineshop.framework.models.system.user.mapper.UserMapper;
@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,17 +45,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements IUserS
 
     private UserListItemVO convertToUserListItemVO(User user) {
         List<Role> roles = queryRolesByUserId(user.getId());
-        return new UserListItemVO(user.getId(), user.getUsername(), convertRoleMetaList(roles));
-    }
-
-    private List<RoleMeta> convertRoleMetaList(List<Role> roles) {
-        if (CollectionUtils.isEmpty(roles)) {
-            return Collections.emptyList();
-        }
-
-        return roles.stream()
-                    .map(role -> BeanUtil.copyProperties(role, RoleMeta.class))
-                    .collect(Collectors.toList());
+        return new UserListItemVO(user.getId(), user.getUsername(), convertRoleIdList(roles));
     }
 
     private List<UserRoles> queryUserRoles(Long userId) {
@@ -130,6 +121,25 @@ public class UserService extends ServiceImpl<UserMapper, User> implements IUserS
         batchInsertUserRoles(userId, roleIds);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void updateUser(UserUpdateDTO updateDTO) {
+        User user = User.builder()
+                .id(updateDTO.getId())
+                .username(updateDTO.getUsername())
+                .build();
+        
+        if (StringUtils.hasText(updateDTO.getPassword())) {
+            user.setPassword(updateDTO.getPassword());
+        }
+
+        updateById(user);
+
+        if (!CollectionUtils.isEmpty(updateDTO.getRoleIds())) {
+            assignRolesToUser(updateDTO.getId(), updateDTO.getRoleIds());
+        }
+    }
+
     private void removeExistRolesForUser(Long userId) {
         userRolesMapper.delete(
                 new LambdaQueryWrapper<UserRoles>()
@@ -138,7 +148,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements IUserS
     }
 
     private void batchInsertUserRoles(Long userId, List<Long> roleIds) {
-        if (!CollectionUtils.isEmpty(roleIds)) {
+        if (CollectionUtils.isEmpty(roleIds)) {
             return;
         }
         List<UserRoles> userRoles = createUserRolesList(userId, roleIds);
@@ -154,5 +164,15 @@ public class UserService extends ServiceImpl<UserMapper, User> implements IUserS
                                               .roleId(roleId)
                                               .build())
                       .toList();
+    }
+
+    private List<Long> convertRoleIdList(List<Role> roles) {
+        if (CollectionUtils.isEmpty(roles)) {
+            return Collections.emptyList();
+        }
+
+        return roles.stream()
+                    .map(Role::getId)
+                    .collect(Collectors.toList());
     }
 }

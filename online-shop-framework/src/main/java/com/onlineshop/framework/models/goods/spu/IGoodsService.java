@@ -3,7 +3,6 @@ package com.onlineshop.framework.models.goods.spu;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
-import com.onlineshop.framework.models.goods.spu.vo.GoodsVO;
 import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
 
 import java.io.Serializable;
@@ -14,8 +13,6 @@ public interface IGoodsService extends IService<Goods> {
     List<Goods> queryEnableGoodsList();
 
     List<Goods> queryGoodsListByIds(Collection<? extends Serializable> ids);
-
-    List<GoodsVO> listByCategoryId(Long categoryId, int limit);
 
     /**
      * 分页查询商品（管理员/商家权限，自动区分）
@@ -43,4 +40,14 @@ public interface IGoodsService extends IService<Goods> {
     void increaseSales(Long goodsId, Integer quantity);
 
     void updateGoodsAuditStatus(Long goodsId, AuditStatus auditStatus);
+
+    /**
+     * 批量查询多个分类下的商品（包括子分类）
+     * 相比逐个查询每个分类，这个方法只执行一次数据库查询，性能更优
+     *
+     * @param categoryIds 分类ID列表（包括子分类的ID）
+     * @param limit       返回的商品最大数量
+     * @return 按销量降序排列的商品列表
+     */
+    List<Goods> queryGoodsByMultipleCategoryIds(List<Long> categoryIds, int limit);
 }

@@ -22,4 +22,5 @@ public class TokenPayload {
     private List<String> roles;
     private String username;
     private Long storeId;
+    private String accountType;
 }

@@ -60,15 +60,13 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
     public boolean withdrawAudit(Long auditId) {
         Audit audit = this.getById(auditId);
         AssertUtils.notNull(audit, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
-
-        validateWithdrawPermission(audit);
-        AssertUtils.isEqual(audit.getStatus(), AuditStatus.PENDING.getCode(), BizErrorCode.AUDIT_LOG_NOT_EXISTS);
+        AssertUtils.isEqual(AuthUserUtils.getUserId(), audit.getApplicantId(), BizErrorCode.NO_PERMISSION);
+        AssertUtils.isEqual(audit.getStatus(), AuditStatus.PENDING.getCode(), BizErrorCode.AUDIT_INVALID_STATUS);
 
         Audit updateLog = Audit.builder()
                                .id(auditId)
                                .status(AuditStatus.REVOKED.getCode())
                                .build();
-
         return this.updateById(updateLog);
     }
 
@@ -93,21 +91,6 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
                    .in(Audit::getTargetId, targetIds)
                    .orderByDesc(Audit::getId)
                    .list();
-    }
-
-    @Override
-    public void updateAudit(Audit audit) {
-        this.updateById(audit);
-    }
-
-    /**
-     * 验证撤回权限（仅申请人可撤回）
-     */
-    private void validateWithdrawPermission(Audit audit) {
-        Long currentUserId = AuthUserUtils.getUserId();
-        if (!Objects.equals(currentUserId, audit.getApplicantId())) {
-            throw new BizException(BizErrorCode.AUDIT_WITHDRAW_OWN_ONLY);
-        }
     }
 
     /**

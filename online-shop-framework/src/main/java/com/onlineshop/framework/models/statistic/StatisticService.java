@@ -19,6 +19,7 @@ import com.onlineshop.framework.utils.image.ImageUtil;
 import com.onlineshop.framework.utils.money.Money;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -49,7 +50,12 @@ public class StatisticService implements IStatisticService {
     private final ICategoryService categoryService;
 
     @Override
-    public List<GoodsSalesTopVO> queryGoodsSalesRank(Integer top) {
+    public Map<LocalDate, BigDecimal> queryLastRevenueTrend(int days) {
+        List<Order> orders = queryLastOrders(days, OrderStatus.FINISHED);
+        return createDailyRevenueMap(orders, days);
+    }
+
+    private List<GoodsSalesTopVO> queryGoodsSalesRank(Integer top) {
         List<OrderItem> orderItems = queryLast7DaysOrderItemsByStatus(OrderStatus.FINISHED);
         List<Long> goodsIds = convertDistinctGoodsIds(orderItems);
         List<Goods> goods = goodsService.queryGoodsListByIds(goodsIds);
@@ -57,22 +63,14 @@ public class StatisticService implements IStatisticService {
         return calculateGoodsSalesRank(goodsMap, orderItems);
     }
 
-    @Override
-    public List<FavoriteGoodsTopVO> queryGoodsFavoriteRank(Integer top) {
+    private List<FavoriteGoodsTopVO> queryGoodsFavoriteRank(Integer top) {
         List<Goods> goods = goodsService.queryEnableGoodsList();
         List<Favorite> favorites = favoriteService.queryLast7DaysFavoritesByGoodsIds(convertGoodsIds(goods));
         Map<Long, Long> favoriteCountMap = createFavoriteIdToFavourteCountMap(favorites);
         return createFavoriteGoodsTopVOList(goods, favoriteCountMap);
     }
 
-    @Override
-    public Map<LocalDate, BigDecimal> queryLastRevenueTrend(int days) {
-        List<Order> orders = queryLastOrders(days, OrderStatus.FINISHED);
-        return createDailyRevenueMap(orders, days);
-    }
-
-    @Override
-    public List<CategorySalesRatioVO> queryCategorySalesRatio() {
+    private List<CategorySalesRatioVO> queryCategorySalesRatio() {
         List<OrderItem> orderItems = queryLast7DaysOrderItemsByStatus(OrderStatus.FINISHED);
         List<Long> goodsIds = convertDistinctGoodsIds(orderItems);
         List<Goods> goodsList = goodsService.queryGoodsListByIds(goodsIds);
@@ -84,8 +82,7 @@ public class StatisticService implements IStatisticService {
         return createCategorySalesRatioList(categorySalesMap, categoryMap);
     }
 
-    @Override
-    public DashboardOverviewVO queryDashboardOverview() {
+    private DashboardOverviewVO queryDashboardOverview() {
         List<Order> todayOrders = queryLastOrders(0, OrderStatus.FINISHED);
         List<Order> last7DaysOrders = queryLastOrders(7, OrderStatus.FINISHED);
         return buildDashBoardOverviewVo(
@@ -101,7 +98,7 @@ public class StatisticService implements IStatisticService {
         return StatisticDataVO.builder()
                               .dashboardOverview(queryDashboardOverview())
                               .goodsSalesRank(queryGoodsSalesRank(10))
-                              .goodsFavoriteRank(queryGoodsFavoriteRank(10))
+//                              .goodsFavoriteRank(queryGoodsFavoriteRank(10))
                               .categorySalesRatio(queryCategorySalesRatio())
                               .revenueTrend(queryLastRevenueTrend(7))
                               .build();
@@ -140,8 +137,11 @@ public class StatisticService implements IStatisticService {
                               .goodsId(goods.getId())
                               .goodsName(goods.getName())
                               .mainImageUrl(ImageUtil.getMainImageUrl(goods.getDisplayImages()))
-                              .saleCount(0L)
-                              .saleAmount(BigDecimal.ZERO)
+                              .saleCount(Long.valueOf(orderItem.getQuantity()))
+                              .saleAmount(
+                                      Money.ofCents(orderItem.getTotalPrice())
+                                           .toYuan()
+                              )
                               .build();
     }
 
@@ -188,13 +188,30 @@ public class StatisticService implements IStatisticService {
      * @return 总营收金额（BigDecimal）
      */
     private BigDecimal calculateTotalRevenue(List<Order> orders) {
-        if (orders.isEmpty()) {
+        if (CollectionUtil.isEmpty(orders)) {
             return BigDecimal.ZERO;
         }
-        long totalPrice = orders.stream()
-                                .mapToLong(Order::getTotalPrice)
-                                .sum();
-        return BigDecimal.valueOf(totalPrice);
+
+        return orders.stream()
+                     .map(order -> Money
+                             .ofCents(order.getTotalPrice())
+                             .toYuan()
+                     )
+                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private static void calculateTrendMap(List<Order> orders, Map<LocalDate, BigDecimal> trendMap) {
+        for (Order order : orders) {
+            LocalDate orderTime = order.getCreateTime()
+                                       .atZone(ZoneId.systemDefault())
+                                       .toLocalDate();
+            trendMap.computeIfPresent(orderTime, (date, saleAmount) ->
+                    saleAmount.add(
+                            Money.ofCents(order.getTotalPrice())
+                                 .toYuan()
+                    )
+            );
+        }
     }
 
     /**
@@ -277,28 +294,8 @@ public class StatisticService implements IStatisticService {
      * @return 日期到营收数据的映射
      */
     private Map<LocalDate, BigDecimal> createDailyRevenueMap(List<Order> orders, int days) {
-        Map<LocalDate, BigDecimal> trendMap = new HashMap<>(days);
-        LocalDate today = LocalDate.now();
-        for (int i = days - 1; i >= 0; i--) {
-            trendMap.put(today.minusDays(i), BigDecimal.ZERO);
-        }
-
-        if (CollectionUtil.isEmpty(orders)) {
-            return trendMap;
-        }
-
-        for (Order order : orders) {
-            LocalDate orderTime = order.getCreateTime()
-                                       .atZone(ZoneId.systemDefault())
-                                       .toLocalDate();
-            trendMap.computeIfPresent(orderTime, (date, saleAmount) ->
-                    saleAmount.add(
-                            Money.ofCents(order.getTotalPrice())
-                                 .toYuan()
-                    )
-            );
-        }
-
+        Map<LocalDate, BigDecimal> trendMap = initTrendMap(days);
+        calculateTrendMap(orders, trendMap);
         return trendMap;
     }
 
@@ -364,6 +361,15 @@ public class StatisticService implements IStatisticService {
         }
 
         return getTopCategoryId(category.getParentId(), categoryMap);
+    }
+
+    private static Map<LocalDate, BigDecimal> initTrendMap(int days) {
+        Map<LocalDate, BigDecimal> trendMap = new HashMap<>(days);
+        LocalDate today = LocalDate.now();
+        for (int i = days - 1; i >= 0; i--) {
+            trendMap.put(today.minusDays(i), BigDecimal.ZERO);
+        }
+        return trendMap;
     }
 
     /**

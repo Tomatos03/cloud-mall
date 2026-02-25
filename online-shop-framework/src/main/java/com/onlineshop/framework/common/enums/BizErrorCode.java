@@ -24,7 +24,10 @@ public enum BizErrorCode {
     USER_NOT_EXISTS(10003, "用户不存在"),
     PASSWORD_NOT_MATCH(10004, "密码不匹配"),
     USER_NOT_AUTHENTICATED(10005, "用户未认证"),
-    USER_STORE_ID_NULL(10006, "用户店铺ID为空"),
+    MERCHANT_STORE_NOT_FOUND(10006, "商户店铺不存在"),
+    NO_MANAGE_PERMISSION(10007, "无管理端访问权限"),
+    NOT_MERCHANT(10008, "您还不是商家，请先申请入驻"),
+    INVALID_CLIENT_TYPE(10009, "无效的客户端类型"),
 
     // ==================== 商品分类相关错误码 (20xxx) ====================
     CATEGORY_BEYOND_MAX_LEVEL(20000, "分类层级超出最大限制"),
@@ -170,7 +173,20 @@ public enum BizErrorCode {
     SECKILL_QUANTITY_INVALID(92008, "秒杀购买数量无效"),
     SECKILL_CACHE_INIT_FAILED(92009, "秒杀库存缓存初始化失败"),
     SECKILL_FAILED(92010, "秒杀操作失败"),
-    SECKILL_ORDER_INVALID_STATUS(92011, "秒杀订单状态无效，无法执行此操作");
+    SECKILL_ORDER_INVALID_STATUS(92011, "秒杀订单状态无效，无法执行此操作"),
+    SECKILL_PRICE_MUST_LESS_THAN_ORIGINAL(92012, "秒杀价格必须低于原价"),
+    SECKILL_STOCK_EXCEEDS_PRODUCT_STOCK(92013, "秒杀库存不能超过商品库存"),
+    ACTIVITY_MUST_ADVANCE_24_HOURS(92014, "秒杀活动必须提前24小时以上"),
+    ACTIVITY_DURATION_MUST_BE_ONE_HOUR(92015, "秒杀活动时长必须为1小时"),
+    PRODUCT_ALREADY_IN_SECKILL(92016, "该商品已参加秒杀活动，无法重复参加"),
+    PRODUCT_NOT_ACTIVE(92017, "商品未上架，无法参加秒杀"),
+    INVALID_TIME_RANGE(92018, "开始时间必须早于结束时间"),
+    PRODUCT_ID_REQUIRED(92019, "商品ID不能为空"),
+    START_TIME_REQUIRED(92020, "开始时间不能为空"),
+    END_TIME_REQUIRED(92021, "结束时间不能为空"),
+    PRICE_REQUIRED(92022, "秒杀价格不能为空"),
+    STOCK_REQUIRED(92023, "秒杀库存不能为空"),
+    PRODUCT_NOT_FOUND(92024, "商品不存在");
 
     final int code;
     final String errorMessage;

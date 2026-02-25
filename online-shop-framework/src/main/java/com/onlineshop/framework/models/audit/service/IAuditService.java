@@ -76,14 +76,6 @@ public interface IAuditService extends IService<Audit> {
      * @return 目标ID与最新审核记录的映射，不包含没有审核记录的目标
      */
     List<Audit> queryLatestAuditByTypeBatch(AuditType type, Collection<? extends Serializable> targetIds);
-    /**
-     * 更新审核记录
-     * 根据提供的Audit对象更新审核记录，支持更新状态、目标ID、备注和快照等信息
-     *
-     * @param audit 审核记录对象，包含需要更新的字段信息
-     * @throws BizException 当审核记录不存在时
-     */
-    void updateAudit(Audit audit);
 
     /**
      * 查询指定目标的审核状态

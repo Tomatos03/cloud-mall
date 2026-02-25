@@ -18,5 +18,5 @@ import java.util.List;
 public class UserListItemVO {
     private Long id;
     private String username;
-    private List<RoleMeta> roles;
+    private List<Long> roleIds;
 }

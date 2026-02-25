@@ -3,6 +3,7 @@ package com.onlineshop.framework.config.mybatisPlus;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import org.apache.ibatis.reflection.MetaObject;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -50,9 +51,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     }
 
     private String getOperateUser() {
-        String username = AuthUserUtils.getUsername();
-        return StringUtils.hasText(username)
-                ? username
-                : SYSTEM_USER;
+        if (AuthUserUtils.getAuthentication() == null) {
+            return SYSTEM_USER;
+        }
+        return AuthUserUtils.getUsername();
     }
 }

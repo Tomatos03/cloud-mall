@@ -1,9 +1,13 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.audit.application.IAuditAppService;
+import com.onlineshop.framework.models.audit.application.AbstractAuditor;
+import com.onlineshop.framework.models.audit.application.AuditAppService;
+import com.onlineshop.framework.models.audit.application.impl.GoodsAuditor;
+import com.onlineshop.framework.models.audit.application.impl.StoreRegisterAuditor;
 import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
+import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.enums.AuditType;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.audit.vo.AuditVO;
@@ -26,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuditManageController {
     private final IAuditService auditService;
-    private final IAuditAppService auditAppService;
+    private final AuditAppService auditAppService;
 
     /**
      * 分页查询审核记录
@@ -53,14 +57,19 @@ public class AuditManageController {
     }
 
     /**
-     * 审核商品决定
-     * 管理员专用：同意或拒绝商品审核
+     * 审核决策（通过或拒绝）
+     * 管理员专用：对任何类型的审核进行决策
+     * <p>
+     * 使用统一的决策接口处理所有审核类型的决策，根据审核类型自动路由到对应的 Auditor
      *
-     * @param decisionDTO 审核决定数据（包含auditLogId, approved, reason）
+     * @param decisionDTO 审核决策数据（包含auditId、approved、reason）
      */
-    @PostMapping("/decision")
+    @PostMapping("/decision/{type}")
     @PreAuthorize("hasAuthority('audit:edit')")
-    public void auditGoodsDecision(@Valid @RequestBody AuditDecisionDTO decisionDTO) {
-        auditAppService.handleAuditDecision(decisionDTO);
+    public void auditDecision(
+            @Valid @RequestBody AuditDecisionDTO decisionDTO,
+            @PathVariable String type
+    ) {
+        auditAppService.handleAuditDecision(decisionDTO, type);
     }
 }

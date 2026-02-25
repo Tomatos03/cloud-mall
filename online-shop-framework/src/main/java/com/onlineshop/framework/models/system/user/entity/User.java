@@ -25,5 +25,5 @@ public class User implements Serializable {
     private String nickname;
     private String bio;
     private String avatarUrl;
-    private String role;
+    private String types;
 }
