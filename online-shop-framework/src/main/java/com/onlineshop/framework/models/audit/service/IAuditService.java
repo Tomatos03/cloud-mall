@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
-import com.onlineshop.framework.models.audit.dto.AuditSubmit;
 import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
 import com.onlineshop.framework.models.audit.enums.AuditType;
@@ -18,15 +17,6 @@ import java.util.List;
  * 审核日志服务接口
  */
 public interface IAuditService extends IService<Audit> {
-
-    /**
-     * 提交审核申请
-     * 创建一个新的审核记录，状态为待审核(1)
-     *
-     * @param submitDTO 审核提交数据
-     * @throws BizException 当参数验证失败时
-     */
-    void submitAudit(AuditSubmit submitDTO);
 
     /**
      * 分页查询审核记录（支持多条件筛选）

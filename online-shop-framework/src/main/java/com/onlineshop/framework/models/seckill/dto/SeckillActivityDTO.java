@@ -3,11 +3,11 @@ package com.onlineshop.framework.models.seckill.dto;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * 秒杀活动数据传输对象
+ * 
+ * 用于管理员创建、查询秒杀活动时的数据传输
  */
 @Data
 public class SeckillActivityDTO implements Serializable {
@@ -20,27 +20,23 @@ public class SeckillActivityDTO implements Serializable {
     private Long id;
 
     /**
-     * 商品ID
+     * 活动名称
      */
-    private Long productId;
+    private String name;
 
     /**
-     * 秒杀开始时间
+     * 开始小时（0-23）
      */
-    private LocalDateTime startTime;
+    private Integer startHour;
 
     /**
-     * 秒杀结束时间
+     * 活动日期
+     * 格式：yyyy-MM-dd
      */
-    private LocalDateTime endTime;
+    private String activityDate;
 
     /**
-     * 秒杀价格
+     * 活动最大商品数
      */
-    private BigDecimal seckillPrice;
-
-    /**
-     * 秒杀库存
-     */
-    private Integer stock;
+    private Integer maxItems;
 }

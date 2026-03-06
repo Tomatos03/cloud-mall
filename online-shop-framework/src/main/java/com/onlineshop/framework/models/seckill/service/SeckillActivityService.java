@@ -3,6 +3,8 @@ package com.onlineshop.framework.models.seckill.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityDTO;
+import com.onlineshop.framework.models.seckill.dto.SeckillActivityParamsDTO;
+import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;
 import com.onlineshop.framework.models.seckill.entity.SeckillActivity;
 import com.onlineshop.framework.models.seckill.vo.SeckillActivityVO;
 
@@ -18,9 +20,7 @@ import com.onlineshop.framework.models.seckill.vo.SeckillActivityVO;
  * @date 2025-01-10
  */
 public interface SeckillActivityService extends IService<SeckillActivity> {
-    
-    // ==================== 活动查询接口 ====================
-    
+
     /**
      * 获取秒杀活动详情，返回VO对象（包含实时库存和状态）
      *
@@ -32,14 +32,12 @@ public interface SeckillActivityService extends IService<SeckillActivity> {
     /**
      * 分页查询秒杀活动列表（返回VO对象，包含实时库存和状态）
      *
-     * @param pageNum  页码
-     * @param pageSize 每页数量
+     * @param params 秒杀活动查询参数
      * @return 秒杀活动分页数据
      */
-    IPage<SeckillActivityVO> listActivities(Integer pageNum, Integer pageSize);
+    IPage<SeckillActivityVO> listActivities(SeckillActivityParamsDTO params);
     
-    // ==================== 活动管理接口 ====================
-    
+
     /**
      * 创建秒杀活动
      *
@@ -66,38 +64,27 @@ public interface SeckillActivityService extends IService<SeckillActivity> {
     boolean deleteActivity(Long id);
     
     /**
-     * 启动秒杀活动（初始化库存到Redis）
+     * 启动秒杀活动
+     * 注意：现在只负责更新活动状态，库存初始化由SeckillAppService处理
      *
      * @param id 秒杀活动ID
      * @return 是否启动成功
      */
     boolean startActivity(Long id);
-    
-    // ==================== 审核管理接口（管理端） ====================
-    
+
     /**
      * 查询秒杀审核申请列表
      *
-     * @param pageNum  页码
-     * @param pageSize 每页数量
+     * @param params 分页参数
      * @return 审核申请列表
      */
-    IPage<?> listAuditApplies(Integer pageNum, Integer pageSize);
-    
+    IPage<?> listAuditApplies(SeckillActivityParamsDTO params);
+
     /**
-     * 审核通过申请
+     * 获取活动中所有已审核通过的秒杀商品
      *
-     * @param auditId 审核ID
-     * @return 是否通过成功
+     * @param params 秒杀商品查询参数
+     * @return 已审核通过的秒杀商品分页数据
      */
-    boolean approveApply(Long auditId);
-    
-    /**
-     * 审核驳回申请
-     *
-     * @param auditId 审核ID
-     * @param reason  驳回原因
-     * @return 是否驳回成功
-     */
-    boolean rejectApply(Long auditId, String reason);
+    IPage<?> getApprovedGoodsInActivity(SeckillGoodsParamsDTO params);
 }

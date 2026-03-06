@@ -22,6 +22,7 @@ public class MenuNodeVO {
     private String code;
     private String description;
     private Integer sort = 0;
+    private Boolean enable;
     private ResourceMeta meta;
     private List<MenuNodeVO> children;
 }

@@ -2,23 +2,25 @@ package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.audit.application.IAuditAppService;
-import com.onlineshop.framework.models.audit.domain.SeckillActivityAuditRequest;
+import com.onlineshop.framework.models.audit.domain.SeckillGoodsAuditRequest;
+import com.onlineshop.framework.models.audit.domain.SeckillGoodsItem;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
+import com.onlineshop.framework.models.audit.dto.SeckillActivityGoodsParamsDTO;
 import com.onlineshop.framework.models.audit.service.IAuditService;
+import com.onlineshop.framework.models.seckill.dto.SeckillActivityParamsDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsDTO;
+import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;
 import com.onlineshop.framework.models.seckill.entity.SeckillActivity;
 import com.onlineshop.framework.models.seckill.service.SeckillActivityService;
-import com.onlineshop.framework.models.seckill.service.SeckillActivityStatsService;
 import com.onlineshop.framework.models.seckill.service.SeckillGoodsService;
 import com.onlineshop.framework.models.seckill.vo.SeckillActivityVO;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
+import com.onlineshop.framework.utils.AssertUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 /**
  * 商家秒杀活动控制器
@@ -32,28 +34,22 @@ import java.util.Map;
 @RequestMapping("/seckill")
 @RequiredArgsConstructor
 public class SeckillMerchantController {
-
     private final SeckillActivityService seckillActivityService;
     private final SeckillGoodsService seckillGoodsService;
-    private final SeckillActivityStatsService seckillActivityStatsService;
     private final IAuditAppService auditAppService;
     private final IAuditService auditService;
 
     /**
      * 获取可报名活动列表
-     * GET /merchant/seckill/activities
+     * GET /merchant/seckill/activities/list
      *
-     * @param pageNum  页码（默认1）
-     * @param pageSize 每页数量（默认10）
+     * @param params 查询参数
      * @return 报名中的活动列表
      */
     @GetMapping("/activities")
-    public IPage<SeckillActivityVO> getAvailableActivities(
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-
-        log.info("商家查询可报名活动列表，页码: {}, 每页数量: {}", pageNum, pageSize);
-        return seckillActivityService.listActivities(pageNum, pageSize);
+    public IPage<SeckillActivityVO> getAvailableActivities(SeckillActivityParamsDTO params) {
+        log.info("商家查询可报名活动列表，页码: {}, 每页数量: {}", params.getPage(), params.getPageSize());
+        return seckillActivityService.listActivities(params);
     }
 
     /**
@@ -70,47 +66,79 @@ public class SeckillMerchantController {
     }
 
     /**
+     * 获取活动中的商品（审核通过和待审核）
+     * GET /merchant/seckill/activities/:id/goods
+     *
+     * @param id 活动ID
+     * @param params 查询参数（包含分页信息）
+     * @return 商品分页列表
+     */
+    @GetMapping("/activities/{id}/goods")
+    public IPage<SeckillGoodsItem> getActivityGoods(@PathVariable Long id,
+                                                     SeckillActivityGoodsParamsDTO params) {
+        log.info("商家查询活动中的商品，活动ID: {}", id);
+        params.setActivityId(id);
+        return auditAppService.getSeckillActivityGoods(params);
+    }
+
+    /**
      * 提交申请加入活动
      * POST /merchant/seckill/applies
+     *
+     * 统一采用批量模型，即使只提交1个商品也需要放在items数组中
+     *
+     * 请求示例（单商品）：
+     * {
+     *   "activityId": 100,
+     *   "items": [
+     *     {"productId": 1001, "seckillPrice": 99.99, "stock": 100}
+     *   ]
+     * }
+     *
+     * 请求示例（多商品）：
+     * {
+     *   "activityId": 100,
+     *   "items": [
+     *     {"productId": 1001, "seckillPrice": 99.99, "stock": 100},
+     *     {"productId": 1002, "seckillPrice": 49.99, "stock": 200}
+     *   ]
+     * }
      *
      * @param request 秒杀活动审核请求
      * @return 无返回值，异步处理
      */
     @PostMapping("/applies")
-    public void submitApply(@RequestBody SeckillActivityAuditRequest request) {
-        log.info("商家提交秒杀活动申请，商品ID: {}, 秒杀价格: {}", 
-                request.getProductId(), request.getSeckillPrice());
-
-        // 获取当前登录用户信息
+    public void submitApply(@RequestBody SeckillGoodsAuditRequest request) {
+        log.info("商家提交秒杀活动申请，活动ID: {}, 商品数量: {}",
+                request.getActivityId(), request.getItems().size());
+        
+        // 设置申请人信息
         Long merchantId = AuthUserUtils.getUserId();
         request.setApplicantId(merchantId);
+        request.setApplicantName(AuthUserUtils.getUsername());
+        request.setType("SECKILL_ACTIVITY");
 
-        // 提交审核（submitAudit返回void）
         auditAppService.submitAudit(request);
         log.info("秒杀活动申请已提交");
     }
 
     /**
      * 获取我的申请列表
-     * GET /merchant/seckill/applies
+     * GET /merchant/seckill/applies/list
      *
-     * @param pageNum  页码（默认1）
-     * @param pageSize 每页数量（默认10）
+     * @param params 查询参数
      * @return 申请列表
      */
-    @GetMapping("/applies")
-    public IPage<?> getMyApplies(
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-
-        log.info("商家查询自己的申请列表，页码: {}, 每页数量: {}", pageNum, pageSize);
+    @GetMapping("/applies/list")
+    public IPage<?> getMyApplies(SeckillActivityParamsDTO params) {
+        log.info("商家查询自己的申请列表，页码: {}, 每页数量: {}", params.getPage(), params.getPageSize());
 
         Long merchantId = AuthUserUtils.getUserId();
         
         // 通过审核服务查询该商家的所有申请
         AuditParamsDTO queryDTO = new AuditParamsDTO();
-        queryDTO.setPage(pageNum);
-        queryDTO.setPageSize(pageSize);
+        queryDTO.setPage(params.getPage());
+        queryDTO.setPageSize(params.getPageSize());
         queryDTO.setApplicantId(merchantId);
         
         return auditService.pageQuery(queryDTO);
@@ -139,7 +167,7 @@ public class SeckillMerchantController {
      */
     @PutMapping("/applies/{id}")
     public void updateApply(@PathVariable Long id, 
-                           @RequestBody SeckillActivityAuditRequest request) {
+                           @RequestBody SeckillGoodsAuditRequest request) {
         log.info("商家修改申请，申请ID: {}", id);
 
         Long merchantId = AuthUserUtils.getUserId();
@@ -147,11 +175,11 @@ public class SeckillMerchantController {
         // 验证权限 - 申请必须属于当前商家
         Object auditRecord = auditService.getAuditById(id);
         
-        // 获取审核状态，检查是否可修改（仅待审核或已驳回状态）
-        // 这里需要通过审核服务验证状态
-        
+        // 设置申请人信息
         request.setApplicantId(merchantId);
+        request.setApplicantName(AuthUserUtils.getUsername());
         request.setTargetId(id);
+        request.setType("SECKILL_ACTIVITY");
 
         // 重新提交审核
         auditAppService.submitAudit(request);
@@ -167,62 +195,55 @@ public class SeckillMerchantController {
     @DeleteMapping("/applies/{id}")
     public boolean cancelApply(@PathVariable Long id) {
         log.info("商家撤回申请，申请ID: {}", id);
-
-        Long merchantId = AuthUserUtils.getUserId();
-
-        // 撤回审核申请
         return auditService.withdrawAudit(id);
     }
 
     /**
      * 获取活动中我的商品
-     * GET /merchant/seckill/my-products
+     * GET /merchant/seckill/my-products/list
      *
-     * @param activityId 活动ID
-     * @param pageNum    页码（默认1）
-     * @param pageSize   每页数量（默认10）
+     * @param params 秒杀商品查询参数
      * @return 商品列表
      */
-    @GetMapping("/my-products")
-    public IPage<SeckillGoodsDTO> getMyProductsInActivity(
-            @RequestParam Long activityId,
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-
-        log.info("商家查询活动中的商品，活动ID: {}", activityId);
+    @GetMapping("/my-products/list")
+    public IPage<SeckillGoodsDTO> getMyProductsInActivity(SeckillGoodsParamsDTO params) {
+        log.info("商家查询活动中的商品，活动ID: {}", params.getActivityId());
 
         Long merchantId = AuthUserUtils.getUserId();
 
         // 验证活动存在
-        SeckillActivity activity = seckillActivityService.getById(activityId);
+        SeckillActivity activity = seckillActivityService.getById(params.getActivityId());
         if (activity == null) {
             throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
         }
 
         // 通过service获取商家的秒杀商品
-        return seckillGoodsService.getMyProductsInActivity(activityId, merchantId, pageNum, pageSize);
+        return seckillGoodsService.getMyProductsInActivity(params.getActivityId(), merchantId, 
+                params.getPage(), params.getPageSize());
     }
 
     /**
-     * 获取活动数据统计
-     * GET /merchant/seckill/stats/:activityId
+     * 获取活动中已审核通过的商品（仅限本店铺）
+     * GET /merchant/seckill/approved-products/list
      *
-     * @param activityId 活动ID
-     * @return 统计数据
+     * @param params 秒杀商品查询参数
+     * @return 本店铺已审核通过的商品列表
      */
-    @GetMapping("/stats/{activityId}")
-    public Map<String, Object> getActivityStats(@PathVariable Long activityId) {
-        log.info("商家查询活动统计数据，活动ID: {}", activityId);
+    @GetMapping("/approved-products/list")
+    public IPage<SeckillGoodsDTO> getMyApprovedProducts(SeckillGoodsParamsDTO params) {
+        log.info("商家查询活动中已审核通过的商品，活动ID: {}, 页码: {}, 每页数量: {}", 
+                params.getActivityId(), params.getPage(), params.getPageSize());
 
         Long merchantId = AuthUserUtils.getUserId();
 
         // 验证活动存在
-        SeckillActivity activity = seckillActivityService.getById(activityId);
+        SeckillActivity activity = seckillActivityService.getById(params.getActivityId());
         if (activity == null) {
             throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
         }
 
-        // 通过service获取统计数据
-        return seckillActivityStatsService.getMerchantActivityStats(activityId, merchantId);
+        // 获取当前商家在该活动中的已审核通过的秒杀商品
+        return seckillGoodsService.getMyProductsInActivity(params.getActivityId(), merchantId,
+                params.getPage(), params.getPageSize());
     }
 }

@@ -1,16 +1,13 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.controller.dto.GoodsRepublishDTO;
 import com.onlineshop.controller.dto.GoodsStatusUpdateDTO;
 import com.onlineshop.framework.models.audit.application.IAuditAppService;
-import com.onlineshop.framework.models.audit.application.impl.GoodsAuditor;
 import com.onlineshop.framework.models.audit.domain.GoodsAuditRequest;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailWithAuditVO;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
-import com.onlineshop.framework.utils.AuthUserUtils;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;

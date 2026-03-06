@@ -1,9 +1,12 @@
 package com.onlineshop.framework.models.audit.application;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.audit.domain.AuditRequest;
+import com.onlineshop.framework.models.audit.domain.SeckillGoodsItem;
 import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
 import com.onlineshop.framework.models.audit.dto.AuditRequestDTO;
 import com.onlineshop.framework.models.audit.dto.AuditStatusDTO;
+import com.onlineshop.framework.models.audit.dto.SeckillActivityGoodsParamsDTO;
 
 /**
  * 审核应用服务接口
@@ -56,4 +59,15 @@ public interface IAuditAppService {
      * 查询当前用户的创建店铺审核状态
      */
     AuditStatusDTO queryUserCreateStoreAuditStatus();
+
+    /**
+     * 获取秒杀活动中的商品（审核通过和待审核）
+     *
+     * 分页查询指定秒杀活动中审核通过或待审核的商品列表。
+     * 从审核记录的快照中提取商品信息并进行合并。
+     *
+     * @param params 查询参数DTO，包含activityId、page、pageSize
+     * @return 商品分页数据
+     */
+    IPage<SeckillGoodsItem> getSeckillActivityGoods(SeckillActivityGoodsParamsDTO params);
 }

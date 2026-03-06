@@ -97,12 +97,13 @@ public class ResourceService extends ServiceImpl<ResourceMapper, Resource> imple
                                         .component(form.getComponent())
                                         .icon(form.getIcon())
                                         .label(form.getLabel())
+                                        .hidden(form.getHidden())
                                         .build();
         return Resource.builder()
                        .code(form.getCode())
                        .type(form.getType())
                        .sort(form.getSort())
-                       .enable(form.getIsEnable())
+                       .enable(form.getEnable())
                        .parentId(form.getParentId())
                        .meta(meta)
                        .build();

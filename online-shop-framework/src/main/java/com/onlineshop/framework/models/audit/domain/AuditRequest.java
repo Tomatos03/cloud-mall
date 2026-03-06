@@ -27,7 +27,7 @@ import lombok.EqualsAndHashCode;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = GoodsAuditRequest.class, name = AuditType.GOODS_CODE),
         @JsonSubTypes.Type(value = StoreRegisterAuditRequest.class, name = AuditType.STORE_REGISTER_CODE),
-        @JsonSubTypes.Type(value = SeckillActivityAuditRequest.class, name = AuditType.SECKILL_ACTIVITY_CODE)
+        @JsonSubTypes.Type(value = SeckillGoodsAuditRequest.class, name = AuditType.SECKILL_ACTIVITY_CODE)
 })
 public abstract class AuditRequest {
 

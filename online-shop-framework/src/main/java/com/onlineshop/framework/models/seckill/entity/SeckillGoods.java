@@ -13,8 +13,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 秒杀商品表（关联审核记录）
- * 在秒杀活动申请审核通过后创建，关联审核记录、活动、商品和商家信息
+ * 秒杀商品表
+ * 
+ * 存储已通过审核的秒杀商品信息。只有审核通过的申请才会在此表中创建记录。
+ * 与审核表完全解耦，表中的每一条记录都代表已通过审核的秒杀商品。
  *
  * @author Tomatos
  * @date 2026/2/26
@@ -38,12 +40,6 @@ public class SeckillGoods implements Serializable {
      * 活动ID（外键关联seckill_activity表）
      */
     private Long activityId;
-
-    /**
-     * 审核记录ID（外键关联audit表）
-     * 保存商家提交的秒杀申请的审核记录ID
-     */
-    private Long auditId;
 
     /**
      * 商品ID（外键关联goods表）

@@ -27,7 +27,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 审核日志服务实现
@@ -35,12 +34,6 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAuditService {
-    @Override
-    public void submitAudit(AuditSubmit submitDTO) {
-        validateSubmitDTO(submitDTO);
-        Audit audit = buildNewAudit(submitDTO, AuthUserUtils.getUserId(), AuthUserUtils.getUsername());
-        save(audit);
-    }
 
     @Override
     public IPage<AuditVO> pageQuery(AuditParamsDTO queryDTO) {

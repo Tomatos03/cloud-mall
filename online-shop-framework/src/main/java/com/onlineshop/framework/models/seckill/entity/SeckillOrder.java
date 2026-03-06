@@ -31,12 +31,17 @@ public class SeckillOrder implements Serializable {
     private Long id;
 
     /**
-     * 秒杀活动ID
+     * 秒杀商品ID（外键关联seckill_goods表）
      */
-    private Long seckillId;
+    private Long seckillGoodsId;
 
     /**
-     * 商品ID
+     * 秒杀活动ID（冗余存储，可通过seckillGoodsId关联获取）
+     */
+    private Long activityId;
+
+    /**
+     * 商品ID（冗余存储）
      */
     private Long productId;
 
@@ -61,9 +66,9 @@ public class SeckillOrder implements Serializable {
     private Integer quantity;
 
     /**
-     * 秒杀订单状态：0-待支付 1-已支付 2-已发货 3-已完成 4-已取消 5-已退货
+     * 秒杀订单状态：CREATED-待支付 PAID-待发货 SHIPPED-待收货 FINISHED-已完成 CANCELED-已取消 CLOSED-已关闭
      */
-    private Integer status;
+    private String status;
 
     /**
      * 取消原因

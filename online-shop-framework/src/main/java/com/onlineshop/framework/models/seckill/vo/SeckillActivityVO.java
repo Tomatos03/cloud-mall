@@ -3,11 +3,12 @@ package com.onlineshop.framework.models.seckill.vo;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * 秒杀活动视图对象
+ * 
+ * 用于返回秒杀活动的详细信息到前端
  */
 @Data
 public class SeckillActivityVO implements Serializable {
@@ -20,37 +21,39 @@ public class SeckillActivityVO implements Serializable {
     private Long id;
 
     /**
-     * 商品ID
+     * 活动名称
      */
-    private Long productId;
+    private String name;
 
     /**
-     * 秒杀开始时间
+     * 开始小时（0-23）
      */
-    private LocalDateTime startTime;
+    private Integer startHour;
 
     /**
-     * 秒杀结束时间
+     * 活动日期
+     * 格式：yyyy-MM-dd
      */
-    private LocalDateTime endTime;
+    private String activityDate;
 
     /**
-     * 秒杀价格
-     */
-    private BigDecimal seckillPrice;
-
-    /**
-     * 秒杀库存
-     */
-    private Integer stock;
-
-    /**
-     * 剩余库存
-     */
-    private Integer remainingStock;
-
-    /**
-     * 秒杀状态：0-未开始 1-进行中 2-已结束
+     * 活动状态
+     * 0=报名中, 1=进行中, 2=已结束
      */
     private Integer status;
+
+    /**
+     * 活动最大商品数
+     */
+    private Integer maxItems;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updateTime;
 }

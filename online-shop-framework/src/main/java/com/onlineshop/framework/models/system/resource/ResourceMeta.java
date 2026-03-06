@@ -22,4 +22,5 @@ public class ResourceMeta {
     private String redirect;
     private String component;
     private String path;
+    private Boolean hidden = false;
 }

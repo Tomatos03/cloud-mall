@@ -1,14 +1,15 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.onlineshop.framework.models.seckill.application.SeckillAppService;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityDTO;
+import com.onlineshop.framework.models.seckill.dto.SeckillActivityParamsDTO;
+import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;
 import com.onlineshop.framework.models.seckill.service.SeckillActivityService;
 import com.onlineshop.framework.models.seckill.vo.SeckillActivityVO;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 /**
  * 秒杀管理端控制器
@@ -25,9 +26,11 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/seckill")
-@RequiredArgsConstructor
 public class SeckillManagerController {
-    private final SeckillActivityService seckillActivityService;
+    @Autowired
+    private SeckillAppService seckillAppService;
+    @Autowired
+    private SeckillActivityService seckillActivityService;
 
     /**
      * 创建秒杀活动
@@ -38,25 +41,21 @@ public class SeckillManagerController {
      */
     @PostMapping("/activities")
     public SeckillActivityVO createSeckillActivity(@RequestBody SeckillActivityDTO dto) {
-        log.info("创建秒杀活动，产品ID: {}", dto.getProductId());
+        log.info("创建秒杀活动，活动名称: {}", dto.getName());
         return seckillActivityService.createActivity(dto);
     }
 
     /**
      * 获取秒杀活动列表
-     * GET /admin/seckill/activities
+     * GET /admin/seckill/activities/list
      *
-     * @param pageNum  页码（默认1）
-     * @param pageSize 每页数量（默认10）
+     * @param params 秒杀活动查询参数
      * @return 秒杀活动列表
      */
-    @GetMapping("/activities")
-    public IPage<SeckillActivityVO> listSeckillActivities(
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-
-        log.info("查询秒杀活动列表，页码: {}, 每页数量: {}", pageNum, pageSize);
-        return seckillActivityService.listActivities(pageNum, pageSize);
+    @GetMapping("/activities/list")
+    public IPage<SeckillActivityVO> listSeckillActivities(SeckillActivityParamsDTO params) {
+        log.info("查询秒杀活动列表，页码: {}, 每页数量: {}", params.getPage(), params.getPageSize());
+        return seckillActivityService.listActivities(params);
     }
 
     /**
@@ -108,54 +107,37 @@ public class SeckillManagerController {
      */
     @PostMapping("/activities/{id}/start")
     public boolean startSeckillActivity(@PathVariable Long id) {
-        log.info("开始秒杀活动，ID: {}", id);
-        return seckillActivityService.startActivity(id);
+        log.info("启动秒杀活动，ID: {}", id);
+        return seckillAppService.startSeckillActivity(id);
     }
 
-    // ==================== 申请审核管理接口 ====================
 
     /**
      * 查询申请列表
-     * GET /admin/seckill/applies
+     * GET /admin/seckill/applies/list
      *
-     * @param pageNum  页码（默认1）
-     * @param pageSize 每页数量（默认10）
+     * @param params 查询参数
      * @return 申请列表
      */
-    @GetMapping("/applies")
-    public IPage<?> listApplies(
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-
-        log.info("查询秒杀申请列表，页码: {}, 每页数量: {}", pageNum, pageSize);
-        return seckillActivityService.listAuditApplies(pageNum, pageSize);
+    @GetMapping("/applies/list")
+    public IPage<?> listApplies(SeckillActivityParamsDTO params) {
+        log.info("查询秒杀申请列表，页码: {}, 每页数量: {}", params.getPage(), params.getPageSize());
+        return seckillActivityService.listAuditApplies(params);
     }
 
     /**
-     * 通过申请
-     * POST /admin/seckill/applies/:id/approve
+     * 获取活动中已审核通过的秒杀商品
+     * GET /admin/seckill/goods/list
      *
-     * @param id 申请ID（审核ID）
-     * @return 是否通过成功
+     * @param params 秒杀商品查询参数
+     * @return 已审核通过的秒杀商品列表
      */
-    @PostMapping("/applies/{id}/approve")
-    public boolean approveApply(@PathVariable Long id) {
-        log.info("通过秒杀申请，申请ID: {}", id);
-        return seckillActivityService.approveApply(id);
-    }
-
-    /**
-     * 驳回申请
-     * POST /admin/seckill/applies/:id/reject
-     *
-     * @param id        申请ID（审核ID）
-     * @param reasonMap 驳回原因
-     * @return 是否驳回成功
-     */
-    @PostMapping("/applies/{id}/reject")
-    public boolean rejectApply(@PathVariable Long id, @RequestBody Map<String, String> reasonMap) {
-        log.info("驳回秒杀申请，申请ID: {}", id);
-        String reason = reasonMap.get("reason");
-        return seckillActivityService.rejectApply(id, reason);
+    @GetMapping("/goods/list")
+    public IPage<?> getApprovedProducts(SeckillGoodsParamsDTO params) {
+        log.info("管理员查询活动中已审核通过的商品，活动ID: {}, 页码: {}, 每页数量: {}", 
+                params.getActivityId(), params.getPage(), params.getPageSize());
+        return seckillActivityService.getApprovedGoodsInActivity(params);
     }
 }
+
+

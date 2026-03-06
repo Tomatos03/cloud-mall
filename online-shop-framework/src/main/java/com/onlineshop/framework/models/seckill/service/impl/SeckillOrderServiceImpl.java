@@ -1,4 +1,4 @@
-package com.onlineshop.framework.models.seckill.service;
+package com.onlineshop.framework.models.seckill.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -6,9 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
+import com.onlineshop.framework.models.order.enums.OrderStatus;
 import com.onlineshop.framework.models.seckill.entity.SeckillOrder;
-import com.onlineshop.framework.models.seckill.enums.SeckillOrderStatusEnum;
 import com.onlineshop.framework.models.seckill.mapper.SeckillOrderMapper;
+import com.onlineshop.framework.models.seckill.service.SeckillOrderService;
 import com.onlineshop.framework.models.seckill.vo.SeckillOrderVO;
 import com.onlineshop.framework.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ public class SeckillOrderServiceImpl extends ServiceImpl<SeckillOrderMapper, Sec
 
     @Override
     public SeckillOrderVO participateSeckill(Long seckillActivityId, Long userId, Integer quantity) {
-        // 此方法的实现应该在 SeckillManager 中
+        // 此方法的实现应该在 SeckillAppService 中
         // 这里仅提供基础的数据转换逻辑
         throw new BizException(BizErrorCode.SECKILL_FAILED);
     }
@@ -93,10 +94,10 @@ public class SeckillOrderServiceImpl extends ServiceImpl<SeckillOrderMapper, Sec
         SeckillOrder order = getById(seckillOrderId);
         AssertUtils.notNull(order, BizErrorCode.SECKILL_ORDER_NOT_EXIST);
 
-        AssertUtils.isEqual(order.getStatus(), SeckillOrderStatusEnum.PENDING_PAYMENT.getCode(), 
+        AssertUtils.isEqual(order.getStatus(), OrderStatus.CREATED.getCode(), 
                 BizErrorCode.SECKILL_ORDER_INVALID_STATUS);
 
-        order.setStatus(SeckillOrderStatusEnum.PAID.getCode());
+        order.setStatus(OrderStatus.PAID.getCode());
         order.setUpdateTime(LocalDateTime.now());
 
         return updateById(order);
@@ -111,11 +112,11 @@ public class SeckillOrderServiceImpl extends ServiceImpl<SeckillOrderMapper, Sec
 
         // 不能取消已取消或已完成的订单
         AssertUtils.isFalse(
-                order.getStatus().equals(SeckillOrderStatusEnum.CANCELLED.getCode()) ||
-                order.getStatus().equals(SeckillOrderStatusEnum.COMPLETED.getCode()),
+                order.getStatus().equals(OrderStatus.CANCELED.getCode()) ||
+                order.getStatus().equals(OrderStatus.FINISHED.getCode()),
                 BizErrorCode.SECKILL_ORDER_INVALID_STATUS);
 
-        order.setStatus(SeckillOrderStatusEnum.CANCELLED.getCode());
+        order.setStatus(OrderStatus.CANCELED.getCode());
         order.setCancelReason(reason);
         order.setUpdateTime(LocalDateTime.now());
 
@@ -130,10 +131,10 @@ public class SeckillOrderServiceImpl extends ServiceImpl<SeckillOrderMapper, Sec
         AssertUtils.notNull(order, BizErrorCode.SECKILL_ORDER_NOT_EXIST);
 
         // 只有待支付状态的订单才能取消
-        AssertUtils.isEqual(order.getStatus(), SeckillOrderStatusEnum.PENDING_PAYMENT.getCode(),
+        AssertUtils.isEqual(order.getStatus(), OrderStatus.CREATED.getCode(),
                 BizErrorCode.SECKILL_ORDER_INVALID_STATUS);
 
-        order.setStatus(SeckillOrderStatusEnum.CANCELLED.getCode());
+        order.setStatus(OrderStatus.CANCELED.getCode());
         order.setUpdateTime(LocalDateTime.now());
         return updateById(order);
     }

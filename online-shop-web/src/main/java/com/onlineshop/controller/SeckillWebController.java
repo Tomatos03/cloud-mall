@@ -1,8 +1,11 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.onlineshop.framework.models.seckill.dto.SeckillActivityParamsDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsDTO;
+import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;
 import com.onlineshop.framework.models.seckill.entity.SeckillActivity;
+import com.onlineshop.framework.models.seckill.application.SeckillAppService;
 import com.onlineshop.framework.models.seckill.service.SeckillActivityService;
 import com.onlineshop.framework.models.seckill.service.SeckillGoodsService;
 import com.onlineshop.framework.models.seckill.service.SeckillOrderService;
@@ -11,6 +14,7 @@ import com.onlineshop.framework.models.seckill.vo.SeckillOrderVO;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -23,30 +27,30 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/seckill")
-@RequiredArgsConstructor
 public class SeckillWebController {
 
-    private final SeckillActivityService seckillActivityService;
-    private final SeckillOrderService seckillOrderService;
-    private final SeckillGoodsService seckillGoodsService;
+    @Autowired
+    private SeckillAppService seckillAppService;
+    @Autowired
+    private SeckillActivityService seckillActivityService;
+    @Autowired
+    private SeckillOrderService seckillOrderService;
+    @Autowired
+    private SeckillGoodsService seckillGoodsService;
 
     // ==================== 秒杀活动查询接口 ====================
 
     /**
      * 获取秒杀活动列表
-     * GET /client/seckill/activities
+     * GET /client/seckill/activities/list
      *
-     * @param pageNum  页码（默认1）
-     * @param pageSize 每页数量（默认10）
+     * @param params 查询参数
      * @return 秒杀活动分页数据
      */
-    @GetMapping("/activities")
-    public IPage<SeckillActivityVO> getSeckillActivities(
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-
-        log.info("查询秒杀活动列表，页码：{}，每页大小：{}", pageNum, pageSize);
-        return seckillActivityService.listActivities(pageNum, pageSize);
+    @GetMapping("/activities/list")
+    public IPage<SeckillActivityVO> getSeckillActivities(SeckillActivityParamsDTO params) {
+        log.info("查询秒杀活动列表，页码：{}，每页大小：{}", params.getPage(), params.getPageSize());
+        return seckillActivityService.listActivities(params);
     }
 
     /**
@@ -66,30 +70,24 @@ public class SeckillWebController {
 
     /**
      * 获取活动商品列表
-     * GET /client/seckill/products/:activityId
+     * GET /client/seckill/products/list
      *
-     * @param activityId 秒杀活动ID
-     * @param pageNum    页码（默认1）
-     * @param pageSize   每页数量（默认10）
+     * @param params 秒杀商品查询参数
      * @return 活动内的秒杀商品列表
      */
-    @GetMapping("/products/{activityId}")
-    public IPage<SeckillGoodsDTO> getActivityProducts(
-            @PathVariable Long activityId,
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
-
-        log.info("查询活动商品列表，活动ID：{}", activityId);
+    @GetMapping("/products/list")
+    public IPage<SeckillGoodsDTO> getActivityProducts(SeckillGoodsParamsDTO params) {
+        log.info("查询活动商品列表，活动ID：{}", params.getActivityId());
 
         // 验证活动存在
-        SeckillActivity activity = seckillActivityService.getById(activityId);
+        SeckillActivity activity = seckillActivityService.getById(params.getActivityId());
         if (activity == null) {
             throw new com.onlineshop.framework.exception.BizException(
                 com.onlineshop.framework.common.enums.BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
         }
 
         // 通过service获取该活动的所有秒杀商品
-        return seckillGoodsService.getActivityProducts(activityId, pageNum, pageSize);
+        return seckillGoodsService.getActivityProducts(params);
     }
 
     /**
@@ -115,23 +113,23 @@ public class SeckillWebController {
 
     /**
      * 参与秒杀（核心接口）
-     * POST /client/seckill/participate/:seckillId
+     * POST /client/seckill/participate/:seckillGoodsId
      *
-     * @param seckillId 秒杀活动ID
-     * @param quantity  购买数量（默认1）
+     * @param seckillGoodsId 秒杀商品ID
+     * @param quantity       购买数量（默认1）
      * @return 秒杀订单ID
      */
-    @PostMapping("/participate/{seckillId}")
+    @PostMapping("/participate/{seckillGoodsId}")
     public Long participateSeckill(
-            @PathVariable Long seckillId,
+            @PathVariable Long seckillGoodsId,
             @RequestParam(defaultValue = "1") Integer quantity) {
 
         // 获取当前登录用户ID
         Long userId = AuthUserUtils.getUserId();
 
-        log.info("用户 {} 参与秒杀活动 {}，购买数量：{}", userId, seckillId, quantity);
+        log.info("用户 {} 参与秒杀商品 {}，购买数量：{}", userId, seckillGoodsId, quantity);
 
-        return seckillOrderService.participateSeckill(seckillId, userId, quantity).getId();
+        return seckillAppService.participateSeckill(seckillGoodsId, userId, quantity).getOrderId();
     }
 
     // ==================== 秒杀订单操作接口 ====================
@@ -151,20 +149,19 @@ public class SeckillWebController {
 
     /**
      * 查询用户的秒杀订单列表
-     * GET /client/seckill/orders/user/:userId
+     * GET /client/seckill/orders/user/:userId/list
      *
-     * @param pageNum  页码（默认1）
-     * @param pageSize 每页数量（默认10）
+     * @param userId 用户ID
+     * @param params 查询参数
      * @return 秒杀订单分页数据
      */
-    @GetMapping("/orders/user/{userId}")
+    @GetMapping("/orders/user/{userId}/list")
     public IPage<SeckillOrderVO> getUserSeckillOrders(
             @PathVariable Long userId,
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
+            SeckillActivityParamsDTO params) {
 
-        log.info("查询用户 {} 的秒杀订单，页码：{}，每页大小：{}", userId, pageNum, pageSize);
-        return seckillOrderService.getUserSeckillOrders(userId, pageNum, pageSize);
+        log.info("查询用户 {} 的秒杀订单，页码：{}，每页大小：{}", userId, params.getPage(), params.getPageSize());
+        return seckillOrderService.getUserSeckillOrders(userId, params.getPage(), params.getPageSize());
     }
 
     /**

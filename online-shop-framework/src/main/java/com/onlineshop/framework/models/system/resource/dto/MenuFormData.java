@@ -18,9 +18,10 @@ public class MenuFormData {
     private String code;
     private String type;
     private Integer sort;
-    private Boolean isEnable;
+    private Boolean enable;
     private Long parentId;
     private String path;
     private String component;
     private String icon;
+    private Boolean hidden = false;
 }

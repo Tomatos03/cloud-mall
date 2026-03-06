@@ -184,9 +184,14 @@ public enum BizErrorCode {
     PRODUCT_ID_REQUIRED(92019, "商品ID不能为空"),
     START_TIME_REQUIRED(92020, "开始时间不能为空"),
     END_TIME_REQUIRED(92021, "结束时间不能为空"),
-    PRICE_REQUIRED(92022, "秒杀价格不能为空"),
-    STOCK_REQUIRED(92023, "秒杀库存不能为空"),
-    PRODUCT_NOT_FOUND(92024, "商品不存在");
+     PRICE_REQUIRED(92022, "秒杀价格不能为空"),
+     STOCK_REQUIRED(92023, "秒杀库存不能为空"),
+     PRODUCT_NOT_FOUND(92024, "商品不存在"),
+      ACTIVITY_ID_REQUIRED(92025, "活动ID不能为空"),
+      INVALID_ACTIVITY_STATUS(92026, "活动状态无效，仅报名中的活动可参加"),
+      ACTIVITY_MAX_ITEMS_REACHED(92027, "该活动已达到最大商品数限制"),
+      ITEMS_REQUIRED(92028, "商品列表不能为空"),
+      ITEMS_EMPTY(92029, "商品列表不能为空，至少需要1个商品");
 
     final int code;
     final String errorMessage;
