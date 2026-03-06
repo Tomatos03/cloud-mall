@@ -18,7 +18,7 @@ import java.util.List;
  * @date 2025/12/20
  */
 @RestController
-@RequestMapping("/manage/category")
+@RequestMapping("/category")
 @PreAuthorize("hasAuthority('category:view')")
 public class CategoryManageController {
 

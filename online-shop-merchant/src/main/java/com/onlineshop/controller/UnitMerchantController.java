@@ -17,7 +17,7 @@ import java.util.List;
  * @date : 2026/2/11
  */
 @RestController
-@RequestMapping("/merchant/units")
+@RequestMapping("/units")
 @RequiredArgsConstructor
 public class UnitMerchantController {
     private final IUnitService unitService;

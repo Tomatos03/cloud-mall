@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * 店铺相关接口
  */
 @RestController
-@RequestMapping("/web/store")
+@RequestMapping("/store")
 @RequiredArgsConstructor
 public class StoreWebController {
     private final IAuditAppService auditAppService;

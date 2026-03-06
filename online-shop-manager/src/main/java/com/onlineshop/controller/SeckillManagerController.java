@@ -1,25 +1,14 @@
 package com.onlineshop.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.exception.BizException;
-import com.onlineshop.framework.models.audit.application.IAuditAppService;
-import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
-import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
-import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityDTO;
-import com.onlineshop.framework.models.seckill.entity.SeckillActivity;
-import com.onlineshop.framework.models.seckill.manager.SeckillManager;
 import com.onlineshop.framework.models.seckill.service.SeckillActivityService;
 import com.onlineshop.framework.models.seckill.vo.SeckillActivityVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * 秒杀管理端控制器
@@ -35,16 +24,10 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @RestController
-@RequestMapping("/admin/seckill")
+@RequestMapping("/seckill")
 @RequiredArgsConstructor
 public class SeckillManagerController {
-
     private final SeckillActivityService seckillActivityService;
-    private final SeckillManager seckillManager;
-    private final IAuditAppService auditAppService;
-    private final IAuditService auditService;
-
-    // ==================== 秒杀活动管理接口 ====================
 
     /**
      * 创建秒杀活动
@@ -56,18 +39,7 @@ public class SeckillManagerController {
     @PostMapping("/activities")
     public SeckillActivityVO createSeckillActivity(@RequestBody SeckillActivityDTO dto) {
         log.info("创建秒杀活动，产品ID: {}", dto.getProductId());
-
-        SeckillActivity activity = new SeckillActivity();
-        BeanUtils.copyProperties(dto, activity);
-        activity.setCreateTime(LocalDateTime.now());
-        activity.setUpdateTime(LocalDateTime.now());
-
-        seckillActivityService.save(activity);
-
-        // 初始化Redis库存
-        seckillManager.initializeStock(activity.getId());
-
-        return convertToVO(activity);
+        return seckillActivityService.createActivity(dto);
     }
 
     /**
@@ -84,13 +56,7 @@ public class SeckillManagerController {
             @RequestParam(defaultValue = "10") Integer pageSize) {
 
         log.info("查询秒杀活动列表，页码: {}, 每页数量: {}", pageNum, pageSize);
-
-        Page<SeckillActivity> page = new Page<>(pageNum, pageSize);
-        IPage<SeckillActivity> result = seckillActivityService.page(page,
-                new LambdaQueryWrapper<SeckillActivity>()
-                        .orderByDesc(SeckillActivity::getCreateTime));
-
-        return result.convert(this::convertToVO);
+        return seckillActivityService.listActivities(pageNum, pageSize);
     }
 
     /**
@@ -103,13 +69,7 @@ public class SeckillManagerController {
     @GetMapping("/activities/{id}")
     public SeckillActivityVO getSeckillActivity(@PathVariable Long id) {
         log.info("查询秒杀活动详情，ID: {}", id);
-
-        SeckillActivity activity = seckillActivityService.getById(id);
-        if (activity == null) {
-            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
-        }
-
-        return convertToVO(activity);
+        return seckillActivityService.getSeckillActivityVO(id);
     }
 
     /**
@@ -123,18 +83,7 @@ public class SeckillManagerController {
     @PutMapping("/activities/{id}")
     public SeckillActivityVO updateSeckillActivity(@PathVariable Long id, @RequestBody SeckillActivityDTO dto) {
         log.info("更新秒杀活动，ID: {}", id);
-
-        SeckillActivity activity = seckillActivityService.getById(id);
-        if (activity == null) {
-            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
-        }
-
-        BeanUtils.copyProperties(dto, activity, "id", "createTime");
-        activity.setUpdateTime(LocalDateTime.now());
-
-        seckillActivityService.updateById(activity);
-
-        return convertToVO(activity);
+        return seckillActivityService.updateActivity(id, dto);
     }
 
     /**
@@ -147,16 +96,7 @@ public class SeckillManagerController {
     @DeleteMapping("/activities/{id}")
     public boolean deleteSeckillActivity(@PathVariable Long id) {
         log.info("删除秒杀活动，ID: {}", id);
-
-        SeckillActivity activity = seckillActivityService.getById(id);
-        if (activity == null) {
-            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
-        }
-
-        // 清除缓存
-        seckillManager.clearSeckillCache(id);
-
-        return seckillActivityService.removeById(id);
+        return seckillActivityService.deleteActivity(id);
     }
 
     /**
@@ -169,16 +109,7 @@ public class SeckillManagerController {
     @PostMapping("/activities/{id}/start")
     public boolean startSeckillActivity(@PathVariable Long id) {
         log.info("开始秒杀活动，ID: {}", id);
-
-        SeckillActivity activity = seckillActivityService.getById(id);
-        if (activity == null) {
-            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
-        }
-
-        // 初始化Redis库存（如果尚未初始化）
-        seckillManager.initializeStock(id);
-        
-        return true;
+        return seckillActivityService.startActivity(id);
     }
 
     // ==================== 申请审核管理接口 ====================
@@ -197,13 +128,7 @@ public class SeckillManagerController {
             @RequestParam(defaultValue = "10") Integer pageSize) {
 
         log.info("查询秒杀申请列表，页码: {}, 每页数量: {}", pageNum, pageSize);
-
-        // 查询所有秒杀活动相关的审核记录
-        AuditParamsDTO queryDTO = new AuditParamsDTO();
-        queryDTO.setPage(pageNum);
-        queryDTO.setPageSize(pageSize);
-        
-        return auditService.pageQuery(queryDTO);
+        return seckillActivityService.listAuditApplies(pageNum, pageSize);
     }
 
     /**
@@ -216,60 +141,21 @@ public class SeckillManagerController {
     @PostMapping("/applies/{id}/approve")
     public boolean approveApply(@PathVariable Long id) {
         log.info("通过秒杀申请，申请ID: {}", id);
-
-        // 通过审核
-        AuditDecisionDTO decision = AuditDecisionDTO.builder()
-                .auditId(id)
-                .approved(true)
-                .reason("审核通过")
-                .build();
-        
-        auditAppService.handleAuditDecision(decision, "SECKILL_ACTIVITY");
-        return true;
+        return seckillActivityService.approveApply(id);
     }
 
     /**
      * 驳回申请
      * POST /admin/seckill/applies/:id/reject
      *
-     * @param id     申请ID（审核ID）
+     * @param id        申请ID（审核ID）
      * @param reasonMap 驳回原因
      * @return 是否驳回成功
      */
     @PostMapping("/applies/{id}/reject")
-    public boolean rejectApply(@PathVariable Long id, @RequestBody java.util.Map<String, String> reasonMap) {
+    public boolean rejectApply(@PathVariable Long id, @RequestBody Map<String, String> reasonMap) {
         log.info("驳回秒杀申请，申请ID: {}", id);
-
         String reason = reasonMap.get("reason");
-        
-        // 驳回审核
-        AuditDecisionDTO decision = AuditDecisionDTO.builder()
-                .auditId(id)
-                .approved(false)
-                .reason(reason != null ? reason : "申请被驳回")
-                .build();
-        
-        auditAppService.handleAuditDecision(decision, "SECKILL_ACTIVITY");
-        return true;
-    }
-
-    // ==================== 内部工具方法 ====================
-
-    /**
-     * 将Entity转换为VO
-     */
-    private SeckillActivityVO convertToVO(SeckillActivity activity) {
-        SeckillActivityVO vo = new SeckillActivityVO();
-        BeanUtils.copyProperties(activity, vo);
-
-        // 设置活动状态
-        Integer status = seckillManager.checkSeckillStatus(activity.getId());
-        vo.setStatus(status);
-
-        // 获取剩余库存
-        Long remainingStock = seckillManager.getRemainingStock(activity.getId());
-        vo.setRemainingStock(remainingStock.intValue());
-
-        return vo;
+        return seckillActivityService.rejectApply(id, reason);
     }
 }

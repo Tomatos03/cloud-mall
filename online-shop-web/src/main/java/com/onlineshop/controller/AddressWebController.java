@@ -17,7 +17,7 @@ import java.util.List;
  * @date 2025/12/20
  */
 @RestController
-@RequestMapping("/web/address")
+@RequestMapping("/address")
 public class AddressWebController {
 
     @Autowired

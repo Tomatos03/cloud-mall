@@ -14,7 +14,7 @@ import java.util.Collection;
  * 菜单管理控制器
  */
 @RestController
-@RequestMapping("/manage/system/menu")
+@RequestMapping("/system/menu")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('menu:view')")
 public class MenuManageController {

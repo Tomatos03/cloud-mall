@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * @date : 2026/2/11
  */
 @RestController
-@RequestMapping("/merchant/orders")
+@RequestMapping("/orders")
 @RequiredArgsConstructor
 public class OrderMerchantController {
     private final IOrderService orderService;

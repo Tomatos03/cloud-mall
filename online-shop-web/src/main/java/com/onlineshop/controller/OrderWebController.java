@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * @date 2025-12-23
  */
 @RestController
-@RequestMapping("/web/order")
+@RequestMapping("/order")
 public class OrderWebController {
     @Autowired
     private IOrderService orderService;

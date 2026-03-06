@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date : 2026/2/11
  */
 
-@RequestMapping("/merchant/auth")
+@RequestMapping("/auth")
 @RestController
 public class AuthMerchantController {
     @Autowired

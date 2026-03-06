@@ -1,5 +1,7 @@
 server:
   port: 7000
+  servlet:
+    context-path: /manage
   
 spring:
   datasource:
@@ -36,8 +38,8 @@ rocketmq:
 
 auth:
   white-list:
-    - '/manage/auth/**'
-    - '/manage/files/**'
+    - '/auth/**'
+    - '/files/**'
 
 jwt:
   secret: ${app.jwt.secret}

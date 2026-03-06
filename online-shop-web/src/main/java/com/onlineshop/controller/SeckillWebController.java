@@ -1,14 +1,8 @@
 package com.onlineshop.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsDTO;
 import com.onlineshop.framework.models.seckill.entity.SeckillActivity;
-import com.onlineshop.framework.models.seckill.entity.SeckillOrder;
-import com.onlineshop.framework.models.seckill.manager.SeckillManager;
 import com.onlineshop.framework.models.seckill.service.SeckillActivityService;
 import com.onlineshop.framework.models.seckill.service.SeckillGoodsService;
 import com.onlineshop.framework.models.seckill.service.SeckillOrderService;
@@ -19,11 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 秒杀 Web 控制器（客户端）
  * 处理用户参与秒杀、查询秒杀活动等操作
@@ -33,14 +22,13 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/client/seckill")
+@RequestMapping("/seckill")
 @RequiredArgsConstructor
 public class SeckillWebController {
 
     private final SeckillActivityService seckillActivityService;
     private final SeckillOrderService seckillOrderService;
     private final SeckillGoodsService seckillGoodsService;
-    private final SeckillManager seckillManager;
 
     // ==================== 秒杀活动查询接口 ====================
 
@@ -58,50 +46,7 @@ public class SeckillWebController {
             @RequestParam(defaultValue = "10") Integer pageSize) {
 
         log.info("查询秒杀活动列表，页码：{}，每页大小：{}", pageNum, pageSize);
-
-        Page<SeckillActivity> page = new Page<>(pageNum, pageSize);
-        IPage<SeckillActivity> result = seckillActivityService.page(page,
-                                                                    new LambdaQueryWrapper<SeckillActivity>()
-                                                                            .orderByDesc(
-                                                                                    SeckillActivity::getStartTime));
-
-        return result.convert(this::convertActivityToVO);
-    }
-
-    /**
-     * 将活动实体转换为VO
-     */
-    private SeckillActivityVO convertActivityToVO(SeckillActivity activity) {
-        SeckillActivityVO vo = new SeckillActivityVO();
-        vo.setId(activity.getId());
-        vo.setProductId(activity.getProductId());
-        vo.setStartTime(activity.getStartTime());
-        vo.setEndTime(activity.getEndTime());
-        vo.setSeckillPrice(activity.getSeckillPrice());
-        vo.setStock(activity.getStock());
-
-        // 获取剩余库存
-        Long remainingStock = seckillManager.getRemainingStock(activity.getId());
-        vo.setRemainingStock(remainingStock.intValue());
-
-        // 计算秒杀状态
-        vo.setStatus(getActivityStatus(activity));
-
-        return vo;
-    }
-
-    /**
-     * 计算活动状态
-     */
-    private Integer getActivityStatus(SeckillActivity activity) {
-        LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(activity.getStartTime())) {
-            return 0; // 未开始
-        } else if (now.isAfter(activity.getEndTime())) {
-            return 2; // 已结束
-        } else {
-            return 1; // 进行中
-        }
+        return seckillActivityService.listActivities(pageNum, pageSize);
     }
 
     /**
@@ -114,13 +59,7 @@ public class SeckillWebController {
     @GetMapping("/activities/{id}")
     public SeckillActivityVO getSeckillActivityDetail(@PathVariable Long id) {
         log.info("查询秒杀活动详情，秒杀ID：{}", id);
-
-        SeckillActivity activity = seckillActivityService.getById(id);
-        if (activity == null) {
-            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
-        }
-
-        return convertActivityToVO(activity);
+        return seckillActivityService.getSeckillActivityVO(id);
     }
 
     // ==================== 秒杀参与接口 ====================
@@ -145,14 +84,13 @@ public class SeckillWebController {
         // 验证活动存在
         SeckillActivity activity = seckillActivityService.getById(activityId);
         if (activity == null) {
-            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
+            throw new com.onlineshop.framework.exception.BizException(
+                com.onlineshop.framework.common.enums.BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
         }
 
         // 通过service获取该活动的所有秒杀商品
         return seckillGoodsService.getActivityProducts(activityId, pageNum, pageSize);
     }
-
-    // ==================== 秒杀订单查询接口 ====================
 
     /**
      * 获取秒杀商品详情
@@ -168,7 +106,8 @@ public class SeckillWebController {
         // 通过service获取秒杀商品详情
         SeckillGoodsDTO result = seckillGoodsService.getSeckillProductDetail(id);
         if (result == null) {
-            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
+            throw new com.onlineshop.framework.exception.BizException(
+                com.onlineshop.framework.common.enums.BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
         }
 
         return result;
@@ -192,7 +131,7 @@ public class SeckillWebController {
 
         log.info("用户 {} 参与秒杀活动 {}，购买数量：{}", userId, seckillId, quantity);
 
-        return seckillManager.participateSeckill(seckillId, userId, quantity);
+        return seckillOrderService.participateSeckill(seckillId, userId, quantity).getId();
     }
 
     // ==================== 秒杀订单操作接口 ====================
@@ -207,40 +146,7 @@ public class SeckillWebController {
     @GetMapping("/orders/{orderId}")
     public SeckillOrderVO getSeckillOrderDetail(@PathVariable Long orderId) {
         log.info("查询秒杀订单详情，订单ID：{}", orderId);
-
-        SeckillOrder order = seckillOrderService.getById(orderId);
-        if (order == null) {
-            throw new BizException(BizErrorCode.SECKILL_ORDER_NOT_EXIST);
-        }
-
-        return convertOrderToVO(order);
-    }
-
-    // ==================== 内部工具方法 ====================
-
-    /**
-     * 将订单实体转换为VO
-     */
-    private SeckillOrderVO convertOrderToVO(SeckillOrder order) {
-        SeckillOrderVO vo = new SeckillOrderVO();
-        vo.setId(order.getId());
-        vo.setSeckillId(order.getSeckillId());
-        vo.setProductId(order.getProductId());
-        vo.setOrderId(order.getOrderId());
-        vo.setUserId(order.getUserId());
-        vo.setSeckillPrice(order.getSeckillPrice());
-        vo.setQuantity(order.getQuantity());
-        vo.setStatus(order.getStatus());
-        vo.setCreateTime(order.getCreateTime());
-        vo.setUpdateTime(order.getUpdateTime());
-
-        // 计算总金额
-        if (order.getSeckillPrice() != null && order.getQuantity() != null) {
-            vo.setTotalAmount(order.getSeckillPrice()
-                                   .multiply(new BigDecimal(order.getQuantity())));
-        }
-
-        return vo;
+        return seckillOrderService.getSeckillOrderVO(orderId);
     }
 
     /**
@@ -258,33 +164,7 @@ public class SeckillWebController {
             @RequestParam(defaultValue = "10") Integer pageSize) {
 
         log.info("查询用户 {} 的秒杀订单，页码：{}，每页大小：{}", userId, pageNum, pageSize);
-
-        LambdaQueryWrapper<SeckillOrder> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SeckillOrder::getUserId, userId)
-               .orderByDesc(SeckillOrder::getCreateTime);
-
-        IPage<SeckillOrder> orderPage = seckillOrderService.page(
-                new Page<>(pageNum, pageSize), wrapper);
-
-        return convertOrderPage(orderPage);
-    }
-
-    /**
-     * 将订单分页数据转换为VO分页
-     */
-    private IPage<SeckillOrderVO> convertOrderPage(IPage<SeckillOrder> page) {
-        List<SeckillOrderVO> voList = new ArrayList<>();
-        for (SeckillOrder order : page.getRecords()) {
-            voList.add(convertOrderToVO(order));
-        }
-
-        IPage<SeckillOrderVO> voPage = new Page<>();
-        voPage.setRecords(voList);
-        voPage.setTotal(page.getTotal());
-        voPage.setSize(page.getSize());
-        voPage.setCurrent(page.getCurrent());
-
-        return voPage;
+        return seckillOrderService.getUserSeckillOrders(userId, pageNum, pageSize);
     }
 
     /**
@@ -297,20 +177,6 @@ public class SeckillWebController {
     @PostMapping("/orders/{orderId}/cancel")
     public boolean cancelSeckillOrder(@PathVariable Long orderId) {
         log.info("取消秒杀订单，订单ID：{}", orderId);
-
-        SeckillOrder order = seckillOrderService.getById(orderId);
-        if (order == null) {
-            throw new BizException(BizErrorCode.SECKILL_ORDER_NOT_EXIST);
-        }
-
-        // 只有待支付状态的订单才能取消
-        if (!order.getStatus()
-                  .equals(0)) {
-            throw new BizException(BizErrorCode.SECKILL_ORDER_INVALID_STATUS);
-        }
-
-        order.setStatus(4); // 4-已取消
-        order.setUpdateTime(LocalDateTime.now());
-        return seckillOrderService.updateById(order);
+        return seckillOrderService.cancelSeckillOrderByUser(orderId);
     }
 }

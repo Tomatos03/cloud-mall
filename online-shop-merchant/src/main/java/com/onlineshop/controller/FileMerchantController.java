@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/merchant/files")
+@RequestMapping("/files")
 @RequiredArgsConstructor
 public class FileMerchantController {
     private final IFileService fileService;

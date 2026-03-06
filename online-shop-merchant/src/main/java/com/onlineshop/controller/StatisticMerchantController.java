@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/merchant/statistics")
+@RequestMapping("/statistics")
 @RequiredArgsConstructor
 public class StatisticMerchantController {
     private final IStatisticService statisticService;

@@ -22,7 +22,7 @@ import java.util.List;
  * @date : 2025/12/20
  */
 @RestController
-@RequestMapping("/manage/user")
+@RequestMapping("/user")
 @PreAuthorize("hasAuthority('user:view')")
 @RequiredArgsConstructor
 public class UserManageController {

@@ -20,7 +20,6 @@
         <module>online-shop-framework</module>
         <module>online-shop-merchant</module>
         <module>im</module>
-        <module>online-shop-common</module>
     </modules>
 
     <properties>

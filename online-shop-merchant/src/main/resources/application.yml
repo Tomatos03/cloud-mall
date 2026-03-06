@@ -1,5 +1,7 @@
 server:
   port: 7002
+  servlet:
+    context-path: /merchant
 
 spring:
   datasource:
@@ -57,7 +59,7 @@ file:
 
 auth:
   white-list:
-    - /merchant/auth/**
-    - /merchant/files/**
+    - /auth/**
+    - /files/**
     - /api/docs/**
     - /swagger-ui/**

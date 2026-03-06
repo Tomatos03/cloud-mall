@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
  * @date : 2025/12/28
  */
 @RestController
-@RequestMapping("/manage/comment")
+@RequestMapping("/comment")
 @PreAuthorize("hasAuthority('comment:view')")
 public class CommentManageController {
     @Autowired

@@ -1,5 +1,7 @@
 server:
   port: 7001
+  servlet:
+    context-path: /web
 
 spring:
   datasource:
@@ -34,14 +36,14 @@ spring:
 
 auth:
   white-list:
-    - '/web/common/**'
-    - '/web/banner/**'
-    - '/web/category/**'
-    - '/web/user/login'
-    - '/web/user/register'
-    - '/web/goods/**'
-    - '/web/cart/**'
-    - '/web/files/**'
+    - '/common/**'
+    - '/banner/**'
+    - '/category/**'
+    - '/user/login'
+    - '/user/register'
+    - '/goods/**'
+    - '/cart/**'
+    - '/files/**'
     - '/**'
 
 rocketmq:

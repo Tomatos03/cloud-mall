@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * @date : 2025/12/25
  */
 @RestController
-@RequestMapping("/merchant/store")
+@RequestMapping("/store")
 public class StoreMerchantController {
     @Autowired
     private IStoreService storeService;

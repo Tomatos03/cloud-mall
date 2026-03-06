@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  * @date : 2026/1/11
  */
 @RestController
-@RequestMapping("/manage/audit")
+@RequestMapping("/audit")
 @PreAuthorize("hasAuthority('audit:view')")
 @RequiredArgsConstructor
 public class AuditManageController {

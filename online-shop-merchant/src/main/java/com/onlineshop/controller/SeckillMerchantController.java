@@ -1,12 +1,8 @@
 package com.onlineshop.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.exception.BizException;
-import com.onlineshop.framework.models.audit.domain.SeckillActivityAuditRequest;
 import com.onlineshop.framework.models.audit.application.IAuditAppService;
+import com.onlineshop.framework.models.audit.domain.SeckillActivityAuditRequest;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsDTO;
@@ -16,11 +12,12 @@ import com.onlineshop.framework.models.seckill.service.SeckillActivityStatsServi
 import com.onlineshop.framework.models.seckill.service.SeckillGoodsService;
 import com.onlineshop.framework.models.seckill.vo.SeckillActivityVO;
 import com.onlineshop.framework.utils.AuthUserUtils;
+import com.onlineshop.framework.common.enums.BizErrorCode;
+import com.onlineshop.framework.exception.BizException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -32,7 +29,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/merchant/seckill")
+@RequestMapping("/seckill")
 @RequiredArgsConstructor
 public class SeckillMerchantController {
 
@@ -56,13 +53,7 @@ public class SeckillMerchantController {
             @RequestParam(defaultValue = "10") Integer pageSize) {
 
         log.info("商家查询可报名活动列表，页码: {}, 每页数量: {}", pageNum, pageSize);
-
-        Page<SeckillActivity> page = new Page<>(pageNum, pageSize);
-        IPage<SeckillActivity> result = seckillActivityService.page(page,
-                new LambdaQueryWrapper<SeckillActivity>()
-                        .orderByDesc(SeckillActivity::getCreateTime));
-
-        return result.convert(this::convertToVO);
+        return seckillActivityService.listActivities(pageNum, pageSize);
     }
 
     /**
@@ -75,13 +66,7 @@ public class SeckillMerchantController {
     @GetMapping("/activities/{id}")
     public SeckillActivityVO getActivityDetail(@PathVariable Long id) {
         log.info("商家查询活动详情，活动ID: {}", id);
-
-        SeckillActivity activity = seckillActivityService.getById(id);
-        if (activity == null) {
-            throw new BizException(BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
-        }
-
-        return convertToVO(activity);
+        return seckillActivityService.getSeckillActivityVO(id);
     }
 
     /**
@@ -141,7 +126,6 @@ public class SeckillMerchantController {
     @GetMapping("/applies/{id}")
     public Object getApplyDetail(@PathVariable Long id) {
         log.info("商家查询申请详情，申请ID: {}", id);
-
         return auditService.getAuditById(id);
     }
 
@@ -240,30 +224,5 @@ public class SeckillMerchantController {
 
         // 通过service获取统计数据
         return seckillActivityStatsService.getMerchantActivityStats(activityId, merchantId);
-    }
-
-    /**
-     * 将Entity转换为VO
-     */
-    private SeckillActivityVO convertToVO(SeckillActivity activity) {
-        SeckillActivityVO vo = new SeckillActivityVO();
-        vo.setId(activity.getId());
-        vo.setProductId(activity.getProductId());
-        vo.setStartTime(activity.getStartTime());
-        vo.setEndTime(activity.getEndTime());
-        vo.setSeckillPrice(activity.getSeckillPrice());
-        vo.setStock(activity.getStock());
-
-        // 计算活动状态
-        LocalDateTime now = LocalDateTime.now();
-        if (now.isBefore(activity.getStartTime())) {
-            vo.setStatus(0); // 未开始
-        } else if (now.isAfter(activity.getEndTime())) {
-            vo.setStatus(2); // 已结束
-        } else {
-            vo.setStatus(1); // 进行中
-        }
-
-        return vo;
     }
 }

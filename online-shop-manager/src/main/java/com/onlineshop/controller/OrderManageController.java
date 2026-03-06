@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/manage/order")
+@RequestMapping("/order")
 @PreAuthorize("hasAuthority('order:view')")
 public class OrderManageController {
     @Autowired

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * @date : 2026/2/11
  */
 @RestController
-@RequestMapping("/merchant/comments")
+@RequestMapping("/comments")
 @RequiredArgsConstructor
 public class CommentMerchantController {
     private final IGoodsCommentService goodsCommentService;

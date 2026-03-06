@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * @author : Tomatos
  * @date : 2026/3/3
  */
-@RequestMapping("/merchant/audit")
+@RequestMapping("/audit")
 @RestController
 @RequiredArgsConstructor
 public class AuditMerchantController {

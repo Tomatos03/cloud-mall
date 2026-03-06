@@ -3,14 +3,12 @@ package com.onlineshop.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.category.vo.CategoryNodeVO;
 import com.onlineshop.framework.models.category.ICategoryService;
-import com.onlineshop.framework.models.goods.application.GoodsDTO;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.goods.unit.IUnitService;
 import com.onlineshop.framework.models.goods.unit.Unit;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +24,7 @@ import java.util.List;
  * - 商家权限：仅能管理自己店铺的商品、需要通过审核流程
  */
 @RestController
-@RequestMapping("/manage/goods")
+@RequestMapping("/goods")
 @PreAuthorize("hasAuthority('goods:view')")
 public class GoodsManageController {
     @Autowired

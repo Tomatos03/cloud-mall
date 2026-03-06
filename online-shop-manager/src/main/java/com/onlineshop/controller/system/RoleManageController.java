@@ -15,7 +15,7 @@ import java.util.List;
  * 角色管理控制器
  */
 @RestController
-@RequestMapping("/manage/system/role")
+@RequestMapping("/system/role")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('role:view')")
 public class RoleManageController {

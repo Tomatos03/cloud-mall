@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
  * @date : 2025/12/25
  */
 @RestController
-@RequestMapping("/web/comments")
+@RequestMapping("/comments")
 @Validated
 public class CommentWebController {
 

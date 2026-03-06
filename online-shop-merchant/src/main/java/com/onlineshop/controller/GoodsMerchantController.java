@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
  * @author : Tomatos
  * @date : 2026/2/11
  */
-@RequestMapping("/merchant/goods")
+@RequestMapping("/goods")
 @RestController
 @RequiredArgsConstructor
 public class GoodsMerchantController {
