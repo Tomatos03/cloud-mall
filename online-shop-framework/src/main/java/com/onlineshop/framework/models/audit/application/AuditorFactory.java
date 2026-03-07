@@ -2,11 +2,10 @@ package com.onlineshop.framework.models.audit.application;
 
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
-import com.onlineshop.framework.models.audit.enums.AuditType;
+import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +32,7 @@ public class AuditorFactory {
      */
     public AbstractAuditor<?> getAuditor(String type) {
         // 验证审核类型是否合法（通过 AuditType.of() 验证）
-        AuditType auditType = AuditType.of(type);
+        AuditBizType auditBizType = AuditBizType.of(type);
         
         // 第一次检查：避免重复初始化（无锁）
         if (auditorCache == null) {
@@ -71,12 +70,12 @@ public class AuditorFactory {
         Map<String, AbstractAuditor<?>> cache = new ConcurrentHashMap<>();
         
         // 遍历枚举中的所有审核类型
-        for (AuditType auditType : AuditType.values()) {
+        for (AuditBizType auditBizType : AuditBizType.values()) {
             // 遍历所有注入的 Auditor
             for (AbstractAuditor<?> auditor : auditors) {
                 // 询问 Auditor 是否支持此类型
-                if (auditor.support(auditType)) {
-                    cache.put(auditType.getCode(), auditor);
+                if (auditor.support(auditBizType)) {
+                    cache.put(auditBizType.getCode(), auditor);
                     break;  // 找到支持此类型的 Auditor，结束内层循环
                 }
             }

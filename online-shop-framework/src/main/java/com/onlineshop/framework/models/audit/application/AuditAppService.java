@@ -1,31 +1,21 @@
 package com.onlineshop.framework.models.audit.application;
 
-import com.alibaba.fastjson2.JSON;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
-import com.onlineshop.framework.models.audit.domain.AuditRequest;
-import com.onlineshop.framework.models.audit.domain.SeckillGoodsAuditRequest;
-import com.onlineshop.framework.models.audit.domain.SeckillGoodsItem;
-import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
-import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
 import com.onlineshop.framework.models.audit.dto.AuditStatusDTO;
-import com.onlineshop.framework.models.audit.dto.SeckillActivityGoodsParamsDTO;
+import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
 import com.onlineshop.framework.models.audit.entity.Audit;
+import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
-import com.onlineshop.framework.models.audit.enums.AuditType;
 import com.onlineshop.framework.models.audit.service.IAuditService;
-import com.onlineshop.framework.models.audit.vo.AuditVO;
+import com.onlineshop.framework.models.audit.service.IAuditItemService;
 import com.onlineshop.framework.utils.AssertUtils;
 import com.onlineshop.framework.utils.AuthUserUtils;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -33,14 +23,14 @@ import java.util.Objects;
  * 提供审核操作的统一API入口
  * 
  * 核心职责：
- * 1. submitAudit - 统一的审核提交API，支持所有业务类型
- * 2. handleAuditDecision - 统一的审核决策API，支持所有业务类型
- * 3. queryUserCreateStoreAuditStatus - 店铺注册状态查询
+ * 1. submitBatchAuditDecisions - 批量审核决策分发（新流程）
+ * 2. queryUserCreateStoreAuditStatus - 店铺注册状态查询
+ * 3. getSeckillActivityGoods - 秒杀活动商品查询
  * 
  * 设计要点：
- * - 使用工厂模式（AuditorFactory）根据businessType动态获取对应的Auditor
+ * - 使用工厂模式（AuditorFactory）根据auditId获取Audit的busType，动态获取对应的Auditor
  * - 利用模板方法模式（AbstractAuditor）保证审核流程的一致性
- * - 所有审核类型共享同一套API，降低复杂度
+ * - 批量决策原子性：所有item都审批完成后，才推算Audit状态
  *
  * @author Tomatos
  * @date 2026/1/12
@@ -51,31 +41,29 @@ import java.util.Objects;
 @Slf4j
 public class AuditAppService implements IAuditAppService {
     private final IAuditService auditService;
+    private final IAuditItemService auditItemService;
     private final AuditorFactory auditorFactory;
 
-    @Override
-    public <T extends AuditRequest> void submitAudit(T request) {
-        AbstractAuditor<T> auditor = (AbstractAuditor<T>) auditorFactory.getAuditor(request.getType());
-        auditor.submitAudit(request);
-    }
-
     /**
-     * 统一的审核决策处理API
-     * 处理审核的批准或拒绝，支持所有业务类型
-     * 
+     * 批量审核决策分发API
+     * 处理一个审核批次的所有项目决策，支持所有业务类型
+     * <p>
      * 流程：
-     * 1. 根据auditId查询审核记录
-     * 2. 从审核记录中获取targetType（即businessType）
+     * 1. 根据auditId查询审核批次记录
+     * 2. 从审核批次中获取busType（业务类型）
      * 3. 通过AuditorFactory获取对应的Auditor实例
-     * 4. 调用Auditor的handleDecision()方法，进行批准或拒绝处理
-     * 
-     * @param decision 审核决策DTO，包含auditId、approved标志和拒绝原因
-     * @throws BizException 当审核记录不存在或业务类型未知时抛出
+     * 4. 调用Auditor的handleBatchDecisions()方法，批量处理所有决策（原子性）
+     * 5. Auditor完成后自动推算Audit的状态（PENDING→APPROVED/REJECTED/PARTIAL）
+     *
+     * @param batchDecision 批量决策DTO，包含auditId和所有项目的decisions列表
+     * @param type
+     * @throws BizException 当审核批次不存在或业务类型未知时抛出
      */
     @Override
-    public void handleAuditDecision(AuditDecisionDTO decision, String type) {
+    public void submitAuditDecisions(AuditDecisionDTO batchDecision, String type) {
         AbstractAuditor<?> auditor = auditorFactory.getAuditor(type);
-        auditor.handleDecision(decision);
+        auditor.handleDecisions(batchDecision.getAuditId(), batchDecision.getDecisions());
+        log.info("批量审核决策处理完成，审核批次ID: {}", batchDecision.getAuditId());
     }
 
     /**
@@ -84,7 +72,7 @@ public class AuditAppService implements IAuditAppService {
     @Override
     public AuditStatusDTO queryUserCreateStoreAuditStatus() {
         Audit audit = auditService.lambdaQuery()
-                                  .eq(Audit::getTargetType, AuditType.STORE_REGISTER.getCode())
+                                  .eq(Audit::getBizType, AuditBizType.STORE_REGISTER.getCode())
                                   .eq(Audit::getApplicantId, AuthUserUtils.getUserId())
                                   .one();
         if (Objects.isNull(audit)) {
@@ -97,105 +85,36 @@ public class AuditAppService implements IAuditAppService {
     }
 
     /**
-     * 获取秒杀活动中的商品（审核通过和待审核）
-     * 
-     * 分页查询指定秒杀活动中审核通过或待审核的商品列表。
-     * 从审核记录的快照中提取商品信息，支持分页返回。
-     * 
-     * 实现逻辑：
-     * 1. 验证参数有效性（activityId 不能为空）
-     * 2. 查询该活动的所有 APPROVED 和 PENDING 状态的审核记录
-     * 3. 从快照中反序列化商品列表
-     * 4. 合并所有商品并分页返回
-     * 
-     * @param params 查询参数DTO，包含 activityId、page、pageSize
-     * @return 商品分页数据
+     * 撤销审核申请
+     * 将审核批次和其下所有项目的状态改为已撤销
+     *
+     * @param auditId 审核批次ID
      */
     @Override
-    public IPage<SeckillGoodsItem> getSeckillActivityGoods(SeckillActivityGoodsParamsDTO params) {
-        AssertUtils.notNull(params, BizErrorCode.INVALID_PARAM);
-        AssertUtils.notNull(params.getActivityId(), BizErrorCode.ACTIVITY_ID_REQUIRED);
-        
-        Long activityId = params.getActivityId();
-        Integer page = params.getPage();
-        Integer pageSize = params.getPageSize();
-        
-        log.info("查询秒杀活动商品，活动ID: {}, 页码: {}, 每页数量: {}", activityId, page, pageSize);
-        
-        // ==================== 查询审核通过和待审核的商品 ====================
-        List<SeckillGoodsItem> allGoods = new ArrayList<>();
-        
-        // 查询APPROVED状态
-        AuditParamsDTO approvedParams = new AuditParamsDTO();
-        approvedParams.setTargetType(AuditType.SECKILL_ACTIVITY.getCode());
-        approvedParams.setStatus(AuditStatus.APPROVED.getCode());
-        approvedParams.setPage(1);
-        approvedParams.setPageSize(1000);  // 一次性取所有
-        
-        IPage<?> approvedAudits = auditService.pageQuery(approvedParams);
-        extractGoodsFromAudits(approvedAudits.getRecords(), activityId, allGoods);
-        
-        // 查询PENDING状态
-        AuditParamsDTO pendingParams = new AuditParamsDTO();
-        pendingParams.setTargetType(AuditType.SECKILL_ACTIVITY.getCode());
-        pendingParams.setStatus(AuditStatus.PENDING.getCode());
-        pendingParams.setPage(1);
-        pendingParams.setPageSize(1000);  // 一次性取所有
-        
-        IPage<?> pendingAudits = auditService.pageQuery(pendingParams);
-        extractGoodsFromAudits(pendingAudits.getRecords(), activityId, allGoods);
-        
-        // ==================== 分页处理 ====================
-        long total = allGoods.size();
-        int startIndex = (page - 1) * pageSize;
-        int endIndex = Math.min(startIndex + pageSize, allGoods.size());
-        
-        List<SeckillGoodsItem> pageGoods = new ArrayList<>();
-        if (startIndex < allGoods.size()) {
-            pageGoods = allGoods.subList(startIndex, endIndex);
-        }
-        
-        // ==================== 构建分页结果 ====================
-        Page<SeckillGoodsItem> result = new Page<>(page, pageSize);
-        result.setRecords(pageGoods);
-        result.setTotal(total);
-        
-        log.info("查询完成，共 {} 个商品，当前页返回 {} 个", total, pageGoods.size());
-        return result;
-    }
+    public void withdrawAudit(Long auditId) {
+        log.info("开始撤销审核申请，批次ID: {}", auditId);
 
-    /**
-     * 从审核记录列表中提取指定活动的商品
-     * 
-     * @param audits 审核记录对象列表
-     * @param activityId 秒杀活动ID
-     * @param resultGoods 结果商品列表（会被追加）
-     */
-    private void extractGoodsFromAudits(List<?> audits, Long activityId, List<SeckillGoodsItem> resultGoods) {
-        if (audits == null || audits.isEmpty()) {
-            return;
-        }
-        
-        for (Object auditObj : audits) {
-            try {
-                // 将对象转为JSON后再解析为AuditVO，获取快照
-                String json = JSON.toJSONString(auditObj);
-                AuditVO auditVO = JSON.parseObject(json, AuditVO.class);
-                if (auditVO != null && auditVO.getSnapshot() != null) {
-                    // 从快照反序列化出秒杀商品审核请求
-                    SeckillGoodsAuditRequest request = JSON.parseObject(
-                        auditVO.getSnapshot(), 
-                        SeckillGoodsAuditRequest.class
-                    );
-                    
-                    // 只提取指定活动的商品
-                    if (request != null && request.getActivityId().equals(activityId) && request.getItems() != null) {
-                        resultGoods.addAll(request.getItems());
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("提取商品信息失败，跳过此审核记录", e);
-            }
-        }
+        // 1. 获取审核批次
+        Audit audit = auditService.getById(auditId);
+        AssertUtils.notNull(audit, BizErrorCode.AUDIT_NOT_EXIST);
+
+        // 2. 验证权限：只有申请人才能撤销
+        AssertUtils.isEqual(AuthUserUtils.getUserId(), audit.getApplicantId(), BizErrorCode.NO_PERMISSION);
+
+        // 3. 验证状态：只有待审核状态才能撤销
+        AssertUtils.isEqual(audit.getStatus(), AuditStatus.PENDING.getCode(), BizErrorCode.AUDIT_INVALID_STATUS);
+
+        // 4. 更新批次状态为已撤销
+        Audit updateAudit = new Audit();
+        updateAudit.setId(auditId);
+        updateAudit.setStatus(AuditStatus.WITHDRAWN.getCode());
+        auditService.updateById(updateAudit);
+        log.info("批次状态已更新为已撤销，批次ID: {}", auditId);
+
+        // 5. 更新所有项目状态为已撤销
+        auditItemService.updateItemStatusByAuditId(auditId, AuditStatus.WITHDRAWN.getCode());
+        log.info("所有审核项目状态已更新为已撤销，批次ID: {}", auditId);
+
+        log.info("审核申请撤销完成，批次ID: {}", auditId);
     }
 }

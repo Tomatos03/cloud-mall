@@ -7,7 +7,7 @@ import com.onlineshop.framework.event.goods.DelGoodsFromEsEvent;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
-import com.onlineshop.framework.models.audit.enums.AuditType;
+import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
@@ -386,7 +386,7 @@ public class GoodsAppService implements IGoodsAppService {
                                       .skus(buildSkusForDisplay(
                                               id));
 
-        Audit latestAudit = auditService.queryLatestAudit(AuditType.GOODS, id);
+        Audit latestAudit = auditService.queryLatestAudit(AuditBizType.GOODS, id);
         if (latestAudit != null) {
             builder.auditInfo(buildAuditGoodsVO(latestAudit));
         }

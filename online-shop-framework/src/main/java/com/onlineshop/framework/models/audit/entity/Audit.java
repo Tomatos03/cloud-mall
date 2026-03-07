@@ -11,12 +11,15 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 审核日志实体类
+ * 审核批次表
  * 
- * 设计说明：
- * - snapshot字段存储审核请求的完整JSON序列化
- * - 通过targetType可以确定具体的AuditRequest类型
- * - 审核决策时可以通过snapshot恢复出原始的审核请求对象
+ * 新设计说明：
+ * - 改为批次模式：一个Audit对应多个AuditItem
+ * - auditNo: 批次编号，唯一标识一个审核批次
+ * - bizType: 业务类型（GOODS/STORE_REGISTER/SECKILL_ACTIVITY等）
+ * - status: 批次状态（PENDING/APPROVED/REJECTED/PARTIAL）
+ * - 统计字段：totalCount/approvedCount/rejectedCount用于追踪审批进度
+ * - 不存储snapshot，所有快照在audit_item中存储
  */
 @Data
 @TableName("audit")
@@ -25,31 +28,41 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Audit {
     /**
-     * 审核记录ID
+     * 批次ID
      */
     @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 被审核对象类型: GOODS / STORE_REGISTER / SECKILL_ACTIVITY
+     * 批次编号（唯一，格式：AUD + yyyyMMddHHmmss + 6位随机数）
+     */
+    private String auditNo;
+
+    /**
+     * 业务类型: GOODS / STORE_REGISTER / SECKILL_ACTIVITY
      * 此字段用于标识审核请求的业务类型，Auditor工厂使用此字段获取对应的处理器
      */
-    private String targetType;
+    private String bizType;
 
     /**
-     * 被审核对象ID
-     */
-    private Long targetId;
-
-    /**
-     * 审核状态: PENDING-待审核, APPROVED-通过, REJECTED-拒绝, REVOKED-已撤销
+     * 批次状态: PENDING-待审核, APPROVED-已通过, REJECTED-已拒绝, PARTIAL-部分通过
      */
     private String status;
 
     /**
-     * 审核备注/拒绝原因
+     * 总项数
      */
-    private String reason;
+    private Integer totalCount;
+
+    /**
+     * 已通过项数
+     */
+    private Integer approvedCount;
+
+    /**
+     * 已拒绝项数
+     */
+    private Integer rejectedCount;
 
     /**
      * 申请人ID
@@ -62,7 +75,7 @@ public class Audit {
     private String applicantName;
 
     /**
-     * 审核人ID
+     * 审核人ID（最后审核的人）
      */
     private Long auditorId;
 
@@ -72,18 +85,12 @@ public class Audit {
     private String auditorName;
 
     /**
-     * 审核请求快照 - JSON格式
-     *
-     */
-    private String snapshot;
-
-    /**
-     * 申请时间
+     * 批次创建时间
      */
     private LocalDateTime createTime;
 
     /**
-     * 审核时间
+     * 最后审核时间
      */
     private LocalDateTime auditTime;
 }

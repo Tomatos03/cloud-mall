@@ -1,22 +1,24 @@
-package com.onlineshop.framework.models.audit.domain;
+package com.onlineshop.framework.models.audit.dto;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 import java.util.List;
 
 /**
- * 店铺注册审核请求
- * 包含店铺注册申请时需要的所有信息
+ * 店铺注册审核项目DTO
+ * 代表一个审核批次中的单个店铺注册申请项目
+ * 
+ * 设计说明：
+ * - 对应 AuditItem 表，存储在 snapshot 字段中
+ * - 包含店铺注册申请时的所有信息
+ * - 审核员基于此信息做出批准或拒绝决策
  *
  * @author Tomatos
- * @date 2026/2/26
+ * @date 2026/3/7
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class StoreRegisterAuditRequest extends AuditRequest {
-    
+public class StoreRegisterAuditItemDTO {
     /**
      * 主体类型
      */

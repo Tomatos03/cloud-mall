@@ -1,21 +1,20 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.audit.application.AbstractAuditor;
 import com.onlineshop.framework.models.audit.application.AuditAppService;
-import com.onlineshop.framework.models.audit.application.impl.GoodsAuditor;
-import com.onlineshop.framework.models.audit.application.impl.StoreRegisterAuditor;
-import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
-import com.onlineshop.framework.models.audit.entity.Audit;
-import com.onlineshop.framework.models.audit.enums.AuditType;
+import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
 import com.onlineshop.framework.models.audit.service.IAuditService;
-import com.onlineshop.framework.models.audit.vo.AuditVO;
+import com.onlineshop.framework.models.audit.vo.AuditItemVO;
+import com.onlineshop.framework.models.audit.vo.AuditListItemVO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 审核管理控制器
@@ -28,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/audit")
 @PreAuthorize("hasAuthority('audit:view')")
 @RequiredArgsConstructor
+@Slf4j
 public class AuditManageController {
     private final IAuditService auditService;
     private final AuditAppService auditAppService;
@@ -40,7 +40,8 @@ public class AuditManageController {
      * @return 审核记录分页结果
      */
     @GetMapping("/page")
-    public IPage<AuditVO> pageQuery(AuditParamsDTO auditQueryDTO) {
+    public IPage<AuditListItemVO> pageQuery(AuditParamsDTO auditQueryDTO) {
+        log.info("分页查询审核记录，页码: {}, 每页数量: {}", auditQueryDTO.getPage(), auditQueryDTO.getPageSize());
         return auditService.pageQuery(auditQueryDTO);
     }
 
@@ -52,7 +53,8 @@ public class AuditManageController {
      * @return 审核记录详情
      */
     @GetMapping("/{auditId}")
-    public AuditVO getAuditDetail(@PathVariable @NotNull Long auditId) {
+    public List<AuditItemVO> getAuditDetail(@PathVariable @NotNull Long auditId) {
+        log.info("查询审核详情，审核批次ID: {}", auditId);
         return auditService.getAuditById(auditId);
     }
 
@@ -62,7 +64,8 @@ public class AuditManageController {
      * <p>
      * 使用统一的决策接口处理所有审核类型的决策，根据审核类型自动路由到对应的 Auditor
      *
-     * @param decisionDTO 审核决策数据（包含auditId、approved、reason）
+     * @param decisionDTO 审核决策数据（包含auditId、decisions列表）
+     * @param type 审核业务类型
      */
     @PostMapping("/decision/{type}")
     @PreAuthorize("hasAuthority('audit:edit')")
@@ -70,6 +73,9 @@ public class AuditManageController {
             @Valid @RequestBody AuditDecisionDTO decisionDTO,
             @PathVariable String type
     ) {
-        auditAppService.handleAuditDecision(decisionDTO, type);
+        log.info("提交审核决策，审核批次ID: {}, 业务类型: {}, 决策数量: {}", 
+                 decisionDTO.getAuditId(), type, decisionDTO.getDecisions().size());
+        auditAppService.submitAuditDecisions(decisionDTO, type);
+        log.info("审核决策提交完成，审核批次ID: {}", decisionDTO.getAuditId());
     }
 }

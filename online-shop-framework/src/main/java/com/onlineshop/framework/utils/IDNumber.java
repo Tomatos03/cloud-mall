@@ -1,7 +1,10 @@
 package com.onlineshop.framework.utils;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -13,6 +16,7 @@ import java.util.UUID;
 public class IDNumber {
     private static final String PARENT_ORDER_ID_PREFIX = "P";
     private static final String STORE_ID_PREFIX = "S";
+    private static final String AUDIT_ID_PREFIX = "AUD";
 
     public static String generateStoreNo() {
         String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
@@ -34,5 +38,18 @@ public class IDNumber {
 
     public static String generateParentOrderNo() {
         return PARENT_ORDER_ID_PREFIX + generateOrderNo();
+    }
+
+    /**
+     * 生成审核批次编号
+     * 格式：AUD + yyyyMMddHHmmss + 6位随机数
+     *
+     * @return 审核编号
+     */
+    public static String generateAuditNo() {
+        String timestamp = LocalDateTime.now()
+                                        .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        int randomNum = new Random().nextInt(900000) + 100000;
+        return AUDIT_ID_PREFIX + timestamp + randomNum;
     }
 }

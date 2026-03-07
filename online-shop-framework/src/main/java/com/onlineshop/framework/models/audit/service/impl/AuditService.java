@@ -1,183 +1,149 @@
 package com.onlineshop.framework.models.audit.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.exception.BizException;
-import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
-import com.onlineshop.framework.models.audit.dto.AuditSubmit;
 import com.onlineshop.framework.models.audit.entity.Audit;
+import com.onlineshop.framework.models.audit.entity.AuditItem;
+import com.onlineshop.framework.models.audit.enums.AuditBizType;
+import com.onlineshop.framework.models.audit.enums.AuditItemStatus;
 import com.onlineshop.framework.models.audit.enums.AuditStatus;
-import com.onlineshop.framework.models.audit.enums.AuditType;
 import com.onlineshop.framework.models.audit.mapper.AuditMapper;
+import com.onlineshop.framework.models.audit.service.IAuditItemService;
 import com.onlineshop.framework.models.audit.service.IAuditService;
-import com.onlineshop.framework.models.audit.vo.AuditVO;
+import com.onlineshop.framework.models.audit.vo.AuditItemVO;
+import com.onlineshop.framework.models.audit.vo.AuditListItemVO;
 import com.onlineshop.framework.utils.AssertUtils;
 import com.onlineshop.framework.utils.AuthUserUtils;
-import lombok.NonNull;
+import com.onlineshop.framework.utils.IDNumber;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * 审核日志服务实现
+ * 审核批次服务实现
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAuditService {
 
+    @Autowired
+    private IAuditItemService auditItemService;
+
+    // ==================== 查询方法 ====================
+
     @Override
-    public IPage<AuditVO> pageQuery(AuditParamsDTO queryDTO) {
+    public IPage<AuditListItemVO> pageQuery(AuditParamsDTO queryDTO) {
+        log.info("分页查询审核批次，页码: {}, 每页数量: {}", queryDTO.getPage(), queryDTO.getPageSize());
         LambdaQueryWrapper<Audit> wrapper = buildQueryWrapper(queryDTO);
         IPage<Audit> page = this.page(new Page<>(queryDTO.getPage(), queryDTO.getPageSize()), wrapper);
-        return page.convert(this::convertToVO);
+        return page.convert(this::convertToAuditListItemVO);
     }
 
     @Override
-    public AuditVO getAuditById(Long auditId) {
+    public List<AuditItemVO> getAuditById(Long auditId) {
+        log.info("查询审核批次详情，批次ID: {}", auditId);
         Audit audit = this.getById(auditId);
-        AssertUtils.notNull(audit, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
-        return convertToVO(audit);
+        AssertUtils.notNull(audit, BizErrorCode.AUDIT_NOT_EXIST);
+        return auditItemService.getAuditById(auditId);
     }
 
-    @Override
-    public boolean withdrawAudit(Long auditId) {
-        Audit audit = this.getById(auditId);
-        AssertUtils.notNull(audit, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
-        AssertUtils.isEqual(AuthUserUtils.getUserId(), audit.getApplicantId(), BizErrorCode.NO_PERMISSION);
-        AssertUtils.isEqual(audit.getStatus(), AuditStatus.PENDING.getCode(), BizErrorCode.AUDIT_INVALID_STATUS);
+    // ==================== 批次创建 ====================
 
-        Audit updateLog = Audit.builder()
-                               .id(auditId)
-                               .status(AuditStatus.REVOKED.getCode())
-                               .build();
-        return this.updateById(updateLog);
+    @Override
+    public Audit createAuditBatch(String bizType, int itemCount) {
+        Audit audit = Audit.builder()
+                           .auditNo(IDNumber.generateAuditNo())
+                           .bizType(bizType)
+                           .status(AuditStatus.PENDING.getCode())
+                           .totalCount(itemCount)
+                           .approvedCount(0)
+                           .rejectedCount(0)
+                           .applicantId(AuthUserUtils.getUserId())
+                           .applicantName(AuthUserUtils.getUsername())
+                           .createTime(LocalDateTime.now())
+                           .build();
+        save(audit);
+        return audit;
     }
 
+    // ==================== 状态推算 ====================
+
     @Override
-    public Audit queryLatestAudit(AuditType type, Long targetId) {
+    public void recalculateAuditStatus(Long auditId) {
+        Audit audit = getById(auditId);
+        AssertUtils.notNull(audit, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
+
+        List<AuditItem> items = auditItemService.queryByAuditId(auditId);
+        AssertUtils.notEmpty(items, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
+
+        int totalCount = items.size();
+        int approvedCount = (int) items.stream()
+                                       .filter(i -> AuditItemStatus.APPROVED.getCode()
+                                                                            .equals(i.getStatus()))
+                                       .count();
+        int rejectedCount = (int) items.stream()
+                                       .filter(i -> AuditItemStatus.REJECTED.getCode()
+                                                                            .equals(i.getStatus()))
+                                       .count();
+
+        // 更新统计信息
+        audit.setTotalCount(totalCount);
+        audit.setApprovedCount(approvedCount);
+        audit.setRejectedCount(rejectedCount);
+
+        // 状态推算（仅在所有项都审批完时才推算）
+        if (approvedCount + rejectedCount == totalCount) {
+            if (rejectedCount == 0) {
+                audit.setStatus(AuditStatus.APPROVED.getCode());
+                log.info("批次 {} 所有项都通过，状态更新为 APPROVED", auditId);
+            } else if (approvedCount == 0) {
+                audit.setStatus(AuditStatus.REJECTED.getCode());
+                log.info("批次 {} 所有项都拒绝，状态更新为 REJECTED", auditId);
+            } else {
+                audit.setStatus(AuditStatus.PARTIAL.getCode());
+                log.info("批次 {} 部分通过部分拒绝，状态更新为 PARTIAL", auditId);
+            }
+        }
+        // 否则保持 PENDING（表示还有未审批的项）
+
+        updateById(audit);
+    }
+
+    // ==================== 历史查询 ====================
+
+    @Override
+    public Audit queryLatestAudit(AuditBizType type, Long targetId) {
         return this.lambdaQuery()
-                   .eq(Audit::getTargetType, type.getCode())
-                   .eq(Audit::getTargetId, targetId)
+                   .eq(Audit::getBizType, type.getCode())
                    .orderByDesc(Audit::getId)
                    .last("LIMIT 1")
                    .one();
     }
 
-    @Override
-    public List<Audit> queryLatestAuditByTypeBatch(AuditType type, Collection<? extends Serializable> targetIds) {
-        if (CollectionUtil.isEmpty(targetIds)) {
-            return Collections.emptyList();
-        }
-
-        return this.lambdaQuery()
-                   .eq(Audit::getTargetType, type.getCode())
-                   .in(Audit::getTargetId, targetIds)
-                   .orderByDesc(Audit::getId)
-                   .list();
-    }
+    // ==================== 辅助方法 ====================
 
     /**
      * 构建分页查询条件
      */
     private LambdaQueryWrapper<Audit> buildQueryWrapper(AuditParamsDTO queryDTO) {
         LambdaQueryWrapper<Audit> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(queryDTO.getTargetType() != null, Audit::getTargetType, queryDTO.getTargetType());
-        wrapper.eq(queryDTO.getTargetId() != null, Audit::getTargetId, queryDTO.getTargetId());
-        wrapper.in(queryDTO.getStatus() != null, Audit::getStatus, queryDTO.getStatus());
+        wrapper.eq(queryDTO.getStatus() != null, Audit::getStatus, queryDTO.getStatus());
         wrapper.eq(queryDTO.getApplicantId() != null, Audit::getApplicantId, queryDTO.getApplicantId());
         wrapper.orderByDesc(Audit::getCreateTime);
         return wrapper;
     }
 
-    /**
-     * 将Audit转换为AuditLogVO
-     */
-    private AuditVO convertToVO(@NonNull Audit audit) {
-        AuditStatus status = AuditStatus.of(audit.getStatus());
-        String statusName = status != null ? status.getName() : "未知";
-
-        return AuditVO.builder()
-                      .auditId(audit.getId())
-                      .targetType(audit.getTargetType())
-                      .targetId(audit.getTargetId())
-                      .status(audit.getStatus())
-                      .statusName(statusName)
-                      .reason(audit.getReason())
-                      .applicantId(audit.getApplicantId())
-                      .applicantName(audit.getApplicantName())
-                      .auditorId(audit.getAuditorId())
-                      .auditorName(audit.getAuditorName())
-                      .snapshot(audit.getSnapshot())
-                      .createTime(audit.getCreateTime())
-                      .auditTime(audit.getAuditTime())
-                      .build();
-    }
-
-    /**
-     * 验证提交审核DTO
-     */
-    private void validateSubmitDTO(AuditSubmit submitDTO) {
-        if (submitDTO.getTargetType() == null || submitDTO.getTargetId() == null) {
-            throw new BizException(BizErrorCode.AUDIT_SUBMIT_PARAMS_INCOMPLETE);
-        }
-    }
-
-    /**
-     * 从提交DTO构建审核记录
-     */
-    private Audit buildNewAudit(AuditSubmit submitDTO, Long applicantId, String applicantName) {
-        return Audit.builder()
-                    .targetType(submitDTO.getTargetType())
-                    .targetId(submitDTO.getTargetId())
-                    .status(AuditStatus.PENDING.getCode())
-                    .applicantId(applicantId)
-                    .applicantName(applicantName)
-                    .snapshot(submitDTO.getSnapShot())
-                    .createTime(LocalDateTime.now())
-                    .build();
-    }
-
-    public void updateAudit(AuditDecisionDTO decisionDTO, Long targetId) {
-        this.updateById(buildAudit(decisionDTO, targetId));
-    }
-
-    @Override
-    public AuditStatus queryAuditStatus(AuditType type, Long targetId) {
-        Audit audit = queryLatestAudit(type, targetId);
-        if (audit == null) {
-            return null;
-        }
-        return AuditStatus.of(audit.getStatus());
-    }
-
-    private Audit buildAudit(AuditDecisionDTO decisionDTO, Long targetId) {
-        Audit updateLog = Audit.builder()
-                               .id(decisionDTO.getAuditId())
-                               .status(
-                                       decisionDTO.getApproved()
-                                               ? AuditStatus.APPROVED.getCode()
-                                               : AuditStatus.REJECTED.getCode()
-                               )
-                               .reason(decisionDTO.getReason())
-                               .auditorId(AuthUserUtils.getUserId())
-                               .auditorName(AuthUserUtils.getUsername())
-                               .auditTime(LocalDateTime.now())
-                               .build();
-
-        // 如果审核通过且targetId不为空，更新targetId
-        if (decisionDTO.getApproved() && targetId != null) {
-            updateLog.setTargetId(targetId);
-        }
-        return updateLog;
+    private AuditListItemVO convertToAuditListItemVO(Audit audit) {
+        return BeanUtil.copyProperties(audit, AuditListItemVO.class);
     }
 }

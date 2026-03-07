@@ -1,11 +1,12 @@
 package com.onlineshop.framework.models.audit.application.impl;
 
-import com.alibaba.fastjson2.JSON;
-import com.onlineshop.framework.common.enums.BizErrorCode;
+import com.alibaba.fastjson.JSON;
 import com.onlineshop.framework.models.audit.application.AbstractAuditor;
-import com.onlineshop.framework.models.audit.domain.StoreRegisterAuditRequest;
-import com.onlineshop.framework.models.audit.enums.AuditStatus;
-import com.onlineshop.framework.models.audit.enums.AuditType;
+import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
+import com.onlineshop.framework.models.audit.dto.StoreRegisterAuditItemDTO;
+import com.onlineshop.framework.models.audit.entity.AuditItem;
+import com.onlineshop.framework.models.audit.enums.AuditBizType;
+import com.onlineshop.framework.models.audit.enums.AuditItemStatus;
 import com.onlineshop.framework.models.auth.enums.AccountType;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.Store;
@@ -13,132 +14,139 @@ import com.onlineshop.framework.models.system.user.IUserService;
 import com.onlineshop.framework.models.system.user.entity.User;
 import com.onlineshop.framework.models.system.user.entity.UserQualification;
 import com.onlineshop.framework.models.system.user.mapper.UserQualificationMapper;
-import com.onlineshop.framework.utils.AssertUtils;
+import com.onlineshop.framework.support.JsonSupport;
 import com.onlineshop.framework.utils.IDNumber;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 店铺注册审核处理器
  * 继承泛型模板基类，实现店铺注册审核的完整流程
  * <p>
- * 审核流程（新设计）：
- * 1. 提交审核：验证 → 创建店铺（待审核状态）→ 保存审核记录
- * 2. 审核通过：激活店铺 + 更新资质审核状态为已通过
- * 3. 审核拒绝：修改资质审核状态为已拒绝
- * <p>
- * 职责（已解耦）：
- * 1. 验证店铺注册审核请求的合法性
- * 2. 创建待审核的店铺对象
- * 3. 生成审核快照用于持久化
- * 4. 处理审核通过时的业务逻辑（激活店铺、更新资质审核状态）
- * 5. 处理审核拒绝时的业务逻辑（更新资质审核状态）
+ * 审核流程：
+ * 1. 提交审核：验证 → 创建待审核记录
+ * 2. 审核通过：创建店铺 + 更新资质审核状态
+ * 3. 审核拒绝：记录拒绝原因
  *
  * @author Tomatos
  * @date 2026/2/26
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class StoreRegisterAuditor extends AbstractAuditor<StoreRegisterAuditRequest> {
+public class StoreRegisterAuditor extends AbstractAuditor<StoreRegisterAuditItemDTO> {
     private final IStoreService storeService;
     private final UserQualificationMapper userQualificationMapper;
     private final IUserService userService;
 
     @Override
-    protected boolean support(AuditType type) {
-        return AuditType.STORE_REGISTER == type;
+    protected boolean support(AuditBizType auditBizType) {
+        return AuditBizType.STORE_REGISTER == auditBizType;
     }
 
     @Override
-    protected void validateRequest(StoreRegisterAuditRequest request) {
-        // 验证基础信息
-        AssertUtils.assertNotBlank(request.getRealName(), BizErrorCode.INVALID_PARAM);
-        AssertUtils.assertNotBlank(request.getIdCard(), BizErrorCode.INVALID_PARAM);
-
-        // 验证银行账户信息
-        AssertUtils.assertNotBlank(request.getBankAccountName(), BizErrorCode.INVALID_PARAM);
-        AssertUtils.assertNotBlank(request.getBankCardNumber(), BizErrorCode.INVALID_PARAM);
-        AssertUtils.assertNotBlank(request.getBankName(), BizErrorCode.INVALID_PARAM);
-
-        // 设置申请人名称
-        request.setApplicantName(request.getRealName());
+    protected void validateAndFill(Collection<StoreRegisterAuditItemDTO> items) {
+        // 店铺注册审核请求验证
     }
 
+    /**
+     * 批量处理店铺注册审核决策
+     * <p>
+     * 逻辑：
+     * 1. 遍历所有审核项
+     * 2. 对于通过的项：创建店铺、保存资质、添加商家账户类型
+     * 3. 对于拒绝的项：仅记录拒绝原因
+     *
+     * @param auditId 审核批次ID
+     * @param items   批次中的所有项（已按审核决策更新状态）
+     */
     @Override
-    protected Long onApproved(StoreRegisterAuditRequest request) {
-        String finalStoreName = request.getStoreName() != null && !request.getStoreName()
-                                                                          .trim()
-                                                                          .isEmpty()
-                ? request.getStoreName()
-                : request.getApplicantName() + "的店铺";
+    protected void onProcessed(Long auditId, List<AuditItem> items) {
+        log.info("处理店铺注册审核结果，批次ID: {}，项数: {}", auditId, items.size());
 
-        Store store = Store.builder()
-                           .no(IDNumber.generateStoreNo())
-                           .userId(request.getApplicantId())
-                           .name(finalStoreName)
-                           .build();
+        for (AuditItem item : items) {
+            if (AuditItemStatus.APPROVED.getCode().equals(item.getStatus())) {
+                // 通过：创建店铺
+                try {
+                    StoreRegisterAuditItemDTO storeItem = parseSnapshot(item.getSnapshot(), StoreRegisterAuditItemDTO.class);
 
-        storeService.save(store);
-        saveUserQualification(request);
-        addMerchantAccountType(request.getApplicantId());
-        return store.getId();
+                    // 创建店铺
+                    String finalStoreName = storeItem.getStoreName() != null && !storeItem.getStoreName().trim().isEmpty()
+                            ? storeItem.getStoreName()
+                            : storeItem.getRealName() + "的店铺";
+
+                    Store store = Store.builder()
+                                       .no(IDNumber.generateStoreNo())
+                                       .userId(item.getId())
+                                       .name(finalStoreName)
+                                       .build();
+
+                    storeService.save(store);
+
+                    // 保存用户资质认证信息
+                    saveUserQualificationForItem(storeItem, item.getId());
+
+                    // 添加商家账户类型
+                    addMerchantAccountType(item.getId());
+
+                    log.info("店铺注册审核通过，AuditItem ID: {}，店铺ID: {}", item.getId(), store.getId());
+                } catch (Exception e) {
+                    log.error("店铺注册审核通过处理失败，AuditItem ID: {}", item.getId(), e);
+                    throw e;
+                }
+            } else if (AuditItemStatus.REJECTED.getCode().equals(item.getStatus())) {
+                // 拒绝：记录拒绝原因
+                log.info("店铺注册被拒绝，AuditItem ID: {}，原因: {}", item.getId(), item.getReason());
+            }
+        }
+
+        log.info("店铺注册审核结果处理完成，批次ID: {}", auditId);
     }
 
     private void addMerchantAccountType(Long userId) {
         User user = userService.getById(userId);
         String currentTypes = user.getTypes();
-        
+
         Set<String> typeSet = new HashSet<>();
         if (currentTypes != null && !currentTypes.isEmpty()) {
             typeSet.addAll(Arrays.asList(currentTypes.split(",")));
         }
         typeSet.add(AccountType.MERCHANT.getCode());
-        
+
         user.setTypes(String.join(",", typeSet));
         userService.updateById(user);
     }
 
-    @Override
-    protected String generateSnapshot(StoreRegisterAuditRequest request) {
-        return JSON.toJSONString(request);
-    }
-
-    @Override
-    protected StoreRegisterAuditRequest rebuildRequest(String snapshot) {
-        return JSON.parseObject(snapshot, StoreRegisterAuditRequest.class);
-    }
-
     /**
-     * 保存用户资质认证信息
+     * 保存用户资质认证信息（从DTO）
      *
-     * @param request 店铺注册审核请求
+     * @param item   店铺注册审核项目DTO
+     * @param userId 用户ID
      */
-    private void saveUserQualification(StoreRegisterAuditRequest request) {
+    private void saveUserQualificationForItem(StoreRegisterAuditItemDTO item, Long userId) {
         UserQualification qualification = UserQualification.builder()
-                                                           .userId(request.getApplicantId())
-                                                           .subjectType(request.getSubjectType())
-                                                           .realName(request.getRealName())
-                                                           .idCard(request.getIdCard())
-                                                           .idCardValidStart(request.getIdCardValidStart())
-                                                           .idCardValidEnd(request.getIdCardValidEnd())
-                                                           .idCardFront(request.getIdCardFront())
-                                                           .idCardBack(request.getIdCardBack())
-                                                           .licenseNumber(request.getLicenseNumber())
-                                                           .licenseName(request.getLicenseName())
-                                                           .establishmentDate(request.getEstablishmentDate())
-                                                           .registeredAddress(request.getRegisteredAddress())
-                                                           .licensePhoto(request.getLicensePhoto())
-                                                           .accountName(request.getBankAccountName())
-                                                           .cardNumber(request.getBankCardNumber())
-                                                           .bankName(request.getBankName())
-                                                           .branchName(request.getBankBranchName())
-                                                           .mobile(request.getBankMobile())
-                                                           .auditStatus(AuditStatus.APPROVED.getCode())
+                                                           .userId(userId)
+                                                           .subjectType(item.getSubjectType())
+                                                           .realName(item.getRealName())
+                                                           .idCard(item.getIdCard())
+                                                           .idCardValidStart(item.getIdCardValidStart())
+                                                           .idCardValidEnd(item.getIdCardValidEnd())
+                                                           .idCardFront(item.getIdCardFront())
+                                                           .idCardBack(item.getIdCardBack())
+                                                           .licenseNumber(item.getLicenseNumber())
+                                                           .licenseName(item.getLicenseName())
+                                                           .establishmentDate(item.getEstablishmentDate())
+                                                           .registeredAddress(item.getRegisteredAddress())
+                                                           .licensePhoto(item.getLicensePhoto())
+                                                           .accountName(item.getBankAccountName())
+                                                           .cardNumber(item.getBankCardNumber())
+                                                           .bankName(item.getBankName())
+                                                           .branchName(item.getBankBranchName())
+                                                           .mobile(item.getBankMobile())
                                                            .createdAt(LocalDateTime.now())
                                                            .updatedAt(LocalDateTime.now())
                                                            .build();

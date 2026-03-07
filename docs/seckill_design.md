@@ -1,36 +1,6 @@
 # 秒杀活动设计文档
 
-## 一、设计概览
-
-### 核心原则
-
-✅ **只有审核通过的秒杀商品才会在数据库表中出现**
-
-### 系统架构
-
-```
-商家提交申请 → 创建审核记录(audit表) → 管理员审核
-                                    ↓
-                          ┌─────────┴─────────┐
-                          ↓                   ↓
-                      审核通过              审核拒绝
-                          ↓                   ↓
-                    创建seckill_goods      无记录
-                          ↓
-                    秒杀商品上线销售
-```
-
-### 表职责
-
-| 表名 | 职责 | 特点 |
-|-----|------|------|
-| `seckill_activity` | 活动管理 | 平台维护，定义秒杀活动 |
-| `audit` | 审核流程管理 | 通用表，记录所有审核历史 |
-| `seckill_goods` | 已通过商品 | 只包含审核通过的商品，与审核完全解耦 |
-
----
-
-## 二、各角色工作流
+## 各角色工作流
 
 ### 🛡️ 管理端工作流程
 
@@ -57,7 +27,7 @@
 | 步骤 | 操作 | 说明 |
 |------|------|------|
 | 3.1 | 活动列表 | 查看所有活动及状态 |
-| 3.2 | 活动详情 | 查看活动信息、已通过商品列表 |
+| 3.2 | 活动详情 | 查看活动信息返回已加入秒杀活动的商品列表 |
 | 3.3 | 手动结束 | 紧急情况下可提前结束活动 |
 
 ---
@@ -110,40 +80,7 @@
 
 ---
 
-## 三、状态流转图
-
-### 活动状态
-
-```
-报名中 → 进行中 → 已结束
-  ↓
- 管理端开始活动
- ↓
-商家申请加入
-```
-
-### 审核状态（通过统一审核表管理）
-
-```
-待审核 → 已通过 → 秒杀商品上线
-  ↓
-已驳回 (可重新申请)
-```
-
----
-
-## 四、库存管理设计
-
-### 4.0 库存管理方案（方案3：实时库存 + 快速回收）
-
-本设计采用**拼多多方案**的思路，核心思想是**不预占库存，而是实时检查和共享库存**。
-
-#### 设计目标
-
-- ✅ **最大化库存利用率** - 不浪费库存预留
-- ✅ **灵活支持多渠道销售** - 同一商品既能秒杀销售，也能常规销售
-- ✅ **申请零成本** - 商家可灵活申请秒杀，不影响常规库存
-- ✅ **快速失败检查** - 秒杀开始或用户下单时实时验证库存
+## 库存管理设计
 
 #### 核心原理
 
@@ -234,17 +171,7 @@ WHERE id = 456
 
 ---
 
-## 五、数据库表结构设计
-
-### 5.1 核心设计原则
-
-- **只有审核通过的秒杀商品才会在 `seckill_goods` 表中出现**
-- `seckill_goods` 与 `audit` 表完全解耦
-- 审核历史由通用 `audit` 表独立维护
-- 表结构简洁，职责清晰
-- **秒杀库存和常规库存实时共享**，不预占
-
-### 5.2 表结构
+## 数据库表结构设计
 
 ```sql
 -- 秒杀活动表（平台创建）
@@ -278,16 +205,7 @@ CREATE TABLE seckill_goods (
     unique key uk_activity_product (activity_id, goods_id),
     index idx_merchant (merchant_id),
     foreign key (activity_id) references seckill_activity(id)
-) comment '秒杀商品表 - 只包含审核通过的秒杀商品（方案3：实时库存）';
-
--- products 表（常规商品表，与秒杀共享库存）
--- 注：products 表结构由商品模块维护，此处仅说明库存字段
--- CREATE TABLE products (
---     id              bigint auto_increment primary key,
---     ... 其他字段 ...
---     stock           int not null comment '商品库存（秒杀与常规渠道共享）',
---     ... 其他字段 ...
--- );
+) comment '秒杀商品表 - 只包含审核通过的秒杀商品';
 ```
 
 **关键字段说明：**
@@ -304,62 +222,361 @@ CREATE TABLE seckill_goods (
 总体库存消耗 = seckill_goods.sold_count + (products.stock 被秒杀扣减的部分)
 ```
 
-### 5.3 审核表关联说明
-
-秒杀申请审核通过的完整流程：
-
-```
-1. 商家提交申请
-   ├─ 创建 audit 记录
-   │  ├─ target_type = 'SECKILL_GOODS'
-   │  ├─ target_id = null（暂无关联）
-   │  ├─ status = '待审核'
-   │  └─ snapshot = 申请的商品信息（JSON，包含申报库存）
-   │
-2. 管理员审核通过
-   ├─ 检查：products.stock >= 申报库存 ✓
-   ├─ 更新 audit.status = '通过'
-   ├─ 更新 audit.audit_time = 当前时间
-   ├─ 创建 seckill_goods 记录（stock = 申报库存）
-   └─ 更新 audit.target_id = seckill_goods.id（可选）
-   │
-3. 管理员审核拒绝
-   ├─ 更新 audit.status = '拒绝'
-   ├─ 更新 audit.reason = 拒绝原因
-   └─ 不创建 seckill_goods 记录
-```
-
 ---
 
-## 六、API接口设计
+## API接口设计
 
 ### 管理端接口
 
+#### 基础响应格式
+```json
+{
+  "code": 0,           // 0:成功, 其他:错误码
+  "msg": "success",    // 成功消息或错误信息
+  "data": {}           // 数据内容
+}
 ```
-POST   /admin/seckill/activities           创建秒杀活动
-GET    /admin/seckill/activities           活动列表
-GET    /admin/seckill/activities/:id      活动详情
-PUT    /admin/seckill/activities/:id      更新活动
-DELETE /admin/seckill/activities/:id      删除活动
-POST   /admin/seckill/activities/:id/start 开始活动
 
-GET    /admin/seckill/applies              申请列表
-POST   /admin/seckill/applies/:id/approve 通过申请（需检查库存）
-POST   /admin/seckill/applies/:id/reject  驳回申请
+#### 错误码说明
+| 错误码 | 说明 |
+|-------|------|
+| 1001 | 活动不存在 |
+| 1002 | 活动状态不允许操作 |
+| 1003 | 参数错误 |
+| 1004 | 无权限操作 |
+| 1005 | 活动已结束 |
+
+#### 1. 分页查询秒杀活动
+```http
+GET /admin/seckill/activities
+```
+
+**请求参数：**
+- `page`: 当前页码（默认1）
+- `pageSize`: 每页数量（默认10）
+- `status`: 活动状态（0-报名中，1-进行中，2-已结束，可选）
+- `name`: 活动名称搜索（可选）
+- `date`: 活动日期（可选）
+
+**响应数据：**
+
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "total": 100,  // 总记录数
+    "list": [
+      {
+        "id": 1,
+        "name": "618大促",
+        "startHour": 10,
+        "activityDate": "2024-06-18",
+        "status": 1,
+        "maxItems": 100,
+        "createTime": "2024-06-01 10:00:00",
+        "updateTime": "2024-06-18 09:30:00"
+      }
+    ]
+  }
+}
+```
+
+#### 2. 停止秒杀活动
+```http
+POST /admin/seckill/activities/{id}/stop
+```
+
+**请求参数：**
+- `id`: 活动ID
+
+**响应数据：**
+```json
+{
+  "code": 0,
+  "msg": "活动已停止",
+  "data": null
+}
+```
+
+#### 3. 查询秒杀活动信息
+```http
+GET /admin/seckill/activities/{id}
+```
+
+**请求参数：**
+- `id`: 活动ID
+
+**响应数据：**
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "id": 1,
+    "name": "618大促",
+    "startHour": 10,
+    "activityDate": "2024-06-18",
+    "status": 1,
+    "maxItems": 100,
+    "createTime": "2024-06-01 10:00:00",
+  }
+}
+```
+
+#### 4. 分页查询某个秒杀活动中的商品
+```http
+GET /admin/seckill/activities/{id}/goods
+```
+
+**请求参数：**
+- `id`: 活动ID
+- `page`: 当前页码（默认1）
+- `pageSize`: 每页数量（默认10）
+- `status`: 商品状态（可选：0-待审核，1-已通过，2-已驳回）
+
+**响应数据：**
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "total": 45,
+    "list": [
+      {
+        "id": 101,
+        "goodsName": "iPhone 15 Pro",
+        "merchantName": "苹果官方旗舰店",
+        "seckillPrice": 6999.00,
+        "stock": 50,
+        "status": 1,
+      }
+    ]
+  }
+}
+```
+
+#### 5. 创建秒杀活动
+```http
+POST /admin/seckill/activities
+```
+
+**请求参数：**
+```json
+{
+  "name": "618大促",
+  "startHour": 10,
+  "activityDate": "2024-06-18",
+  "maxItems": 100
+}
+```
+
+**响应数据：**
+
+```json
+{
+  "code": 0,
+  "msg": "活动创建成功",
+  "data": null
+}
+```
+
+#### 6. 更新秒杀活动
+```http
+PUT /admin/seckill/activities/{id}
+```
+
+**请求参数：**
+```json
+{
+  "name": "618大促（更新）",
+  "maxItems": 150
+}
+```
+
+**响应数据：**
+```json
+{
+  "code": 0,
+  "msg": "活动更新成功",
+  "data": {
+    "id": 1,
+    "name": "618大促（更新）",
+    "maxItems": 150
+  }
+}
+```
+
+#### 8. 开始秒杀活动
+```http
+POST /admin/seckill/activities/{id}/start
+```
+
+**响应数据：**
+```json
+{
+  "code": 0,
+  "msg": "活动已开始",
+  "data": {
+    "id": 1,
+    "status": 1  // 1-进行中
+  }
+}
 ```
 
 ### 商家端接口
 
+#### 基础响应格式
+```json
+{
+  "code": 0,           // 0:成功, 其他:错误码
+  "msg": "success",    // 成功消息或错误信息
+  "data": {}           // 数据内容
+}
 ```
-GET    /merchant/seckill/activities       可报名活动列表
-GET    /merchant/seckill/activities/:id   活动详情
-GET    /merchant/seckill/applies           我的申请列表
-POST   /merchant/seckill/applies           提交申请（需检查库存）
-GET    /merchant/seckill/applies/:id       申请详情
-PUT    /merchant/seckill/applies/:id       修改申请（仅待审核/已驳回，需检查库存）
-DELETE /merchant/seckill/applies/:id       取消申请
-GET    /merchant/seckill/my-products       活动中我的商品
-GET    /merchant/seckill/stats/:activityId 活动数据统计
+
+#### 错误码说明
+| 错误码 | 说明 |
+|-------|------|
+| 2001 | 活动不存在 |
+| 2002 | 活动状态不允许操作 |
+| 2003 | 参数错误 |
+| 2004 | 无权限操作（非该商家活动） |
+| 2005 | 商品不存在 |
+| 2006 | 库存不足 |
+
+#### 1. 分页查询活动列表
+```http
+GET /merchant/seckill/activities
+```
+
+**请求参数：**
+- `page`: 当前页码（默认1）
+- `pageSize`: 每页数量（默认10）
+- `status`: 活动状态（0-报名中，1-进行中，2-已结束，可选）
+- `name`: 活动名称搜索（可选）
+
+**响应数据：**
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "total": 15,
+    "list": [
+      {
+        "id": 1,
+        "name": "618大促",
+        "startHour": 10,
+        "activityDate": "2024-06-18",
+        "status": 0,
+        "maxItems": 100,
+        "createTime": "2024-06-01 10:00:00",
+        "applyCount": 23,        // 申请数量
+        "approvedCount": 15      // 已通过数量
+      }
+    ]
+  }
+}
+```
+
+#### 2. 分页查询某个秒杀活动中的商品
+```http
+GET /merchant/seckill/activities/{id}/goods
+```
+
+**请求参数：**
+
+- `id`: 活动ID
+- `page`: 当前页码（默认1）
+- `pageSize`: 每页数量（默认10）
+- `status`: 商品状态（可选：0-待审核，1-已通过，2-已驳回，不传则返回全部）
+
+**响应数据：**
+```json
+{
+  "code": 0,
+  "msg": "success",
+  "data": {
+    "total": 45,
+    "list": [
+      {
+        "id": 101,
+        "goodsName": "iPhone 15 Pro",
+        "goodsId": 1001,
+        "seckillPrice": 6999.00,
+        "originalPrice": 7999.00,
+        "stock": 50,
+        "soldCount": 32,
+        "status": 1,            // 0-待审核，1-已通过，2-已驳回
+        "applyTime": "2024-06-10 14:30:00",
+        "auditTime": "2024-06-11 09:15:00",
+        "rejectReason": null
+      }
+    ]
+  }
+}
+```
+
+#### 3. 批量将商品加入到秒杀活动
+```http
+POST /merchant/seckill/activities/{id}/batch-add
+```
+
+**请求参数：**
+```json
+{
+  "goodsList": [
+    {
+      "goodsId": 1001,
+      "seckillPrice": 6999.00,
+      "stock": 50
+    },
+    {
+      "goodsId": 1002,
+      "seckillPrice": 2999.00,
+      "stock": 100
+    }
+  ]
+}
+```
+
+**响应数据：**
+```json
+{
+  "code": 0,
+  "msg": "批量添加成功",
+  "data": {
+    "successCount": 2,        // 成功数量
+    "failCount": 0,          // 失败数量
+    "failDetails": []        // 失败详情（如果有）
+  }
+}
+```
+
+#### 4. 从秒杀活动中批量删除商品
+```http
+POST /merchant/seckill/activities/{id}/batch-remove
+```
+
+**请求参数：**
+```json
+{
+  "goodsIds": [1001, 1002, 1003]  // 商品ID列表
+}
+```
+
+**响应数据：**
+```json
+{
+  "code": 0,
+  "msg": "批量删除成功",
+  "data": {
+    "successCount": 3,        // 成功删除数量
+    "failCount": 0,          // 失败数量
+    "failDetails": []        // 失败详情（如果有）
+  }
+}
 ```
 
 ### 客户端接口
@@ -383,46 +600,23 @@ POST   /client/seckill/order               下单接口（原子扣减库存）
 
 ---
 
-## 七、页面结构设计
+## 页面原型设计
 
 ### 管理端页面
 
-```
-├── 秒杀活动管理
-│   ├── 活动列表
-│   ├── 创建活动
-│   │   ├── 选择小时（0-23，每个小时一场）
-│   │   └── 选择日期
-│   ├── 活动详情
-│   └── 数据统计
-├── 申请审核
-│   ├── 申请列表
-│   └── 审核详情
-```
+
 
 ### 商家端页面
 
-```
-├── 秒杀活动
-│   ├── 活动列表
-│   ├── 活动详情
-│   ├── 申请加入
-│   ├── 我的申请
-│   └── 活动数据
-```
+
 
 ### 客户端页面
 
-```
-├── 秒杀专区
-│   ├── 活动列表
-│   ├── 活动详情
-│   └── 商品列表
-```
+
 
 ---
 
-## 八、活动规则设计
+## 活动规则设计
 
 ### 8.1 活动状态规则
 
@@ -431,18 +625,6 @@ POST   /client/seckill/order               下单接口（原子扣减库存）
 | 报名中 | 开放商家申请 | ✅ 申请加入 |
 | 进行中 | 活动进行中 | ❌ |
 | 已结束 | 活动结束 | ❌ |
-
-### 8.2 审核状态规则（通过统一审核表）
-
-审核状态由通用 `audit` 表管理，秒杀商品数据流转说明：
-
-| 状态 | 说明 | seckill_goods 表 | 可操作 |
-|------|------|-----------------|--------|
-| 待审核 | 商家已提交，等待审核 | ❌ 无记录 | 修改申请、取消 |
-| 已通过 | 审核通过，已生成秒杀商品记录 | ✅ 已插入 | ❌ |
-| 已驳回 | 审核未通过，无商品记录 | ❌ 无记录 | 修改后重新提交 |
-
-**关键点：** `seckill_goods` 表中的每条记录都代表已通过审核的秒杀商品
 
 ### 8.3 时间规则
 
@@ -474,103 +656,3 @@ POST   /client/seckill/order               下单接口（原子扣减库存）
 | 📊 流量控制 | 秒杀接口限流 |
 | ⏱️ 支付倒计时 | 下单后15分钟超时自动取消 |
 | 🔄 库存恢复 | 取消订单时，同时恢复 seckill_goods.sold_count 和 products.stock |
-
----
-
-## 九、异常处理
-
-| 场景 | 处理方案 |
-|------|----------|
-| 申请库存超过现有库存 | 申请/审核时检查，提示库存不足 |
-| 常规渠道销售导致秒杀库存不足 | 秒杀可售库存实时计算，用户看到实际可售数 |
-| 库存不足 | 售罄提示，推荐相似商品 |
-| 超时未支付 | 自动取消订单，同时恢复两个库存 |
-| 活动违规 | 管理端强制结束，通知商家 |
-| 系统故障 | 降级方案，暂停秒杀入口 |
-| 价格误填 | 审核环节拦截，驳回修改 |
-
----
-
-## 十、库存一致性保证
-
-### 10.1 两阶段提交原理
-
-```
-场景：用户下单购买秒杀商品
-
-执行流程：
-
-1. 开始事务
-   ├─ UPDATE seckill_goods SET sold_count = sold_count + 1 WHERE id = ? AND (stock - sold_count) > 0
-   ├─ UPDATE products SET stock = stock - 1 WHERE id = ? AND stock > 0
-   └─ 若任何一个 UPDATE 影响行数为 0，则回滚整个事务
-
-2. 事务提交
-   └─ 两个库存同时生效
-
-3. 事务回滚（失败时）
-   └─ 两个库存都恢复原值
-```
-
-### 10.2 防超卖检查
-
-```sql
--- 方案3 的防超卖核心：原子性 + 双重检查
-
--- 第1层：秒杀库存检查
-SELECT COUNT(*) FROM seckill_goods 
-WHERE id = 123 AND (stock - sold_count) > 0;
-
--- 第2层：常规库存检查
-SELECT COUNT(*) FROM products 
-WHERE id = 456 AND stock > 0;
-
--- 两个检查都通过才能执行扣减
--- 扣减时使用 WHERE 条件防止超卖：
-UPDATE seckill_goods SET sold_count = sold_count + 1 
-WHERE id = 123 AND (stock - sold_count) > 0;
-
-UPDATE products SET stock = stock - 1 
-WHERE id = 456 AND stock > 0;
-```
-
-### 10.3 库存审计日志
-
-为了追踪库存变动，建议添加审计表：
-
-```sql
--- 库存变动审计表（可选）
-CREATE TABLE inventory_audit_log (
-    id              bigint auto_increment primary key,
-    product_id      bigint not null comment '商品ID',
-    seckill_goods_id bigint comment '秒杀商品ID（如果是秒杀订单）',
-    operation_type  varchar(50) not null comment '操作类型：SECKILL_SOLD/REFUND/MANUAL_ADJUST',
-    change_amount   int comment '变动数量',
-    before_stock    int comment '变动前库存',
-    after_stock     int comment '变动后库存',
-    order_id        bigint comment '订单ID',
-    operator_id     bigint comment '操作人ID',
-    remarks         varchar(500) comment '备注',
-    create_time     datetime default current_timestamp(),
-    
-    index idx_product (product_id),
-    index idx_time (create_time)
-) comment '库存变动审计日志';
-```
-
----
-
-## 十一、方案对比总结
-
-### 11.1 三种方案对比
-
-| 维度 | 方案1：预占型 | 方案2：分层型 | **方案3：实时型（采用）** |
-|------|-------------|-------------|------------------------|
-| **库存预占时机** | 申请时 | 审核时 | 不预占 |
-| **常规库存影响** | 立即扣减 | 标记预留 | 不影响（销售时扣减） |
-| **灵活性** | 低（库存长期冻结） | 中等 | **最高（零冻结）** |
-| **管理复杂度** | 低 | 高（分级管理） | **中等（实时计算）** |
-| **库存利用率** | 低（可能浪费） | 高 | **最高（完全共享）** |
-| **防超卖能力** | 最强 | 最强 | **强（原子操作）** |
-| **适用场景** | 库存紧张 | 大体量平台 | **中小型平台、库存充足** |
-

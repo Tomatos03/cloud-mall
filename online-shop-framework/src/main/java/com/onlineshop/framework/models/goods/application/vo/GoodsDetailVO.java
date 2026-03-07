@@ -1,6 +1,5 @@
 package com.onlineshop.framework.models.goods.application.vo;
 
-import com.onlineshop.framework.models.audit.vo.AuditVO;
 import com.onlineshop.framework.models.goods.sku.SkuDTO;
 import com.onlineshop.framework.models.goods.spec.dto.SpecificationsDTO;
 import jakarta.validation.Valid;

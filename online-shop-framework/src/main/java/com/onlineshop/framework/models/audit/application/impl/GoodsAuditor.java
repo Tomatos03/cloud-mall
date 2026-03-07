@@ -1,20 +1,29 @@
 package com.onlineshop.framework.models.audit.application.impl;
 
-import com.alibaba.fastjson2.JSON;
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.event.goods.SyncGoodsToEsEvent;
 import com.onlineshop.framework.models.audit.application.AbstractAuditor;
-import com.onlineshop.framework.models.audit.domain.GoodsAuditRequest;
-import com.onlineshop.framework.models.audit.enums.AuditType;
+import com.onlineshop.framework.models.audit.dto.GoodsAuditItemDTO;
+import com.onlineshop.framework.models.audit.entity.AuditItem;
+import com.onlineshop.framework.models.audit.enums.AuditBizType;
+import com.onlineshop.framework.models.audit.enums.AuditItemStatus;
+import com.onlineshop.framework.models.category.Category;
+import com.onlineshop.framework.models.category.ICategoryService;
 import com.onlineshop.framework.models.goods.application.GoodsPublishCommand;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
 import com.onlineshop.framework.models.goods.spu.Goods;
+import com.onlineshop.framework.models.goods.unit.IUnitService;
+import com.onlineshop.framework.models.goods.unit.Unit;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.Store;
 import com.onlineshop.framework.utils.AssertUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 商品审核处理器
@@ -22,59 +31,88 @@ import org.springframework.stereotype.Component;
  * @author Tomatos
  * @date 2026/2/26
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
-public class GoodsAuditor extends AbstractAuditor<GoodsAuditRequest> {
-    private final IStoreService storeService;
+public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
     private final IGoodsAppService goodsAppService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ICategoryService categoryService;
+    private final IUnitService unitService;
+    private final IStoreService storeService;
 
     @Override
-    protected boolean support(AuditType type) {
-        return AuditType.GOODS == type;
+    protected void validateAndFill(Collection<GoodsAuditItemDTO> items) {
+        log.info("验证和填充商品审核项，共 {} 个", items.size());
+
+        for (GoodsAuditItemDTO goods : items) {
+            Category category = categoryService.getById(goods.getCategoryId());
+            AssertUtils.notNull(category, BizErrorCode.CATEGORY_NOT_EXIST_OR_NO_ENABLE);
+
+            String categoryPath = categoryService.buildCategoryPathByLeafCategoryId(goods.getCategoryId());
+            goods.setCategoryIdPath(categoryPath);
+
+            Unit unit = unitService.getById(goods.getUnitId());
+            AssertUtils.notNull(unit, BizErrorCode.GOODS_UNIT_NOT_EXIST);
+            goods.setUnitName(unit.getName());
+
+            Store store = storeService.getById(goods.getStoreId());
+            AssertUtils.notNull(store, BizErrorCode.STORE_NOT_EXIST);
+            goods.setStoreName(store.getName());
+        }
+        
+        log.info("商品审核项验证和填充完成");
+    }
+
+
+    /**
+     * 批量处理商品审核决策
+     * <p>
+     * 逻辑：
+     * 1. 遍历所有审核项
+     * 2. 对于通过的项：发布商品
+     * 3. 对于拒绝的项：仅记录（可选业务处理）
+     *
+     * @param auditId 审核批次ID
+     * @param items   批次中的所有项（已按审核决策更新状态）
+     */
+    @Override
+    protected void onProcessed(Long auditId, List<AuditItem> items) {
+        log.info("处理商品审核结果，批次ID: {}，项数: {}", auditId, items.size());
+
+        for (AuditItem item : items) {
+            if (AuditItemStatus.APPROVED.getCode()
+                                        .equals(item.getStatus())) {
+                GoodsAuditItemDTO goodsItem = parseSnapshot(item.getSnapshot(), GoodsAuditItemDTO.class);
+                GoodsPublishCommand command = convertToGoodsPublishCommand(goodsItem);
+                Goods goods = goodsAppService.publishGoods(command);
+                eventPublisher.publishEvent(SyncGoodsToEsEvent.builder().goods(goods).build());
+            }
+        }
+
+        log.info("商品审核结果处理完成，批次ID: {}", auditId);
     }
 
     @Override
-    protected void validateRequest(GoodsAuditRequest request) {
-        AssertUtils.isTrue(request.getStoreId() != null && request.getStoreId() > 0, BizErrorCode.INVALID_PARAM);
-
-        Store store = storeService.getById(request.getStoreId());
-        AssertUtils.notNull(store, BizErrorCode.STORE_NOT_EXIST);
-        request.setApplicantName(store.getName());
+    protected boolean support(AuditBizType auditBizType) {
+        return AuditBizType.GOODS == AuditBizType.of(auditBizType.getCode());
     }
 
-    @Override
-    protected Long onApproved(GoodsAuditRequest request) {
-        Goods goods = goodsAppService.publishGoods(convertToGoodsPublishCommand(request));
-        eventPublisher.publishEvent(SyncGoodsToEsEvent.builder().goods(goods).build());
-        return goods.getId();
-    }
-
-    private GoodsPublishCommand convertToGoodsPublishCommand(GoodsAuditRequest request) {
+    private GoodsPublishCommand convertToGoodsPublishCommand(GoodsAuditItemDTO item) {
         return GoodsPublishCommand.builder()
-                                  .goodsId(request.getGoodsId())
-                                  .goodsName(request.getGoodsName())
-                                  .categoryId(request.getCategoryId())
-                                  .unitId(request.getUnitId())
-                                  .unitName(request.getUnitName())
-                                  .sellPoint(request.getSellPoint())
-                                  .displayImageUrls(request.getDisplayImageUrls())
-                                  .descriptionImageUrls(request.getDescriptionImageUrls())
-                                  .storeId(request.getStoreId())
-                                  .storeName(request.getStoreName())
-                                  .status(request.getStatus())
-                                  .specifications(request.getSpecifications())
-                                  .skus(request.getSkus())
+                                  .goodsId(item.getGoodsId())
+                                  .goodsName(item.getGoodsName())
+                                  .categoryId(item.getCategoryId())
+                                  .unitId(item.getUnitId())
+                                  .unitName(item.getUnitName())
+                                  .sellPoint(item.getSellPoint())
+                                  .displayImageUrls(item.getDisplayImageUrls())
+                                  .descriptionImageUrls(item.getDescriptionImageUrls())
+                                  .storeId(item.getStoreId())
+                                  .storeName(item.getStoreName())
+                                  .status(item.getStatus())
+                                  .specifications(item.getSpecifications())
+                                  .skus(item.getSkus())
                                   .build();
-    }
-
-    @Override
-    protected String generateSnapshot(GoodsAuditRequest request) {
-        return JSON.toJSONString(request);
-    }
-
-    @Override
-    protected GoodsAuditRequest rebuildRequest(String snapshot) {
-        return JSON.parseObject(snapshot, GoodsAuditRequest.class);
     }
 }

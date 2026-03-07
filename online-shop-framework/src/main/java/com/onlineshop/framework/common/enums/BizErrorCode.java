@@ -1,6 +1,5 @@
 package com.onlineshop.framework.common.enums;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
@@ -11,11 +10,11 @@ import lombok.Getter;
  * @date : 2025/12/18
  */
 @Getter
-@AllArgsConstructor
 public enum BizErrorCode {
     
     // ==================== 通用错误码 (1xxx) ====================
     INVALID_PARAM(1000, "请求参数无效"),
+    INVALID_AUDIT_STATUS(1001, "无效的审核状态"),
 
     // ==================== 用户认证相关错误码 (10xxx) ====================
     USERNAME_OR_PASSWORD_ERROR(10000, "用户名或密码错误"),
@@ -47,10 +46,11 @@ public enum BizErrorCode {
     SPECIFICATIONS_CANNOT_BE_EMPTY(20014, "规格不能为空"),
     SKUS_CANNOT_BE_EMPTY(20015, "SKU不能为空"),
     SPECIFICATIONS_EXCEED_MAX_LIMIT(20016, "规格数量超出最大限制"),
-    SKU_SPECS_CANNOT_BE_EMPTY(20017, "SKU规格不能为空"),
-    SKU_SPEC_NOT_MATCH(20018, "SKU中包含无效的规格"),
+     SKU_SPECS_CANNOT_BE_EMPTY(20017, "SKU规格不能为空"),
+     SKU_SPEC_NOT_MATCH(20018, "SKU中包含无效的规格"),
+     GOODS_UNIT_NOT_EXIST(20019, "商品单位不存在"),
 
-    // ==================== 地址相关错误码 (30xxx) ====================
+     // ==================== 地址相关错误码 (30xxx) ====================
     ADDRESS_NOT_EXIST(30000, "地址不存在"),
 
     // ==================== 搜索相关错误码 (40xxx) ====================
@@ -160,6 +160,9 @@ public enum BizErrorCode {
     AUDIT_ONLY_APPROVED(90013, "只能操作已通过的审核记录"),
     AUDIT_INVALID_STATUS(90014, "非法的审核状态"),
     UNSUPPORTED_AUDIT_TYPE(90015, "不支持的审核对象类型"),
+    AUDIT_NOT_EXIST(90016, "审核批次不存在"),
+    AUDIT_ITEM_NOT_FOUND(90017, "审核项目不存在"),
+    AUDITOR_NOT_FOUND(90018, "审核器未找到"),
 
     // ==================== 秒杀相关错误码 (92xxx) ====================
     SECKILL_ACTIVITY_NOT_EXIST(92000, "秒杀活动不存在"),
@@ -184,15 +187,20 @@ public enum BizErrorCode {
     PRODUCT_ID_REQUIRED(92019, "商品ID不能为空"),
     START_TIME_REQUIRED(92020, "开始时间不能为空"),
     END_TIME_REQUIRED(92021, "结束时间不能为空"),
-     PRICE_REQUIRED(92022, "秒杀价格不能为空"),
-     STOCK_REQUIRED(92023, "秒杀库存不能为空"),
-     PRODUCT_NOT_FOUND(92024, "商品不存在"),
-      ACTIVITY_ID_REQUIRED(92025, "活动ID不能为空"),
-      INVALID_ACTIVITY_STATUS(92026, "活动状态无效，仅报名中的活动可参加"),
-      ACTIVITY_MAX_ITEMS_REACHED(92027, "该活动已达到最大商品数限制"),
-      ITEMS_REQUIRED(92028, "商品列表不能为空"),
-      ITEMS_EMPTY(92029, "商品列表不能为空，至少需要1个商品");
+    PRICE_REQUIRED(92022, "秒杀价格不能为空"),
+    STOCK_REQUIRED(92023, "秒杀库存不能为空"),
+    PRODUCT_NOT_FOUND(92024, "商品不存在"),
+    ACTIVITY_ID_REQUIRED(92025, "活动ID不能为空"),
+    INVALID_ACTIVITY_STATUS(92026, "活动状态无效，仅报名中的活动可参加"),
+    ACTIVITY_MAX_ITEMS_REACHED(92027, "该活动已达到最大商品数限制"),
+    ITEMS_REQUIRED(92028, "商品列表不能为空"),
+    ITEMS_EMPTY(92029, "商品列表不能为空，至少需要1个商品");
 
     final int code;
     final String errorMessage;
+
+    BizErrorCode(int code, String errorMessage) {
+        this.code = code;
+        this.errorMessage = errorMessage;
+    }
 }

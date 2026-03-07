@@ -8,18 +8,13 @@ import lombok.Getter;
 import java.util.Arrays;
 
 /**
- * 审核批次状态枚举
- * <p>
- * 包含：
- * PENDING("PENDING", "待审核") - 初始状态，批次刚创建
- * APPROVED("APPROVED", "已通过") - 所有项都通过
- * REJECTED("REJECTED", "已拒绝") - 所有项都拒绝
- * PARTIAL("PARTIAL", "部分通过") - 部分项通过，部分项拒绝
- * WITHDRAWN("WITHDRAWN", "已撤销") - 申请人已撤销该批次
+ * 审核项目状态枚举
+ * 
+ * 表示audit_item表中的status字段值
  */
 @AllArgsConstructor
 @Getter
-public enum AuditStatus {
+public enum AuditItemStatus {
     /**
      * 待审核
      */
@@ -33,23 +28,13 @@ public enum AuditStatus {
     /**
      * 已拒绝
      */
-    REJECTED("REJECTED", "已拒绝"),
-
-    /**
-     * 部分通过
-     */
-    PARTIAL("PARTIAL", "部分通过"),
-
-    /**
-     * 已撤销
-     */
-    WITHDRAWN("WITHDRAWN", "已撤销");
+    REJECTED("REJECTED", "已拒绝");
 
     private final String code;
     private final String name;
 
-    public static AuditStatus of(String code) {
-        return Arrays.stream(AuditStatus.values())
+    public static AuditItemStatus of(String code) {
+        return Arrays.stream(AuditItemStatus.values())
                      .filter(status -> status.code.equals(code))
                      .findFirst()
                      .orElseThrow(() -> new BizException(BizErrorCode.INVALID_AUDIT_STATUS));

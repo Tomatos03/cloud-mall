@@ -3,15 +3,19 @@ package com.onlineshop.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.audit.application.IAuditAppService;
 import com.onlineshop.framework.models.audit.application.impl.StoreRegisterAuditor;
-import com.onlineshop.framework.models.audit.domain.StoreRegisterAuditRequest;
 import com.onlineshop.framework.models.audit.dto.AuditStatusDTO;
+import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
+import com.onlineshop.framework.models.audit.dto.StoreRegisterAuditItemDTO;
+import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.dto.StoreGoodsParamsDTO;
 import com.onlineshop.framework.models.store.vo.StoreVO;
-import com.onlineshop.framework.utils.AuthUserUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 店铺相关接口
@@ -53,10 +57,14 @@ public class StoreWebController {
     /**
      * 提交入驻申请
      *
-     * @param request 店铺审核请求对象，包含所有必要的商家信息
+     * @param storeRegisterAuditItemDTO 店铺审核请求对象，包含所有必要的商家信息
      */
     @PostMapping("/create")
-    public void submitApplication(@RequestBody StoreRegisterAuditRequest request) {
-         storeAuditor.submitAudit(request);
+    public void submitApplication(@RequestBody StoreRegisterAuditItemDTO storeRegisterAuditItemDTO) {
+        AuditSubmitDTO<StoreRegisterAuditItemDTO> auditSubmitDTO = AuditSubmitDTO.of(
+                AuditBizType.STORE_REGISTER.getCode(),
+                Collections.singletonList(storeRegisterAuditItemDTO)
+        );
+        storeAuditor.submitAudit(auditSubmitDTO);
     }
 }

@@ -5,75 +5,67 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
 import com.onlineshop.framework.models.audit.entity.Audit;
-import com.onlineshop.framework.models.audit.enums.AuditStatus;
-import com.onlineshop.framework.models.audit.enums.AuditType;
-import com.onlineshop.framework.models.audit.vo.AuditVO;
+import com.onlineshop.framework.models.audit.enums.AuditBizType;
+import com.onlineshop.framework.models.audit.vo.AuditItemVO;
+import com.onlineshop.framework.models.audit.vo.AuditListItemVO;
 
-import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 
 /**
- * 审核日志服务接口
+ * 审核批次服务接口
  */
 public interface IAuditService extends IService<Audit> {
 
     /**
-     * 分页查询审核记录（支持多条件筛选）
-     * 通用分页查询方法，支持管理员和商家使用
+     * 分页查询审核批次（支持多条件筛选）
+     * 通用分页查询方法，支持管理员查看所有审核批次
      *
      * @param queryDTO 查询条件
-     * @return 审核记录分页结果
+     * @return 审核批次分页结果
      */
-    IPage<AuditVO> pageQuery(AuditParamsDTO queryDTO);
+    IPage<AuditListItemVO> pageQuery(AuditParamsDTO queryDTO);
 
     /**
-     * 根据ID获取审核记录详情
+     * 根据ID获取审核批次详情
      *
-     * @param auditId 审核记录ID
-     * @return 审核记录VO
-     * @throws BizException 当审核记录不存在时
+     * @param auditId 审核批次ID
+     * @return 审核批次VO
+     * @throws BizException 当审核批次不存在时
      */
-    AuditVO getAuditById(Long auditId);
+    List<AuditItemVO> getAuditById(Long auditId);
 
     /**
-     * 撤回审核申请（仅限待审核状态）
-     * 将审核记录状态改为未提交(0)
+     * 创建审核批次
      *
-     * @param auditId 审核记录ID
-     * @return 是否成功
-     * @throws BizException 当审核记录不存在或状态不符合要求时
+     * @param bizType 业务类型
+     * @param applicantId 申请人ID
+     * @param applicantName 申请人名称
+     * @param itemCount 项数量
+     * @return 创建的Audit对象
      */
-    boolean withdrawAudit(Long auditId);
+    Audit createAuditBatch(String bizType,  int itemCount);
 
     /**
-     * 获取指定目标的最新审核记录
-     * 通过目标类型和目标ID查询该目标的最近一条审核记录（按审核记录创建时间降序）
+     * 重新推算批次状态
+     * 在所有audit_item都审批完成后调用，根据统计结果自动推算批次状态
      *
-     * @param type 目标类型（如 GOODS、STORE 等）
-     * @param targetId 目标ID
-     * @return 最新的审核记录，如果不存在则返回null
-     */
-    Audit queryLatestAudit(AuditType type, Long targetId);
-
-    /**
-     * 批量获取指定目标的最新审核记录
-     * 通过目标类型和多个目标ID，查询每个目标的最近一条审核记录
-     * 返回的Map中：key为targetId，value为对应的最新审核记录，如果某个目标没有审核记录则不包含在结果中
+     * 状态流转规则：
+     * - 所有项都通过 → APPROVED
+     * - 所有项都拒绝 → REJECTED
+     * - 部分通过部分拒绝 → PARTIAL
+     * - 如果还有未审批的项 → 保持 PENDING
      *
-     * @param type 目标类型（如 GOODS、STORE 等）
-     * @param targetIds 目标ID集合
-     * @return 目标ID与最新审核记录的映射，不包含没有审核记录的目标
+     * @param auditId 审核批次ID
      */
-    List<Audit> queryLatestAuditByTypeBatch(AuditType type, Collection<? extends Serializable> targetIds);
+    void recalculateAuditStatus(Long auditId);
 
     /**
-     * 查询指定目标的审核状态
-     * 获取该目标最新审核记录的状态码和状态名称
+     * 获取指定目标的最新审核批次
+     * 通过目标类型和目标ID查询该目标的最近一条审核批次（按创建时间降序）
      *
      * @param type 目标类型（如 GOODS、STORE 等）
      * @param targetId 目标ID
-     * @return 审核状态枚举，如果不存在审核记录则返回null
+     * @return 最新的审核批次，如果不存在则返回null
      */
-    AuditStatus queryAuditStatus(AuditType type, Long targetId);
+    Audit queryLatestAudit(AuditBizType type, Long targetId);
 }

@@ -2,8 +2,10 @@ package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.controller.dto.GoodsStatusUpdateDTO;
-import com.onlineshop.framework.models.audit.application.IAuditAppService;
-import com.onlineshop.framework.models.audit.domain.GoodsAuditRequest;
+import com.onlineshop.framework.models.audit.application.impl.GoodsAuditor;
+import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
+import com.onlineshop.framework.models.audit.dto.GoodsAuditItemDTO;
+import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailWithAuditVO;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
@@ -12,6 +14,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 
 /**
  * 商家商品管理 Controller
@@ -26,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class GoodsMerchantController {
     private final IGoodsAppService goodsAppService;
     private final IGoodsService goodsService;
-    private final IAuditAppService auditAppService;
+    private final GoodsAuditor goodsAuditor;
 
     /**
      * 获取商品详情（包含审核信息）
@@ -56,8 +60,12 @@ public class GoodsMerchantController {
     }
 
     @PostMapping("/publish")
-    public void submitGoods(@Valid @RequestBody GoodsAuditRequest request) {
-        auditAppService.submitAudit(request);
+    public void submitGoods(@Valid @RequestBody GoodsAuditItemDTO goodsAuditItemDTO) {
+        AuditSubmitDTO<GoodsAuditItemDTO> submitDTO = AuditSubmitDTO.of(
+                AuditBizType.GOODS.getCode(),
+                Collections.singletonList(goodsAuditItemDTO)
+        );
+        goodsAuditor.submitAudit(submitDTO);
     }
 
     /**
