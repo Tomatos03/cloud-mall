@@ -18,7 +18,7 @@ import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.entity.OrderItem;
 import com.onlineshop.framework.models.order.enums.OrderStatus;
 import com.onlineshop.framework.models.order.enums.OrderType;
-import com.onlineshop.framework.models.order.strategy.OrderCreateStrategy;
+import com.onlineshop.framework.models.order.strategy.OrderBuildStrategy;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import com.onlineshop.framework.utils.IDNumber;
 import com.onlineshop.framework.utils.image.ImageUtil;
@@ -65,7 +65,7 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public abstract class AbstractOrderCreateStrategy implements OrderCreateStrategy {
+public abstract class AbstractOrderBuildStrategy implements OrderBuildStrategy {
     protected final IGoodsService goodsService;
     protected final IGoodsSkuService goodsSkuService;
     protected final IGoodsSkuSpecService goodsSkuSpecService;

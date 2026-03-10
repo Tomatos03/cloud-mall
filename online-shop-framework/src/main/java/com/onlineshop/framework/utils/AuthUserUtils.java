@@ -1,15 +1,15 @@
 package com.onlineshop.framework.utils;
 
-import com.onlineshop.framework.security.AuthUser;
+import java.util.List;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.List;
-
 import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.utils.AssertUtils;
+import com.onlineshop.framework.models.auth.enums.AccountType;
+import com.onlineshop.framework.security.AuthUser;
 
 /**
  * SecurityUserUtils
@@ -20,7 +20,8 @@ import com.onlineshop.framework.utils.AssertUtils;
  */
 public final class AuthUserUtils {
 
-    private AuthUserUtils() {}
+    private AuthUserUtils() {
+    }
 
     /**
      * 获取当前认证对象
@@ -29,9 +30,8 @@ public final class AuthUserUtils {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
-
     /**
-     * 获取当前认证用户的ParsedToken对象
+     * 获取当前认证用户
      */
     public static AuthUser getAuthUser() {
         Authentication authentication = getAuthentication();
@@ -56,10 +56,14 @@ public final class AuthUserUtils {
         return getAuthUser().getUsername();
     }
 
+    /**
+     * 获取当前用户角色
+     */
     public static List<String> getRoles() {
-        return getAuthUser().getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
+        return getAuthUser().getAuthorities()
+                            .stream()
+                            .map(GrantedAuthority::getAuthority)
+                            .toList();
     }
 
     /**
@@ -67,6 +71,43 @@ public final class AuthUserUtils {
      */
     public static Long getStoreId() {
         return getAuthUser().getStoreId();
+    }
+
+    /**
+     * 获取当前请求账号类型编码
+     */
+    public static String getAccountTypeCode() {
+        String accountTypeCode = getAuthUser().getCurrentAccountType();
+        AssertUtils.assertNotBlank(accountTypeCode, BizErrorCode.INVALID_CLIENT_TYPE);
+        return accountTypeCode;
+    }
+
+    /**
+     * 获取当前请求账号类型
+     */
+    public static AccountType getAccountType() {
+        return AccountType.of(getAccountTypeCode());
+    }
+
+    /**
+     * 当前请求是否来自普通用户端
+     */
+    public static boolean isNormalAccount() {
+        return getAccountType().isNormal();
+    }
+
+    /**
+     * 当前请求是否来自商家端
+     */
+    public static boolean isMerchantAccount() {
+        return getAccountType().isMerchant();
+    }
+
+    /**
+     * 当前请求是否来自管理端
+     */
+    public static boolean isAdminAccount() {
+        return getAccountType().isAdmin();
     }
 
     /**

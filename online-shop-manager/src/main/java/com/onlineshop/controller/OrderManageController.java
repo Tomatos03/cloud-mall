@@ -1,16 +1,21 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.onlineshop.framework.models.order.application.IOrderAppService;
 import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
 import com.onlineshop.framework.models.order.entity.Order;
-import com.onlineshop.framework.models.order.service.IOrderService;
 import com.onlineshop.framework.models.order.vo.OrderAggregateVO;
 import com.onlineshop.framework.models.order.vo.OrderVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 订单管理控制器
@@ -22,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasAuthority('order:view')")
 public class OrderManageController {
     @Autowired
-    private IOrderService orderService;
+    private IOrderAppService orderAppService;
 
     /**
      * 根据订单ID获取订单详情
@@ -33,7 +38,7 @@ public class OrderManageController {
      */
     @GetMapping("/{orderId}")
     public Order getOrder(@PathVariable Long orderId) {
-        return orderService.getById(orderId);
+        return orderAppService.queryOrder(orderId);
     }
 
     /**
@@ -47,7 +52,7 @@ public class OrderManageController {
      */
     @GetMapping("/page")
     public IPage<OrderVO> pageQuery(OrderParamsDTO queryDTO) {
-        return orderService.pageQuery(queryDTO);
+        return orderAppService.pageQueryOrdersForAdmin(queryDTO);
     }
 
     /**
@@ -60,7 +65,7 @@ public class OrderManageController {
      */
     @GetMapping("/detail/{orderNo}")
     public OrderAggregateVO getOrderDetail(@PathVariable String orderNo) {
-        return orderService.getOrderDetailByOrderNo(orderNo);
+        return orderAppService.queryOrderDetail(orderNo);
     }
 
     /**
@@ -73,7 +78,7 @@ public class OrderManageController {
     @PostMapping("/cancel")
     @PreAuthorize("hasAuthority('order:edit')")
     public boolean cancelOrder(@RequestBody OrderCancelDTO cancelDTO) {
-        return orderService.cancelOrder(cancelDTO);
+        return orderAppService.cancelOrder(cancelDTO);
     }
 
     /**
@@ -89,20 +94,17 @@ public class OrderManageController {
     @PostMapping("/ship/{orderNo}")
     @PreAuthorize("hasAuthority('order:edit')")
     public boolean shipOrder(@PathVariable String orderNo) {
-        return orderService.shipOrderMerchant(orderNo);
+        return orderAppService.shipOrder(orderNo);
     }
 
     /**
      * 获取订单评价
-     * 来自 merchant/MerchantOrderController
-     * 商家可以查看用户对订单的评价和自己的回复
-     * Merchant权限：需验证订单是否属于当前商家
      *
      * @param orderNo 订单编号
      * @return 订单信息（包含评价内容）
      */
     @GetMapping("/{orderNo}/comment")
     public OrderVO getOrderComment(@PathVariable String orderNo) {
-        return orderService.getOrderCommentMerchant(orderNo);
+        return orderAppService.queryOrderComment(orderNo);
     }
 }

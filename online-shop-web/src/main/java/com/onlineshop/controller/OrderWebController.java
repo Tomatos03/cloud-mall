@@ -6,10 +6,16 @@ import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
-import com.onlineshop.framework.models.order.service.IOrderService;
+import com.onlineshop.framework.models.order.application.IOrderAppService;
 import com.onlineshop.framework.models.order.vo.OrderAggregateVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 订单 Web 控制器
@@ -22,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/order")
 public class OrderWebController {
     @Autowired
-    private IOrderService orderService;
+    private IOrderAppService orderAppService;
 
     /**
      * 创建订单
@@ -33,7 +39,7 @@ public class OrderWebController {
      */
     @PostMapping("/create/{cartType}")
     public OrderCreateResultDTO createOrder(@RequestBody TradeDTO tradeDTO, @PathVariable String cartType) {
-        return orderService.createOrder(tradeDTO, CartType.of(cartType));
+        return orderAppService.createOrder(tradeDTO, CartType.of(cartType));
     }
 
     /**
@@ -49,7 +55,7 @@ public class OrderWebController {
      */
     @GetMapping("/page")
     public IPage<OrderAggregateVO> pageQuery(OrderParamsDTO queryDTO) {
-        return orderService.pageQueryForUser(queryDTO);
+        return orderAppService.pageQueryOrdersForClient(queryDTO);
     }
 
     /**
@@ -60,7 +66,7 @@ public class OrderWebController {
      */
     @GetMapping("/payment/status")
     public boolean checkPaymentStatus(@RequestParam String orderNo) {
-        return orderService.queryPaymentStatus(orderNo);
+        return orderAppService.queryPaymentStatus(orderNo);
     }
 
     /**
@@ -73,7 +79,7 @@ public class OrderWebController {
      */
     @PostMapping("/cancel")
     public boolean cancelOrder(@RequestBody OrderCancelDTO cancelDTO) {
-        return orderService.cancelOrder(cancelDTO);
+        return orderAppService.cancelOrder(cancelDTO);
     }
 
     /**
@@ -86,6 +92,6 @@ public class OrderWebController {
      */
     @PostMapping("/confirm/{orderNo}")
     public boolean confirmReceipt(@PathVariable String orderNo) {
-        return orderService.finishOrder(orderNo);
+        return orderAppService.finishOrder(orderNo);
     }
 }

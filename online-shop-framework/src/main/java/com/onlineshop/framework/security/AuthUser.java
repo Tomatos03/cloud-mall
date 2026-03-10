@@ -20,7 +20,15 @@ import java.util.Set;
 public class AuthUser extends User {
     private Long userId;
     private Long storeId;
-    private Set<String> accountTypes = new HashSet<>();
+    /**
+     * 当前 token 对应的账号类型（单值）
+     */
+    private String currentAccountType;
+
+    /**
+     * 账号可用的全部端类型（多值，来源于用户表 types）
+     */
+    private Set<String> availableAccountTypes = new HashSet<>();
 
     public AuthUser(String username, String password,
                     Collection<? extends GrantedAuthority> authorities) {

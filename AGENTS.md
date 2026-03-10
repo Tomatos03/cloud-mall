@@ -48,6 +48,7 @@ mvn clean compile -DskipTests 2>&1 | tail -20
 - 常量：`UPPER_SNAKE_CASE`
 - 接口：`I` 前缀（如 `IOrderService`）
 - 实现类：去掉 `I`（如 `OrderService`）
+- 查询方法：统一以 `query` 开头（如 `queryOrderList`、`queryOrderDetail`）
 
 ### Import 顺序
 1. JDK

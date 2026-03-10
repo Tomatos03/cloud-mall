@@ -421,18 +421,38 @@ public class GoodsAppService implements IGoodsAppService {
 
     @Override
     public List<CategoryGoodsSectionVO> getCategoryGoodsSections() {
-        // 一次性查询所有一级和二级分类
-        List<Category> firstLevelCategories = categoryService.getCategoryListByLevel(1);
-        List<Category> secondLevelCategories = categoryService.getCategoryListByLevel(2);
+        // 1. 一次性查询所有启用的分类
+        List<Category> allCategories = categoryService.lambdaQuery()
+                                                      .eq(Category::getStatus, true)
+                                                      .list();
+
+        if (CollUtil.isEmpty(allCategories)) {
+            return Collections.emptyList();
+        }
+
+        // 2. 构建分类层级映射关系
+        Map<Integer, List<Category>> levelMap = allCategories.stream()
+                                                             .collect(Collectors.groupingBy(Category::getLevel));
+
+        Map<Long, List<Category>> parentMap = allCategories.stream()
+                                                           .filter(c -> c.getParentId() != null && c.getParentId() > 0)
+                                                           .collect(Collectors.groupingBy(Category::getParentId));
+
+        List<Category> firstLevelCategories = levelMap.getOrDefault(1, Collections.emptyList());
+        if (CollUtil.isEmpty(firstLevelCategories)) {
+            return Collections.emptyList();
+        }
+
+        // 排序一级分类
+        firstLevelCategories = firstLevelCategories.stream()
+                .sorted(Comparator.comparingInt(c -> c.getSort() == null ? 0 : c.getSort()))
+                .collect(Collectors.toList());
 
         List<CategoryGoodsSectionVO> result = new ArrayList<>();
 
-        // 遍历一级分类，构建分类商品区域
+        // 3. 遍历一级分类，构建分类商品区域
         for (Category firstLevel : firstLevelCategories) {
-            CategoryGoodsSectionVO section = buildCategoryGoodsSection(
-                    firstLevel,
-                    secondLevelCategories
-            );
+            CategoryGoodsSectionVO section = buildCategoryGoodsSectionFast(firstLevel, parentMap);
             if (section != null) {
                 result.add(section);
             }
@@ -441,55 +461,70 @@ public class GoodsAppService implements IGoodsAppService {
     }
 
     /**
-     * 构建一级分类的商品区域信息
-     *
-     * @param firstLevel            一级分类
-     * @param secondLevelCategories 所有二级分类列表
-     * @return 分类商品区域VO，如果没有二级分类则返回null
+     * 快速构建一级分类的商品区域信息，利用预先构建好的 parentMap 避免查库
      */
-    private CategoryGoodsSectionVO buildCategoryGoodsSection(
-            Category firstLevel,
-            List<Category> secondLevelCategories
-    ) {
-        // 筛选属于该一级分类的所有二级分类
-        List<Category> childCategories = filterChildCategoriesSorted(firstLevel.getId(), secondLevelCategories);
-
-        if (CollUtil.isEmpty(childCategories)) {
+    private CategoryGoodsSectionVO buildCategoryGoodsSectionFast(Category firstLevel, Map<Long, List<Category>> parentMap) {
+        List<Category> secondLevelCategories = parentMap.getOrDefault(firstLevel.getId(), Collections.emptyList());
+        if (CollUtil.isEmpty(secondLevelCategories)) {
             return null;
         }
 
-        // 构建一级分类信息
-        CategoryTabVO categoryTabVO = buildCategoryTabVO(firstLevel);
+        // 排序二级分类
+        secondLevelCategories = secondLevelCategories.stream()
+                .sorted(Comparator.comparingInt(c -> c.getSort() == null ? 0 : c.getSort()))
+                .collect(Collectors.toList());
 
-        // 构建二级分类标签列表
-        List<CategoryTabVO> tabs = buildCategoryTabVOList(childCategories);
+        // 收集这个一级分类下所有的子分类ID（包括二级、三级）用于查询商品
+        List<Long> allDescendantIds = new ArrayList<>();
+        allDescendantIds.add(firstLevel.getId());
+
+        // 构建二级分类到其所有子节点ID（包括自己）的映射，用于后续划分商品
+        Map<Long, List<Long>> secondLevelDescendantsMap = new HashMap<>();
+
+        for (Category secondLevel : secondLevelCategories) {
+            List<Long> secondDescendants = new ArrayList<>();
+            secondDescendants.add(secondLevel.getId());
+
+            // 获取三级分类
+            List<Category> thirdLevelCategories = parentMap.getOrDefault(secondLevel.getId(), Collections.emptyList());
+            for (Category thirdLevel : thirdLevelCategories) {
+                secondDescendants.add(thirdLevel.getId());
+            }
+
+            secondLevelDescendantsMap.put(secondLevel.getId(), secondDescendants);
+            allDescendantIds.addAll(secondDescendants);
+        }
+
+        // 去重
+        List<Long> allCategoryIdsToQuery = allDescendantIds.stream().distinct().collect(Collectors.toList());
+
+        // 一次性查询该一级分类下所有分类的商品
+        int totalLimit = GOODS_LIMIT * secondLevelCategories.size();
+        List<Goods> allGoods = goodsService.queryGoodsByMultipleCategoryIds(allCategoryIdsToQuery, totalLimit);
 
         // 构建所有二级分类的商品映射
-        Map<Long, List<GoodsCardVO>> goodsMap = buildGoodsMapForAllChildren(childCategories);
+        Map<Long, List<GoodsCardVO>> goodsMap = new HashMap<>();
+        for (Category secondLevel : secondLevelCategories) {
+            List<Long> relatedCategoryIds = secondLevelDescendantsMap.get(secondLevel.getId());
+
+            List<GoodsCardVO> categoryGoods = allGoods.stream()
+                                                      .filter(goods -> relatedCategoryIds.contains(goods.getCategoryId()))
+                                                      .sorted((g1, g2) -> Integer.compare(
+                                                              g2.getSales() != null ? g2.getSales() : 0,
+                                                              g1.getSales() != null ? g1.getSales() : 0
+                                                      ))
+                                                      .limit(GOODS_LIMIT)
+                                                      .map(GoodsCardVO::convertGoodsCardVO)
+                                                      .collect(Collectors.toList());
+
+            goodsMap.put(secondLevel.getId(), categoryGoods);
+        }
 
         return CategoryGoodsSectionVO.builder()
-                                     .category(categoryTabVO)
-                                     .tabs(tabs)
+                                     .category(buildCategoryTabVO(firstLevel))
+                                     .tabs(buildCategoryTabVOList(secondLevelCategories))
                                      .goodsMap(goodsMap)
                                      .build();
-    }
-
-    /**
-     * 筛选指定一级分类的所有二级分类，按sort排序
-     *
-     * @param parentId              一级分类ID
-     * @param secondLevelCategories 所有二级分类列表
-     * @return 筛选并排序后的二级分类列表
-     */
-    private List<Category> filterChildCategoriesSorted(
-            Long parentId,
-            List<Category> secondLevelCategories
-    ) {
-        return secondLevelCategories.stream()
-                                    .filter(cat -> cat.getParentId()
-                                                      .equals(parentId))
-                                    .sorted(Comparator.comparingInt(Category::getSort))
-                                    .collect(Collectors.toList());
     }
 
     /**
@@ -518,74 +553,7 @@ public class GoodsAppService implements IGoodsAppService {
     }
 
     /**
-     * 构建所有二级分类的商品映射 - 优化版本
-     * 使用批量查询代替逐个查询，显著提升性能（减少N+1查询问题）
-     * <p>
-     * 优化思路：
-     * 1. 为每个二级分类构建"分类树映射"（记录该分类及其所有子分类的ID）
-     * 2. 收集所有需要查询的分类ID（二级 + 三级）
-     * 3. 一次查询所有商品，而不是逐个分类查询
-     * 4. 在内存中按分类分组、排序、截取
-     *
-     * @param childCategories 二级分类列表
-     * @return 分类ID -> 商品列表的映射
-     */
-    private Map<Long, List<GoodsCardVO>> buildGoodsMapForAllChildren(List<Category> childCategories) {
-        Map<Long, List<GoodsCardVO>> goodsMap = new HashMap<>(childCategories.size());
-
-        // 第一步：为每个二级分类构建"分类树映射表"
-        // 用来记录"这个二级分类及其所有子分类"包含哪些分类ID
-        Map<Long, List<Long>> categoryWithChildrenMap = new HashMap<>();
-        List<Long> allCategoryIdsToQuery = new ArrayList<>();
-
-        for (Category category : childCategories) {
-            // 获取该分类及其所有子分类的ID（深度最多3层）
-            List<Long> relatedCategoryIds = getCategoryIdAndChildren(category.getId());
-            categoryWithChildrenMap.put(category.getId(), relatedCategoryIds);
-            allCategoryIdsToQuery.addAll(relatedCategoryIds);
-        }
-
-        // 去重：可能有多个分类指向同一个子分类
-        allCategoryIdsToQuery = allCategoryIdsToQuery.stream()
-                                                     .distinct()
-                                                     .collect(Collectors.toList());
-
-        // 第二步：检查是否有分类需要查询
-        if (CollUtil.isEmpty(allCategoryIdsToQuery)) {
-            return goodsMap;
-        }
-
-        int totalLimit = GOODS_LIMIT * childCategories.size();
-        List<Goods> allGoods = goodsService.queryGoodsByMultipleCategoryIds(
-                allCategoryIdsToQuery,
-                totalLimit
-        );
-
-        // 第四步：在内存中按分类分组和处理
-        for (Category category : childCategories) {
-            // 获取这个分类及其子分类的ID列表
-            List<Long> relatedCategoryIds = categoryWithChildrenMap.get(category.getId());
-
-            // 筛选出属于这个分类体系的商品，按销量排序，取前GOODS_LIMIT个
-            List<GoodsCardVO> categoryGoods = allGoods.stream()
-                                                      .filter(goods -> relatedCategoryIds.contains(
-                                                              goods.getCategoryId()))
-                                                      .sorted((g1, g2) -> Integer.compare(
-                                                              g2.getSales() != null ? g2.getSales() : 0,
-                                                              g1.getSales() != null ? g1.getSales() : 0
-                                                      ))
-                                                      .limit(GOODS_LIMIT)
-                                                      .map(GoodsCardVO::convertGoodsCardVO)
-                                                      .collect(Collectors.toList());
-
-            goodsMap.put(category.getId(), categoryGoods);
-        }
-
-        return goodsMap;
-    }
-
-    /**
-     * 获取分类及其所有子分类的ID列表（BFS算法）
+     * 获取分类及其所有子分类的ID列表（假设最多三级分类，优化查询次数）
      *
      * @param categoryId 分类ID
      * @return 包含该分类及所有子分类的ID列表
@@ -594,19 +562,30 @@ public class GoodsAppService implements IGoodsAppService {
         List<Long> allCategoryIds = new ArrayList<>();
         allCategoryIds.add(categoryId);
 
-        Queue<Long> queue = new LinkedList<>();
-        queue.add(categoryId);
-
-        while (CollUtil.isNotEmpty(queue)) {
-            Long currentId = queue.poll();
-            List<Category> children = categoryService.lambdaQuery()
-                                                     .eq(Category::getParentId, currentId)
-                                                     .list();
-            for (Category child : children) {
-                allCategoryIds.add(child.getId());
-                queue.add(child.getId());
-            }
+        // 查询二级子分类
+        List<Category> children = categoryService.lambdaQuery()
+                                                 .eq(Category::getParentId, categoryId)
+                                                 .list();
+        if (CollUtil.isEmpty(children)) {
+            return allCategoryIds;
         }
+
+        List<Long> childrenIds = children.stream()
+                                         .map(Category::getId)
+                                         .collect(Collectors.toList());
+        allCategoryIds.addAll(childrenIds);
+
+        // 查询三级子分类
+        List<Category> grandChildren = categoryService.lambdaQuery()
+                                                      .in(Category::getParentId, childrenIds)
+                                                      .list();
+        if (CollUtil.isNotEmpty(grandChildren)) {
+            List<Long> grandChildrenIds = grandChildren.stream()
+                                                       .map(Category::getId)
+                                                       .collect(Collectors.toList());
+            allCategoryIds.addAll(grandChildrenIds);
+        }
+
         return allCategoryIds;
     }
 

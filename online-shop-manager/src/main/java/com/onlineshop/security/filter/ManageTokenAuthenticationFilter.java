@@ -100,6 +100,7 @@ public class ManageTokenAuthenticationFilter extends OncePerRequestFilter {
         );
         authUser.setUserId(parsedToken.getUserId());
         authUser.setStoreId(parsedToken.getStoreId());
+        authUser.setCurrentAccountType(parsedToken.getAccountType());
         return authUser;
     }
 

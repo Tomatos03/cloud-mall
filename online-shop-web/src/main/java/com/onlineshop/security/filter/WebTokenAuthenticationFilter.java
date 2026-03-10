@@ -84,6 +84,7 @@ public class WebTokenAuthenticationFilter extends OncePerRequestFilter {
                 Collections.emptyList()
         );
         authUser.setUserId(parsedToken.getUserId());
+        authUser.setCurrentAccountType(parsedToken.getAccountType());
         return authUser;
     }
 }

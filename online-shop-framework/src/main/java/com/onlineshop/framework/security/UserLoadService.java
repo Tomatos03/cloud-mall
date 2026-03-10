@@ -38,7 +38,7 @@ public class UserLoadService implements UserDetailsService {
         List<Role> roles = userService.queryRolesByUserId(user.getId());
         List<SimpleGrantedAuthority> authorities = convertSimpleGrantedAuthorityList(roles);
         AuthUser authUser = new AuthUser(user.getId(), username, user.getPassword(), authorities);
-        authUser.setAccountTypes(parseAccountTypes(user.getTypes()));
+        authUser.setAvailableAccountTypes(parseAccountTypes(user.getTypes()));
 
         supplementStoreInfoForMerchant(authUser);
         return authUser;
@@ -49,7 +49,7 @@ public class UserLoadService implements UserDetailsService {
     }
 
     private void supplementStoreInfoForMerchant(AuthUser authUser) {
-        if (!authUser.getAccountTypes().contains(AccountType.MERCHANT.getCode())) {
+        if (!authUser.getAvailableAccountTypes().contains(AccountType.MERCHANT.getCode())) {
             return;
         }
         Store store = storeService.queryStoreByUserId(authUser.getUserId());

@@ -57,7 +57,7 @@ public class AuthService implements IAuthService {
     }
 
     private void validateAccountType(AuthUser user, AccountType accountType) {
-        AssertUtils.contains(user.getAccountTypes(), accountType.getCode(), BizErrorCode.USERNAME_OR_PASSWORD_ERROR);
+        AssertUtils.contains(user.getAvailableAccountTypes(), accountType.getCode(), BizErrorCode.USERNAME_OR_PASSWORD_ERROR);
     }
 
     @Override

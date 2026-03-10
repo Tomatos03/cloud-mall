@@ -26,9 +26,9 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class InstantBuyOrderCreateStrategy extends AbstractOrderCreateStrategy {
+public class InstantBuyOrderBuildStrategy extends AbstractOrderBuildStrategy {
 
-    public InstantBuyOrderCreateStrategy(
+    public InstantBuyOrderBuildStrategy(
             IGoodsService goodsService,
             IGoodsSkuService goodsSkuService,
             IGoodsSkuSpecService goodsSkuSpecService,

@@ -1,13 +1,18 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.onlineshop.framework.models.order.application.IOrderAppService;
 import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
-import com.onlineshop.framework.models.order.service.IOrderService;
 import com.onlineshop.framework.models.order.vo.OrderAggregateVO;
 import com.onlineshop.framework.models.order.vo.OrderVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  *
@@ -19,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/orders")
 @RequiredArgsConstructor
 public class OrderMerchantController {
-    private final IOrderService orderService;
+    private final IOrderAppService orderAppService;
 
     /**
      * 分页查询订单列表
@@ -30,7 +35,7 @@ public class OrderMerchantController {
      */
     @GetMapping("/page")
     public IPage<OrderVO> pageOrders(OrderParamsDTO paramsDTO) {
-        return orderService.pageQueryForMerchant(paramsDTO);
+        return orderAppService.pageQueryOrdersForAdmin(paramsDTO);
     }
 
     /**
@@ -42,7 +47,7 @@ public class OrderMerchantController {
      */
     @GetMapping("/{orderNo}")
     public OrderAggregateVO getOrderDetail(@PathVariable String orderNo) {
-        return orderService.getOrderDetailByOrderNo(orderNo);
+        return orderAppService.queryOrderDetail(orderNo);
     }
 
     /**
@@ -56,7 +61,7 @@ public class OrderMerchantController {
     @PutMapping("/{orderNo}/cancel")
     public boolean cancelOrder(@PathVariable String orderNo, @RequestBody OrderCancelDTO cancelDTO) {
         cancelDTO.setOrderNo(orderNo);
-        return orderService.cancelOrderMerchant(cancelDTO);
+        return orderAppService.cancelOrder(cancelDTO);
     }
 
     /**
@@ -68,6 +73,6 @@ public class OrderMerchantController {
      */
     @PutMapping("/{orderNo}/ship")
     public boolean shipOrder(@PathVariable String orderNo) {
-        return orderService.shipOrderMerchant(orderNo);
+        return orderAppService.shipOrder(orderNo);
     }
 }

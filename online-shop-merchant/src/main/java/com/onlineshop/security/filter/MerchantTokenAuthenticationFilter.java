@@ -1,6 +1,5 @@
 package com.onlineshop.security.filter;
 
-import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.models.auth.bo.ParsedToken;
 import com.onlineshop.framework.models.auth.enums.AccountType;
 import com.onlineshop.framework.models.auth.service.ITokenService;
@@ -86,6 +85,7 @@ public class MerchantTokenAuthenticationFilter extends OncePerRequestFilter {
         );
         authUser.setUserId(parsedToken.getUserId());
         authUser.setStoreId(parsedToken.getStoreId());
+        authUser.setCurrentAccountType(parsedToken.getAccountType());
         return authUser;
     }
 }

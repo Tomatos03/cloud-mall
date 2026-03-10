@@ -1,14 +1,10 @@
 package com.onlineshop.framework.task.order;
 
-import com.onlineshop.framework.models.order.entity.Order;
-import com.onlineshop.framework.models.order.enums.OrderStatus;
-import com.onlineshop.framework.models.order.service.IOrderService;
+import com.onlineshop.framework.models.order.application.IOrderAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * 订单自动收货定时任务
@@ -32,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderAutoReceiveTask {
 
-    private final IOrderService orderService;
+    private final IOrderAppService orderAppService;
 
     /**
      * 定时扫描并自动确认收货
@@ -50,36 +46,10 @@ public class OrderAutoReceiveTask {
     public void autoReceiveOrders() {
         try {
             log.info("开始执行订单自动收货定时任务");
-            List<Order> shippedOrders = orderService.lambdaQuery()
-                                                    .eq(Order::getStatus,
-                                                        OrderStatus.SHIPPED.getCode())
-                                                    .list();
-            if (shippedOrders.isEmpty()) {
-                log.debug("没有待收货的订单");
-                return;
-            }
-
-            log.info("发现 {} 个待收货的订单，准备执行自动收货逻辑", shippedOrders.size());
-
-            // 2. 逐个处理订单
-            int receivedCount = 0;
-            for (Order order : shippedOrders) {
-                try {
-                    if (orderService.autoReceiveOrder(order)) {
-                        receivedCount++;
-                        log.info("订单自动收货成功，订单ID: {}, 订单号: {}",
-                                 order.getId(), order.getNo());
-                    }
-                } catch (Exception e) {
-                    log.error("订单自动收货失败，订单ID: {}, 订单号: {}",
-                              order.getId(), order.getNo(), e);
-                }
-            }
-
+            int receivedCount = orderAppService.autoReceiveShippedOrders();
             log.info("订单自动收货定时任务完成，共自动收货 {} 个订单", receivedCount);
         } catch (Exception e) {
             log.error("订单自动收货定时任务执行异常", e);
         }
     }
 }
-

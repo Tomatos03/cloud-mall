@@ -35,10 +35,10 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class NormalCartOrderCreateStrategy extends AbstractOrderCreateStrategy {
+public class NormalCartOrderBuildStrategy extends AbstractOrderBuildStrategy {
     private Map<Long, Goods> skuToGoodsMap;
 
-    public NormalCartOrderCreateStrategy(
+    public NormalCartOrderBuildStrategy(
             IGoodsService goodsService,
             IGoodsSkuService goodsSkuService,
             IGoodsSkuSpecService goodsSkuSpecService,

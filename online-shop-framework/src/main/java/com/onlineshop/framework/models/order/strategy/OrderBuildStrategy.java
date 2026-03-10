@@ -17,7 +17,7 @@ import java.util.List;
  * @author : Tomatos
  * @date : 2025/12/24
  */
-public interface OrderCreateStrategy {
+public interface OrderBuildStrategy {
     
     /**
      * 构建订单对象和订单明细
