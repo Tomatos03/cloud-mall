@@ -31,7 +31,7 @@ public enum AuditBizType {
     
     public static final String GOODS_CODE = "GOODS";
     public static final String STORE_REGISTER_CODE = "STORE_REGISTER";
-    public static final String SECKILL_GOODS_CODE = "SECKILL_ACTIVITY";
+    public static final String SECKILL_GOODS_CODE = "SECKILL_GOODS";
 
     private final String code;
     private final String name;

@@ -558,13 +558,11 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
      * 支持多种场景（用户、商家、管理员等）
      * - 如果 closeDTO.userId 为 null，则使用当前登录用户ID
      * - 如果 closeDTO.userId 不为 null，则为指定用户的订单
-     *
-     * @return 是否成功
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean closeOrder(Order order) {
-        return syncUpdateOrderStatus(order, OrderStatus.CLOSED);
+    public void closeOrder(Order order) {
+        syncUpdateOrderStatus(order, OrderStatus.CLOSED);
     }
 
     /**

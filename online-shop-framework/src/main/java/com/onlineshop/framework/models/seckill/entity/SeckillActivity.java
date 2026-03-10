@@ -44,16 +44,16 @@ public class SeckillActivity implements Serializable {
      */
     private String activityDate;
 
-      /**
-       * 活动状态
-       * 0=报名中（商家可申请）
-       * 1=进行中（活动正在进行）
-       * 2=已结束（活动已结束）
-       * 
-       * 注意：使用Integer类型而不是枚举，以便数据库直接存储和查询
-       * 在需要比较时，使用 SeckillActivityStatus.REGISTRATION.getCode() 等方式获取对应的int值
-       */
-      private Integer status;
+    /**
+     * 活动状态
+     * 0=报名中（商家可申请）
+     * 1=进行中（活动正在进行）
+     * 2=已结束（活动已结束）
+     * <p>
+     * 注意：使用Integer类型而不是枚举，以便数据库直接存储和查询
+     * 在需要比较时，使用 SeckillActivityStatus.REGISTRATION.getCode() 等方式获取对应的int值
+     */
+    private Integer status;
 
     /**
      * 活动最大商品数

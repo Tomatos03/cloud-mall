@@ -1,8 +1,9 @@
 package com.onlineshop.framework.models.goods.sku;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.IService;
 
 public interface IGoodsSkuService extends IService<GoodsSku> {
 
@@ -35,4 +36,12 @@ public interface IGoodsSkuService extends IService<GoodsSku> {
      * @param quantity 扣减/增加数量
      */
     void deductInventoryAndIncreaseSales(Long skuId, Integer quantity);
+
+    /**
+     * 分页查询当前商家的SKU列表
+     *
+     * @param params 分页与筛选参数
+     * @return SKU分页数据
+     */
+    IPage<MerchantGoodsSkuItemDTO> pageMerchantGoodsSkus(MerchantGoodsSkuParamsDTO params);
 }

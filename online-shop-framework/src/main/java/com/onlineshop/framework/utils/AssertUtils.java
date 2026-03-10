@@ -156,10 +156,31 @@ public class AssertUtils {
         throw new BizException(errorCode);
     }
 
-    public static void contains(Collection<?> collection, Object element, BizErrorCode errorCode) {
+    /**
+     * 断言集合包含指定元素，如果不包含则抛出业务异常
+     *
+     * @param collection 待验证的集合
+     * @param element    待验证的元素
+     * @param errorCode  条件不满足时抛出的错误码
+     * @param <T>        集合元素类型
+     */
+    public static <T> void contains(Collection<T> collection, T element, BizErrorCode errorCode) {
         if (collection == null || !collection.contains(element)) {
             throw new BizException(errorCode);
         }
     }
-}
 
+    /**
+     * 断言集合不包含指定元素，如果包含则抛出业务异常
+     *
+     * @param collection 待验证的集合
+     * @param element    待验证的元素
+     * @param errorCode  条件不满足时抛出的错误码
+     * @param <T>        集合元素类型
+     */
+    public static <T> void notContains(Collection<T> collection, T element, BizErrorCode errorCode) {
+        if (collection != null && collection.contains(element)) {
+            throw new BizException(errorCode);
+        }
+    }
+}

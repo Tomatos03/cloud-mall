@@ -3,7 +3,6 @@ package com.onlineshop.framework.models.goods.application;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.category.vo.CategoryGoodsSectionVO;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
-import com.onlineshop.framework.models.goods.application.vo.GoodsDetailWithAuditVO;
 import com.onlineshop.framework.models.goods.application.vo.WebGoodsDetailVO;
 import com.onlineshop.framework.models.goods.spu.Goods;
 
@@ -53,15 +52,6 @@ public interface IGoodsAppService {
      * @return 商品详情
      */
     GoodsDetailVO queryGoodsDetail(Long id);
-
-    /**
-     * 获取商品详情（包含审核信息）
-     * 用于商家端查看商品详情及其关联的审核信息
-     *
-     * @param id 商品ID
-     * @return 商品详情和审核信息
-     */
-    GoodsDetailWithAuditVO getGoodsDetailWithAudit(Long id);
 
     /**
      * 按分类ID查询商品（包含子分类）

@@ -6,16 +6,16 @@ import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.entity.AuditItem;
 import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import com.onlineshop.framework.models.audit.enums.AuditItemStatus;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.models.audit.service.IAuditItemService;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.support.JsonSupport;
-import com.onlineshop.framework.utils.AuthUserUtils;
+import com.onlineshop.framework.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -60,11 +60,11 @@ public abstract class AbstractAuditor<T> {
         int size = submitDTO.getItems().size();
         
         log.info("提交审核，业务类型: {}，项数: {}", submitDTO.getBizType(), size);
-        validateAndFill(submitDTO.getItems());
+        validateAndFill(submitDTO);
         transactionTemplate.execute(status -> {
-            // 创建批次
             Audit batch = auditService.createAuditBatch(
                     submitDTO.getBizType(),
+                    submitDTO.getBizPid(),
                     size
             );
             List<AuditItem> auditItemList = buildAuditItems(batch.getId(), submitDTO.getItems());
@@ -104,9 +104,9 @@ public abstract class AbstractAuditor<T> {
      * 验证和填充审核请求
      * 子类实现具体的业务验证逻辑
      *
-     * @param items 待审核的业务对象集合
+     * @param submitDTO 审核提交请求
      */
-    protected abstract void validateAndFill(Collection<T> items);
+    protected abstract void validateAndFill(AuditSubmitDTO<T> submitDTO);
 
     /**
      * 生成单项快照
@@ -131,6 +131,8 @@ public abstract class AbstractAuditor<T> {
      */
     public final void handleDecisions(Long auditId, List<AuditItemDecision> decisions) {
         log.info("处理批量审核决策，批次ID: {}，决策数: {}", auditId, decisions.size());
+        Audit audit = auditService.getById(auditId);
+        AssertUtils.notNull(audit, BizErrorCode.AUDIT_NOT_EXIST);
 
         try {
             transactionTemplate.execute(status -> {
@@ -139,8 +141,6 @@ public abstract class AbstractAuditor<T> {
 
                 Map<Long, AuditItemDecision> decisionMap = createAuditItemIdToDecisionMap(decisions);
                 for (AuditItem item : allItems) {
-                    fillAuditorInfo(item);
-
                     AuditItemDecision decision = decisionMap.get(item.getId());
                     // 统一处理：设置状态和拒绝原因
                     if (decision.getApproved()) {
@@ -159,7 +159,7 @@ public abstract class AbstractAuditor<T> {
                 auditService.recalculateAuditStatus(auditId);
                 log.info("批次状态推算完成，批次ID: {}", auditId);
 
-                onProcessed(auditId, allItems);
+                onProcessed(audit, allItems);
                 return null;
             });
 
@@ -170,12 +170,6 @@ public abstract class AbstractAuditor<T> {
         }
     }
 
-    private static void fillAuditorInfo(AuditItem item) {
-        item.setAuditorId(AuthUserUtils.getUserId());
-        item.setAuditorName(AuthUserUtils.getUsername());
-        item.setAuditTime(LocalDateTime.now());
-    }
-
     @NotNull
     private static Map<Long, AuditItemDecision> createAuditItemIdToDecisionMap(List<AuditItemDecision> decisions) {
         return decisions.stream()
@@ -184,7 +178,7 @@ public abstract class AbstractAuditor<T> {
                         );
     }
 
-    abstract protected void onProcessed(Long auditId, List<AuditItem> allItems);
+    abstract protected void onProcessed(Audit audit, List<AuditItem> allItems);
 
     protected abstract boolean support(AuditBizType auditBizType);
 }

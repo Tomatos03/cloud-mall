@@ -88,14 +88,14 @@ public class AuditAppService implements IAuditAppService {
      * 撤销审核申请
      * 将审核批次和其下所有项目的状态改为已撤销
      *
-     * @param auditId 审核批次ID
+     * @param auditNo 审核批次编号
      */
     @Override
-    public void withdrawAudit(Long auditId) {
-        log.info("开始撤销审核申请，批次ID: {}", auditId);
-
+    public void withdrawAudit(String auditNo) {
         // 1. 获取审核批次
-        Audit audit = auditService.getById(auditId);
+        Audit audit = auditService.lambdaQuery()
+                                  .eq(Audit::getAuditNo, auditNo)
+                                  .one();
         AssertUtils.notNull(audit, BizErrorCode.AUDIT_NOT_EXIST);
 
         // 2. 验证权限：只有申请人才能撤销
@@ -106,15 +106,15 @@ public class AuditAppService implements IAuditAppService {
 
         // 4. 更新批次状态为已撤销
         Audit updateAudit = new Audit();
-        updateAudit.setId(auditId);
-        updateAudit.setStatus(AuditStatus.WITHDRAWN.getCode());
+        updateAudit.setId(audit.getId());
+        updateAudit.setStatus(AuditStatus.REVOKED.getCode());
         auditService.updateById(updateAudit);
-        log.info("批次状态已更新为已撤销，批次ID: {}", auditId);
+        log.info("批次状态已更新为已撤销，批次编号: {}", auditNo);
 
         // 5. 更新所有项目状态为已撤销
-        auditItemService.updateItemStatusByAuditId(auditId, AuditStatus.WITHDRAWN.getCode());
-        log.info("所有审核项目状态已更新为已撤销，批次ID: {}", auditId);
+        auditItemService.updateItemStatusByAuditId(audit.getId(), AuditStatus.REVOKED.getCode());
+        log.info("所有审核项目状态已更新为已撤销，批次编号: {}", auditNo);
 
-        log.info("审核申请撤销完成，批次ID: {}", auditId);
+        log.info("审核申请撤销完成，批次编号: {}", auditNo);
     }
 }

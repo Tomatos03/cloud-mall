@@ -43,6 +43,7 @@ public class Audit {
      * 此字段用于标识审核请求的业务类型，Auditor工厂使用此字段获取对应的处理器
      */
     private String bizType;
+    private Long bizPid;
 
     /**
      * 批次状态: PENDING-待审核, APPROVED-已通过, REJECTED-已拒绝, PARTIAL-部分通过

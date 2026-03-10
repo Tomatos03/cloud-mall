@@ -1,10 +1,11 @@
 package com.onlineshop.framework.utils.image;
 
-import lombok.NonNull;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.collection.CollUtil;
+import lombok.NonNull;
 
 /**
  *
@@ -24,6 +25,13 @@ public class ImageUtil {
     public static String getMainImageUrl(@NonNull String urls, @NonNull String delimiter) {
         String[] urlArray = urls.split(delimiter);
         return urlArray.length > 0 ? urlArray[0] : "";
+    }
+
+    public static String getMainImageUrl(List<String> urlList) {
+        if (CollUtil.isEmpty(urlList)) {
+            return null;
+        }
+        return urlList.get(0);
     }
 
     public static List<String> createImageUrlList(@NonNull String urls) {
@@ -49,7 +57,7 @@ public class ImageUtil {
         return String.join(delimiter, urlList);
     }
 
-    public  static String joinImageUrls(List<String> urlList) {
+    public static String joinImageUrls(List<String> urlList) {
         return joinImageUrls(urlList, ",");
     }
 }

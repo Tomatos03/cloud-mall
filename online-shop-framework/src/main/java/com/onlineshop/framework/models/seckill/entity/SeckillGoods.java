@@ -1,5 +1,9 @@
 package com.onlineshop.framework.models.seckill.entity;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -7,10 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * 秒杀商品表
@@ -42,9 +42,19 @@ public class SeckillGoods implements Serializable {
     private Long activityId;
 
     /**
-     * 商品ID（外键关联goods表）
+     * SKU ID（外键关联goods_sku表）
      */
-    private Long productId;
+    private Long skuId;
+
+    /**
+     * 商品名称快照
+     */
+    private String goodsName;
+
+    /**
+     * 商品主图URL快照
+     */
+    private String mainImageUrl;
 
     /**
      * 商家ID（外键关联merchant表）

@@ -1,21 +1,33 @@
 package com.onlineshop.controller;
 
+import java.util.Collections;
+
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.onlineshop.controller.dto.GoodsStatusUpdateDTO;
 import com.onlineshop.framework.models.audit.application.impl.GoodsAuditor;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.dto.GoodsAuditItemDTO;
 import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
-import com.onlineshop.framework.models.goods.application.vo.GoodsDetailWithAuditVO;
+import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
+import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
+import com.onlineshop.framework.models.goods.sku.MerchantGoodsSkuItemDTO;
+import com.onlineshop.framework.models.goods.sku.MerchantGoodsSkuParamsDTO;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Collections;
 
 /**
  * 商家商品管理 Controller
@@ -30,6 +42,7 @@ import java.util.Collections;
 public class GoodsMerchantController {
     private final IGoodsAppService goodsAppService;
     private final IGoodsService goodsService;
+    private final IGoodsSkuService goodsSkuService;
     private final GoodsAuditor goodsAuditor;
 
     /**
@@ -40,8 +53,8 @@ public class GoodsMerchantController {
      * @return 商品详情及其关联的审核信息
      */
     @GetMapping("/detail/{goodsId}")
-    public GoodsDetailWithAuditVO getGoodsDetailWithAudit(@PathVariable Long goodsId) {
-        return goodsAppService.getGoodsDetailWithAudit(goodsId);
+    public GoodsDetailVO getGoodsDetailWithAudit(@PathVariable Long goodsId) {
+        return goodsAppService.queryGoodsDetail(goodsId);
     }
 
     /**
@@ -82,6 +95,18 @@ public class GoodsMerchantController {
             @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
     ) {
         return goodsService.pageQuery(page, pageSize);
+    }
+
+    /**
+     * 分页查询SKU列表（当前商家）
+     * GET /merchant/goods/skus
+     *
+     * @param params 分页参数
+     * @return SKU分页列表
+     */
+    @GetMapping("/skus")
+    public IPage<MerchantGoodsSkuItemDTO> pageSkus(MerchantGoodsSkuParamsDTO params) {
+        return goodsSkuService.pageMerchantGoodsSkus(params);
     }
 
     /**

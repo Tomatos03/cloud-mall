@@ -9,12 +9,10 @@ import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityParamsDTO;
-import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;
 import com.onlineshop.framework.models.seckill.enums.SeckillActivityStatus;
 import com.onlineshop.framework.models.seckill.entity.SeckillActivity;
 import com.onlineshop.framework.models.seckill.mapper.SeckillActivityMapper;
 import com.onlineshop.framework.models.seckill.service.SeckillActivityService;
-import com.onlineshop.framework.models.seckill.service.SeckillGoodsService;
 import com.onlineshop.framework.models.seckill.vo.SeckillActivityVO;
 import com.onlineshop.framework.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +37,6 @@ import org.springframework.stereotype.Service;
 public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMapper, SeckillActivity> implements SeckillActivityService {
     @Autowired
     private IAuditService auditService;
-    @Autowired
-    private SeckillGoodsService seckillGoodsService;
 
     @Override
     public SeckillActivityVO getSeckillActivityVO(Long id) {
@@ -128,19 +124,6 @@ public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMappe
         queryDTO.setPageSize(params.getPageSize());
 
         return auditService.pageQuery(queryDTO);
-    }
-
-    @Override
-    public IPage<?> getApprovedGoodsInActivity(SeckillGoodsParamsDTO params) {
-        log.info("查询活动中已审核通过的商品，活动ID: {}, 页码: {}, 每页数量: {}", 
-                params.getActivityId(), params.getPage(), params.getPageSize());
-
-        // 验证活动存在
-        SeckillActivity activity = getById(params.getActivityId());
-        AssertUtils.notNull(activity, BizErrorCode.SECKILL_ACTIVITY_NOT_EXIST);
-
-        // 获取活动中所有已审核通过的秒杀商品
-        return seckillGoodsService.getActivityProducts(params);
     }
 
     // ==================== Helper Methods ====================

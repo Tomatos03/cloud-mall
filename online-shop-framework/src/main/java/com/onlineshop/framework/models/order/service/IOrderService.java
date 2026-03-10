@@ -68,7 +68,7 @@ public interface IOrderService extends IService<Order> {
      */
     OrderAggregateVO getOrderDetailByOrderNo(String orderNo);
 
-    boolean closeOrder(Order order);
+    void closeOrder(Order order);
 
     /**
      * 取消订单接口 - DTO版本

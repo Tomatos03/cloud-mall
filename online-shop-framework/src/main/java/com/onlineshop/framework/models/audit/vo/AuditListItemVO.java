@@ -13,9 +13,6 @@ import java.time.LocalDateTime;
  */
 @Data
 public class AuditListItemVO {
-    private Long id;
-
-    /** 批次编号 */
     private String auditNo;
 
     /** 业务类型 */

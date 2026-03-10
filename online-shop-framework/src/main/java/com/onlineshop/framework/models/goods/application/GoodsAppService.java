@@ -1,21 +1,37 @@
 package com.onlineshop.framework.models.goods.application;
 
-import cn.hutool.core.collection.CollectionUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import cn.hutool.core.collection.CollUtil;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.event.goods.DelGoodsFromEsEvent;
 import com.onlineshop.framework.exception.BizException;
-import com.onlineshop.framework.models.audit.entity.Audit;
-import com.onlineshop.framework.models.audit.enums.AuditStatus;
-import com.onlineshop.framework.models.audit.enums.AuditBizType;
-import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
 import com.onlineshop.framework.models.category.vo.CategoryGoodsSectionVO;
 import com.onlineshop.framework.models.category.vo.CategoryTabVO;
-import com.onlineshop.framework.models.goods.application.vo.AuditGoodsVO;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
-import com.onlineshop.framework.models.goods.application.vo.GoodsDetailWithAuditVO;
 import com.onlineshop.framework.models.goods.application.vo.WebGoodsDetailVO;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
 import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
@@ -38,19 +54,10 @@ import com.onlineshop.framework.models.goods.spu.vo.WebSpuVO;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.Store;
 import com.onlineshop.framework.models.store.vo.StoreInfoVO;
-import com.onlineshop.framework.support.JsonSupport;
 import com.onlineshop.framework.utils.AssertUtils;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import com.onlineshop.framework.utils.image.ImageUtil;
 import com.onlineshop.framework.utils.money.Money;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 商品发布聚合应用服务
@@ -68,7 +75,6 @@ public class GoodsAppService implements IGoodsAppService {
     private final ISpecService specService;
     private final ISpecValueService specValueService;
     private final IGoodsSkuSpecService skuSpecService;
-    private final IAuditService auditService;
     private final IStoreService storeService;
     private final ICategoryService categoryService;
     private final ApplicationEventPublisher applicationEventPublisher;
@@ -106,9 +112,7 @@ public class GoodsAppService implements IGoodsAppService {
             skuService.removeByGoodsId(goodsId);
         }
 
-        // 将生成的商品ID回填到命令对象中，供后续保存规格和SKU使用
-        command.setGoodsId(goods.getId());
-        saveSpecificationsAndSkusFromCommand(command);
+        saveSpecificationsAndSkusFromCommand(goods.getId(), command);
         return goods;
     }
 
@@ -143,12 +147,24 @@ public class GoodsAppService implements IGoodsAppService {
     /**
      * 从发布命令保存规格和 SKU
      *
+     * @param goodsId 商品ID
      * @param command 商品发布命令
      */
-    private void saveSpecificationsAndSkusFromCommand(GoodsPublishCommand command) {
+    private void saveSpecificationsAndSkusFromCommand(Long goodsId, GoodsPublishCommand command) {
+        String mainImageUrl = ImageUtil.getMainImageUrl(command.getDisplayImageUrls());
         Map<String, Long> specNameMap = createSpecNameMap(command.getSpecifications());
         Map<String, Long> specValueMap = createSpecValueMap(command.getSpecifications(), specNameMap);
-        saveSkusAndSpecs(command.getGoodsId(), command.getSkus(), specNameMap, specValueMap);
+
+        SkuSaveContext saveContext = SkuSaveContext.builder()
+                                                   .goodsId(goodsId)
+                                                   .skus(command.getSkus())
+                                                   .specNameMap(specNameMap)
+                                                   .specValueMap(specValueMap)
+                                                   .goodsName(command.getGoodsName())
+                                                   .mainImageUrl(mainImageUrl)
+                                                   .storeId(command.getStoreId())
+                                                   .build();
+        saveSkusAndSpecs(saveContext);
     }
 
     /**
@@ -160,7 +176,7 @@ public class GoodsAppService implements IGoodsAppService {
      * @throws BizException 如果SKU列表为空
      */
     private Map.Entry<Long, Long> calculateSkuPriceRange(List<SkuDTO> skus) {
-        if (CollectionUtil.isEmpty(skus)) {
+        if (CollUtil.isEmpty(skus)) {
             throw new BizException(BizErrorCode.SKUS_CANNOT_BE_EMPTY);
         }
 
@@ -189,7 +205,9 @@ public class GoodsAppService implements IGoodsAppService {
     private Map<String, Long> createSpecNameMap(List<SpecificationsDTO> specifications) {
         Map<String, Long> specNameMap = new HashMap<>();
         for (SpecificationsDTO spec : specifications) {
-            Spec specEntity = specService.getSpecByName(spec.getName());
+            Spec specEntity = specService.lambdaQuery()
+                                         .eq(Spec::getName, spec.getName())
+                                         .one();
             if (specEntity == null) {
                 specEntity = addNewSpec(spec);
             }
@@ -223,35 +241,31 @@ public class GoodsAppService implements IGoodsAppService {
 
     /**
      * 保存SKU和规格关联
-     *
-     * @param goodsId      商品ID
-     * @param skus         SKU列表
-     * @param specNameMap  规格名映射表
-     * @param specValueMap 规格值映射表
      */
-    private void saveSkusAndSpecs(Long goodsId, List<SkuDTO> skus,
-                                  Map<String, Long> specNameMap, Map<String, Long> specValueMap) {
+    private void saveSkusAndSpecs(SkuSaveContext saveContext) {
         List<GoodsSkuSpec> skuSpecList = new ArrayList<>();
 
-        for (SkuDTO skuDto : skus) {
-            GoodsSku sku = buildGoodsSku(goodsId, skuDto);
+        for (SkuDTO skuDto : saveContext.getSkus()) {
+            GoodsSku sku = buildGoodsSku(skuDto, saveContext);
             saveGoodsSku(sku);
 
             for (SpeValueDTO speValueDTOValue : skuDto.getSpecs()) {
                 String key = speValueDTOValue.getName() + "_" + speValueDTOValue.getValue();
-                Long specValueId = specValueMap.get(key);
+                Long specValueId = saveContext.getSpecValueMap()
+                                              .get(key);
                 if (specValueId == null) {
                     throw new BizException(BizErrorCode.SPEC_VALUE_INVALID);
                 }
 
-                Long specId = specNameMap.get(speValueDTOValue.getName());
+                Long specId = saveContext.getSpecNameMap()
+                                         .get(speValueDTOValue.getName());
                 GoodsSkuSpec skuSpec = buildGoodsSkuSpec(sku, specId, specValueId);
                 skuSpecList.add(skuSpec);
             }
         }
 
-        if (!skuSpecList.isEmpty()) {
-            skuSpecService.batchAddSpecToSku(skuSpecList);
+        if (CollUtil.isNotEmpty(skuSpecList)) {
+            skuSpecService.saveBatch(skuSpecList);
         }
     }
 
@@ -264,7 +278,7 @@ public class GoodsAppService implements IGoodsAppService {
                               .status(1)
                               .build();
 
-        if (!specService.addSpec(specEntity)) {
+        if (!specService.save(specEntity)) {
             throw new BizException(BizErrorCode.SPEC_SAVE_FAILED);
         }
         return specEntity;
@@ -289,9 +303,14 @@ public class GoodsAppService implements IGoodsAppService {
     /**
      * 构建SKU对象
      */
-    private GoodsSku buildGoodsSku(Long goodsId, SkuDTO skuDTO) {
+    private GoodsSku buildGoodsSku(SkuDTO skuDTO, SkuSaveContext saveContext) {
+        String specSnapshot = buildSpecSnapshot(skuDTO);
         return GoodsSku.builder()
-                       .goodsId(goodsId)
+                       .goodsId(saveContext.getGoodsId())
+                       .goodsName(saveContext.getGoodsName())
+                       .mainImageUrl(saveContext.getMainImageUrl())
+                       .storeId(saveContext.getStoreId())
+                       .specSnapshot(specSnapshot)
                        .price(Money.ofYuan(skuDTO.getPrice())
                                    .getCents())
                        .inventory(skuDTO.getInventory())
@@ -319,6 +338,16 @@ public class GoodsAppService implements IGoodsAppService {
                            .build();
     }
 
+    private String buildSpecSnapshot(SkuDTO skuDTO) {
+        if (CollUtil.isEmpty(skuDTO.getSpecs())) {
+            return "";
+        }
+        return skuDTO.getSpecs()
+                     .stream()
+                     .map(SpeValueDTO::getValue)
+                     .collect(Collectors.joining(" "));
+    }
+
     /**
      * 删除商品（包括SPU、SKU、规格关联及未被使用的规格值）
      * 删除流程：
@@ -340,7 +369,7 @@ public class GoodsAppService implements IGoodsAppService {
         Set<Long> specValueIds = deleteSkusAndCollectSpecValues(id);
         deleteSpu(id);
 
-        if (!CollectionUtil.isEmpty(specValueIds)) {
+        if (CollUtil.isNotEmpty(specValueIds)) {
             deleteSpecValueIfUnused(new ArrayList<>(specValueIds));
         }
         publishDelGoodsFromEsEvent(id);
@@ -364,33 +393,28 @@ public class GoodsAppService implements IGoodsAppService {
     }
 
     /**
-     * 获取商品详情（包含审核信息）
-     * 用于商家端查看商品详情及其关联的审核信息
+     * 按分类ID查询商品（包含子分类）
+     * 递归查询指定分类及其所有子分类下的商品
      *
-     * @param id 商品ID
-     * @return 商品详情和审核信息
+     * @param categoryId 分类ID
+     * @param limit      查询结果数量限制
+     * @return 商品列表
      */
-    public GoodsDetailWithAuditVO getGoodsDetailWithAudit(Long id) {
-        Goods goods = goodsService.getById(id);
-        AssertUtils.notNull(goods, BizErrorCode.GOODS_OR_SHOP_NOT_EXIST);
-        AssertUtils.isEqual(AuthUserUtils.getStoreId(), goods.getStoreId(), BizErrorCode.NO_PERMISSION);
+    @Override
+    public List<Goods> queryGoodsByCategoryId(Long categoryId, int limit) {
+        // 获取该分类及所有子分类的商品ID列表
+        List<Long> categoryIds = getCategoryIdAndChildren(categoryId);
 
-        GoodsDetailWithAuditVO.GoodsDetailWithAuditVOBuilder builder =
-                GoodsDetailWithAuditVO.builder()
-                                      .descriptionImageUrls(
-                                              ImageUtil.createImageUrlList(
-                                                      goods.getDescriptionImages()))
-                                      .specifications(
-                                              buildSpecificationsForDisplay(
-                                                      id))
-                                      .skus(buildSkusForDisplay(
-                                              id));
-
-        Audit latestAudit = auditService.queryLatestAudit(AuditBizType.GOODS, id);
-        if (latestAudit != null) {
-            builder.auditInfo(buildAuditGoodsVO(latestAudit));
+        if (CollUtil.isEmpty(categoryIds)) {
+            return Collections.emptyList();
         }
-        return builder.build();
+
+        // 查询这些分类下的商品
+        return goodsService.lambdaQuery()
+                           .eq(Goods::getStatus, true)
+                           .in(Goods::getCategoryId, categoryIds)
+                           .last("limit " + limit)
+                           .list();
     }
 
     // ==================== 私有保存方法 ====================
@@ -430,7 +454,7 @@ public class GoodsAppService implements IGoodsAppService {
         // 筛选属于该一级分类的所有二级分类
         List<Category> childCategories = filterChildCategoriesSorted(firstLevel.getId(), secondLevelCategories);
 
-        if (childCategories.isEmpty()) {
+        if (CollUtil.isEmpty(childCategories)) {
             return null;
         }
 
@@ -493,96 +517,72 @@ public class GoodsAppService implements IGoodsAppService {
                          .collect(Collectors.toList());
     }
 
-     /**
-      * 构建所有二级分类的商品映射 - 优化版本
-      * 使用批量查询代替逐个查询，显著提升性能（减少N+1查询问题）
-      *
-      * 优化思路：
-      * 1. 为每个二级分类构建"分类树映射"（记录该分类及其所有子分类的ID）
-      * 2. 收集所有需要查询的分类ID（二级 + 三级）
-      * 3. 一次查询所有商品，而不是逐个分类查询
-      * 4. 在内存中按分类分组、排序、截取
-      *
-      * @param childCategories 二级分类列表
-      * @return 分类ID -> 商品列表的映射
-      */
-      private Map<Long, List<GoodsCardVO>> buildGoodsMapForAllChildren(List<Category> childCategories) {
-          Map<Long, List<GoodsCardVO>> goodsMap = new HashMap<>(childCategories.size());
+    /**
+     * 构建所有二级分类的商品映射 - 优化版本
+     * 使用批量查询代替逐个查询，显著提升性能（减少N+1查询问题）
+     * <p>
+     * 优化思路：
+     * 1. 为每个二级分类构建"分类树映射"（记录该分类及其所有子分类的ID）
+     * 2. 收集所有需要查询的分类ID（二级 + 三级）
+     * 3. 一次查询所有商品，而不是逐个分类查询
+     * 4. 在内存中按分类分组、排序、截取
+     *
+     * @param childCategories 二级分类列表
+     * @return 分类ID -> 商品列表的映射
+     */
+    private Map<Long, List<GoodsCardVO>> buildGoodsMapForAllChildren(List<Category> childCategories) {
+        Map<Long, List<GoodsCardVO>> goodsMap = new HashMap<>(childCategories.size());
 
-          // 第一步：为每个二级分类构建"分类树映射表"
-          // 用来记录"这个二级分类及其所有子分类"包含哪些分类ID
-          Map<Long, List<Long>> categoryWithChildrenMap = new HashMap<>();
-          List<Long> allCategoryIdsToQuery = new ArrayList<>();
-          
-          for (Category category : childCategories) {
-              // 获取该分类及其所有子分类的ID（深度最多3层）
-              List<Long> relatedCategoryIds = getCategoryIdAndChildren(category.getId());
-              categoryWithChildrenMap.put(category.getId(), relatedCategoryIds);
-              allCategoryIdsToQuery.addAll(relatedCategoryIds);
-          }
-          
-          // 去重：可能有多个分类指向同一个子分类
-          allCategoryIdsToQuery = allCategoryIdsToQuery.stream()
-              .distinct()
-              .collect(Collectors.toList());
-          
-          // 第二步：检查是否有分类需要查询
-          if (allCategoryIdsToQuery.isEmpty()) {
-              return goodsMap;
-          }
+        // 第一步：为每个二级分类构建"分类树映射表"
+        // 用来记录"这个二级分类及其所有子分类"包含哪些分类ID
+        Map<Long, List<Long>> categoryWithChildrenMap = new HashMap<>();
+        List<Long> allCategoryIdsToQuery = new ArrayList<>();
 
-          int totalLimit = GOODS_LIMIT * childCategories.size();
-          List<Goods> allGoods = goodsService.queryGoodsByMultipleCategoryIds(
-              allCategoryIdsToQuery,
-              totalLimit
-          );
-          
-          // 第四步：在内存中按分类分组和处理
-          for (Category category : childCategories) {
-              // 获取这个分类及其子分类的ID列表
-              List<Long> relatedCategoryIds = categoryWithChildrenMap.get(category.getId());
-              
-              // 筛选出属于这个分类体系的商品，按销量排序，取前GOODS_LIMIT个
-              List<GoodsCardVO> categoryGoods = allGoods.stream()
-                  .filter(goods -> relatedCategoryIds.contains(goods.getCategoryId()))
-                  .sorted((g1, g2) -> Integer.compare(
-                      g2.getSales() != null ? g2.getSales() : 0,
-                      g1.getSales() != null ? g1.getSales() : 0
-                  ))
-                  .limit(GOODS_LIMIT)
-                  .map(GoodsCardVO::convertGoodsCardVO)
-                  .collect(Collectors.toList());
-              
-              goodsMap.put(category.getId(), categoryGoods);
-          }
-         
-         return goodsMap;
-     }
+        for (Category category : childCategories) {
+            // 获取该分类及其所有子分类的ID（深度最多3层）
+            List<Long> relatedCategoryIds = getCategoryIdAndChildren(category.getId());
+            categoryWithChildrenMap.put(category.getId(), relatedCategoryIds);
+            allCategoryIdsToQuery.addAll(relatedCategoryIds);
+        }
 
-     /**
-      * 按分类ID查询商品（包含子分类）
-      * 递归查询指定分类及其所有子分类下的商品
-      *
-      * @param categoryId 分类ID
-      * @param limit      查询结果数量限制
-      * @return 商品列表
-      */
-     @Override
-     public List<Goods> queryGoodsByCategoryId(Long categoryId, int limit) {
-         // 获取该分类及所有子分类的商品ID列表
-         List<Long> categoryIds = getCategoryIdAndChildren(categoryId);
+        // 去重：可能有多个分类指向同一个子分类
+        allCategoryIdsToQuery = allCategoryIdsToQuery.stream()
+                                                     .distinct()
+                                                     .collect(Collectors.toList());
 
-         if (categoryIds.isEmpty()) {
-             return Collections.emptyList();
-         }
+        // 第二步：检查是否有分类需要查询
+        if (CollUtil.isEmpty(allCategoryIdsToQuery)) {
+            return goodsMap;
+        }
 
-         // 查询这些分类下的商品
-         return goodsService.lambdaQuery()
-                            .eq(Goods::getStatus, true)
-                            .in(Goods::getCategoryId, categoryIds)
-                            .last("limit " + limit)
-                            .list();
-     }
+        int totalLimit = GOODS_LIMIT * childCategories.size();
+        List<Goods> allGoods = goodsService.queryGoodsByMultipleCategoryIds(
+                allCategoryIdsToQuery,
+                totalLimit
+        );
+
+        // 第四步：在内存中按分类分组和处理
+        for (Category category : childCategories) {
+            // 获取这个分类及其子分类的ID列表
+            List<Long> relatedCategoryIds = categoryWithChildrenMap.get(category.getId());
+
+            // 筛选出属于这个分类体系的商品，按销量排序，取前GOODS_LIMIT个
+            List<GoodsCardVO> categoryGoods = allGoods.stream()
+                                                      .filter(goods -> relatedCategoryIds.contains(
+                                                              goods.getCategoryId()))
+                                                      .sorted((g1, g2) -> Integer.compare(
+                                                              g2.getSales() != null ? g2.getSales() : 0,
+                                                              g1.getSales() != null ? g1.getSales() : 0
+                                                      ))
+                                                      .limit(GOODS_LIMIT)
+                                                      .map(GoodsCardVO::convertGoodsCardVO)
+                                                      .collect(Collectors.toList());
+
+            goodsMap.put(category.getId(), categoryGoods);
+        }
+
+        return goodsMap;
+    }
 
     /**
      * 获取分类及其所有子分类的ID列表（BFS算法）
@@ -597,11 +597,11 @@ public class GoodsAppService implements IGoodsAppService {
         Queue<Long> queue = new LinkedList<>();
         queue.add(categoryId);
 
-        while (!queue.isEmpty()) {
+        while (CollUtil.isNotEmpty(queue)) {
             Long currentId = queue.poll();
-            List<Category> children = categoryService.list(
-                    new QueryWrapper<Category>().eq("parent_id", currentId)
-            );
+            List<Category> children = categoryService.lambdaQuery()
+                                                     .eq(Category::getParentId, currentId)
+                                                     .list();
             for (Category child : children) {
                 allCategoryIds.add(child.getId());
                 queue.add(child.getId());
@@ -609,28 +609,6 @@ public class GoodsAppService implements IGoodsAppService {
         }
         return allCategoryIds;
     }
-
-     /**
-      * 按销量排序商品并转换为GoodsCardVO
-      * 销量高的排在前面
-      *
-      * @param goods 商品列表
-     * @return 排序后的商品卡片VO列表
-     */
-    private List<GoodsCardVO> sortGoodsBySalesAndConvert(List<Goods> goods) {
-        return goods.stream()
-                    .sorted((g1, g2) -> {
-                        // 销量降序排列
-                        return Integer.compare(
-                                g2.getSales() != null ? g2.getSales() : 0,
-                                g1.getSales() != null ? g1.getSales() : 0
-                        );
-                    })
-                    .map(GoodsCardVO::convertGoodsCardVO)
-                    .collect(Collectors.toList());
-    }
-
-    // ==================== Web详情相关方法 ====================
 
     @Override
     public WebGoodsDetailVO getWebGoodsDetail(Long id) {
@@ -667,6 +645,8 @@ public class GoodsAppService implements IGoodsAppService {
                        .build();
     }
 
+    // ==================== Web详情相关方法 ====================
+
     /**
      * 构建StoreInfoVO
      * 将Store转换为Web端店铺信息展示对象
@@ -691,7 +671,7 @@ public class GoodsAppService implements IGoodsAppService {
      */
     private List<SpecificationVO> buildSpecificationsVOForDisplay(Long goodsId) {
         List<GoodsSku> skus = skuService.listByGoodsId(goodsId);
-        if (CollectionUtil.isEmpty(skus)) {
+        if (CollUtil.isEmpty(skus)) {
             return new ArrayList<>();
         }
 
@@ -703,9 +683,7 @@ public class GoodsAppService implements IGoodsAppService {
             List<GoodsSkuSpec> skuSpecs = skuSpecService.listBySkuId(sku.getId());
             for (GoodsSkuSpec skuSpec : skuSpecs) {
                 if (!specMap.containsKey(skuSpec.getSpecId())) {
-                    com.onlineshop.framework.models.goods.spec.entity.Spec spec =
-                            specService.getSpecById(
-                                    skuSpec.getSpecId());
+                    Spec spec = specService.getById(skuSpec.getSpecId());
                     if (spec != null) {
                         SpecificationVO specification = SpecificationVO.builder()
                                                                        .name(spec.getName())
@@ -756,7 +734,7 @@ public class GoodsAppService implements IGoodsAppService {
      */
     private List<SelectedSkuDTO> buildSelectedSkuDTOList(Long goodsId) {
         List<GoodsSku> skus = skuService.listByGoodsId(goodsId);
-        if (CollectionUtil.isEmpty(skus)) {
+        if (CollUtil.isEmpty(skus)) {
             return new ArrayList<>();
         }
 
@@ -804,51 +782,6 @@ public class GoodsAppService implements IGoodsAppService {
     }
 
     /**
-     * 构建AuditGoodsVO
-     * 从Audit对象构建审核商品信息VO，包含审核状态、拒绝原因及待审核的商品信息
-     *
-     * @param audit 审核记录
-     * @return AuditGoodsVO
-     */
-    private AuditGoodsVO buildAuditGoodsVO(Audit audit) {
-        if (audit == null) {
-            return null;
-        }
-
-        AuditStatus auditStatus = AuditStatus.of(audit.getStatus());
-        String auditStatusName = auditStatus != null ? auditStatus.getName() : "未知";
-
-        AuditGoodsVO.AuditGoodsVOBuilder builder = AuditGoodsVO.builder()
-                                                               .auditId(audit.getId())
-                                                               .auditStatus(audit.getStatus())
-                                                               .auditStatusName(auditStatusName)
-                                                               .auditReason(audit.getReason())
-                                                               .auditTime(audit.getAuditTime())
-                                                               .createTime(audit.getCreateTime());
-
-        // 如果存在待审核的商品信息，则反序列化并构建PendingGoodsInfo
-        if (audit.getSnapshot() != null && !audit.getSnapshot()
-                                                 .isEmpty()) {
-            GoodsDTO goodsDTO = JsonSupport.fromJson(audit.getSnapshot(), GoodsDTO.class);
-            if (goodsDTO != null) {
-                AuditGoodsVO.PendingGoodsInfo pendingGoodsInfo =
-                        AuditGoodsVO.PendingGoodsInfo.builder()
-                                                     .displayImageUrls(goodsDTO.getDisplayImageUrls())
-                                                     .descriptionImageUrls(goodsDTO.getDescriptionImageUrls())
-                                                     .goodsName(goodsDTO.getGoodsName())
-                                                     .sellPoint(goodsDTO.getSellPoint())
-                                                     .specifications(goodsDTO.getSpecifications())
-                                                     .skus(goodsDTO.getSkus())
-                                                     .build();
-
-                builder.pendingGoodsInfo(pendingGoodsInfo);
-            }
-        }
-
-        return builder.build();
-    }
-
-    /**
      * 为展示模式构建规格列表
      * 从商品的所有SKU中提取规格信息，转换为SpecificationsDTO格式
      *
@@ -857,55 +790,82 @@ public class GoodsAppService implements IGoodsAppService {
      */
     private List<SpecificationsDTO> buildSpecificationsForDisplay(Long goodsId) {
         List<GoodsSku> skus = skuService.listByGoodsId(goodsId);
-        if (CollectionUtil.isEmpty(skus)) {
+        if (CollUtil.isEmpty(skus)) {
             return new ArrayList<>();
         }
 
-        // 使用LinkedHashMap保持顺序
-        Map<Long, SpecificationsDTO> specMap = new LinkedHashMap<>();
-
-        // 第一次遍历：收集所有规格
-        for (GoodsSku sku : skus) {
-            List<GoodsSkuSpec> skuSpecs = skuSpecService.listBySkuId(sku.getId());
-            for (GoodsSkuSpec skuSpec : skuSpecs) {
-                if (!specMap.containsKey(skuSpec.getSpecId())) {
-                    com.onlineshop.framework.models.goods.spec.entity.Spec spec =
-                            specService.getSpecById(
-                                    skuSpec.getSpecId());
-                    if (spec != null) {
-                        SpecificationsDTO specification = SpecificationsDTO.builder()
-                                                                           .name(spec.getName())
-                                                                           .values(new ArrayList<>())
-                                                                           .build();
-                        specMap.put(spec.getId(), specification);
-                    }
-                }
-            }
+        List<GoodsSkuSpec> skuSpecs = listSkuSpecsBySkus(skus);
+        if (CollUtil.isEmpty(skuSpecs)) {
+            return new ArrayList<>();
         }
 
-        // 第二次遍历：收集规格值
-        for (GoodsSku sku : skus) {
-            List<GoodsSkuSpec> skuSpecs = skuSpecService.listBySkuId(sku.getId());
-            for (GoodsSkuSpec skuSpec : skuSpecs) {
-                SpecificationsDTO specification = specMap.get(skuSpec.getSpecId());
-                if (specification != null) {
-                    SpecValue specValue = specValueService.getValueById(skuSpec.getSpecValueId());
-                    if (specValue != null) {
-                        // 避免重复添加相同的规格值
-                        boolean exists = specification.getValues()
-                                                      .stream()
-                                                      .anyMatch(
-                                                              v -> v.equals(specValue.getValue()));
-                        if (!exists) {
-                            specification.getValues()
-                                         .add(specValue.getValue());
-                        }
-                    }
-                }
-            }
-        }
+        Map<Long, String> specNameMap = buildSpecNameMap(skuSpecs);
+        Map<Long, String> specValueMap = buildSpecValueMap(skuSpecs);
+        Map<Long, LinkedHashSet<String>> groupedSpecValues = groupSpecValuesBySpecId(skuSpecs, specValueMap);
+        return buildSpecificationsFromGroupedValues(groupedSpecValues, specNameMap);
+    }
 
-        return new ArrayList<>(specMap.values());
+    private List<GoodsSkuSpec> listSkuSpecsBySkus(List<GoodsSku> skus) {
+        List<Long> skuIds = skus.stream()
+                                .map(GoodsSku::getId)
+                                .collect(Collectors.toList());
+        return skuSpecService.lambdaQuery()
+                             .in(GoodsSkuSpec::getSkuId, skuIds)
+                             .list();
+    }
+
+    private Map<Long, String> buildSpecNameMap(List<GoodsSkuSpec> skuSpecs) {
+        Set<Long> specIds = skuSpecs.stream()
+                                    .map(GoodsSkuSpec::getSpecId)
+                                    .collect(Collectors.toSet());
+        return specService.lambdaQuery()
+                          .in(Spec::getId, specIds)
+                          .list()
+                          .stream()
+                          .collect(Collectors.toMap(Spec::getId, Spec::getName));
+    }
+
+    private Map<Long, String> buildSpecValueMap(List<GoodsSkuSpec> skuSpecs) {
+        Set<Long> specValueIds = skuSpecs.stream()
+                                         .map(GoodsSkuSpec::getSpecValueId)
+                                         .collect(Collectors.toSet());
+        return specValueService.lambdaQuery()
+                               .in(SpecValue::getId, specValueIds)
+                               .list()
+                               .stream()
+                               .collect(Collectors.toMap(SpecValue::getId, SpecValue::getValue));
+    }
+
+    private Map<Long, LinkedHashSet<String>> groupSpecValuesBySpecId(List<GoodsSkuSpec> skuSpecs,
+                                                                      Map<Long, String> specValueMap) {
+        Map<Long, LinkedHashSet<String>> groupedValues = new LinkedHashMap<>();
+        for (GoodsSkuSpec skuSpec : skuSpecs) {
+            String specValue = specValueMap.get(skuSpec.getSpecValueId());
+            if (specValue == null) {
+                continue;
+            }
+            groupedValues.computeIfAbsent(skuSpec.getSpecId(), k -> new LinkedHashSet<>())
+                         .add(specValue);
+        }
+        return groupedValues;
+    }
+
+    private List<SpecificationsDTO> buildSpecificationsFromGroupedValues(
+            Map<Long, LinkedHashSet<String>> groupedSpecValues,
+            Map<Long, String> specNameMap
+    ) {
+        List<SpecificationsDTO> specifications = new ArrayList<>(groupedSpecValues.size());
+        for (Map.Entry<Long, LinkedHashSet<String>> entry : groupedSpecValues.entrySet()) {
+            String specName = specNameMap.get(entry.getKey());
+            if (specName == null) {
+                continue;
+            }
+            specifications.add(SpecificationsDTO.builder()
+                                                .name(specName)
+                                                .values(new ArrayList<>(entry.getValue()))
+                                                .build());
+        }
+        return specifications;
     }
 
     /**
@@ -917,7 +877,7 @@ public class GoodsAppService implements IGoodsAppService {
      */
     private List<SkuDTO> buildSkusForDisplay(Long goodsId) {
         List<GoodsSku> skus = skuService.listByGoodsId(goodsId);
-        if (CollectionUtil.isEmpty(skus)) {
+        if (CollUtil.isEmpty(skus)) {
             return new ArrayList<>();
         }
 
@@ -947,8 +907,7 @@ public class GoodsAppService implements IGoodsAppService {
     private List<SpeValueDTO> buildSpeValueDTOS(List<GoodsSkuSpec> skuSpecs) {
         List<SpeValueDTO> speValueDTOS = new ArrayList<>();
         for (GoodsSkuSpec skuSpec : skuSpecs) {
-            com.onlineshop.framework.models.goods.spec.entity.Spec spec = specService.getSpecById(
-                    skuSpec.getSpecId());
+            Spec spec = specService.getById(skuSpec.getSpecId());
             SpecValue specValue = specValueService.getValueById(skuSpec.getSpecValueId());
             if (spec != null && specValue != null) {
                 SpeValueDTO speValueDTO = SpeValueDTO.builder()
@@ -971,7 +930,7 @@ public class GoodsAppService implements IGoodsAppService {
                                 .collect(Collectors.toList());
 
         Set<Long> specValueIds = new HashSet<>();
-        if (!CollectionUtil.isEmpty(skuIds)) {
+        if (CollUtil.isNotEmpty(skuIds)) {
             specValueIds = collectSpecValueIdsFromSkus(skuIds);
             skuSpecService.removeBySkuIds(skuIds);
             skuService.removeByGoodsId(goodsId);
@@ -992,7 +951,7 @@ public class GoodsAppService implements IGoodsAppService {
      * 删除不再被引用的规格值
      */
     private void deleteSpecValueIfUnused(List<Long> specValueIds) {
-        if (CollectionUtil.isEmpty(specValueIds)) {
+        if (CollUtil.isEmpty(specValueIds)) {
             return;
         }
 
@@ -1026,5 +985,37 @@ public class GoodsAppService implements IGoodsAppService {
             }
         }
         return specValueIds;
+    }
+
+    /**
+     * 按销量排序商品并转换为GoodsCardVO
+     * 销量高的排在前面
+     *
+     * @param goods 商品列表
+     * @return 排序后的商品卡片VO列表
+     */
+    private List<GoodsCardVO> sortGoodsBySalesAndConvert(List<Goods> goods) {
+        return goods.stream()
+                    .sorted((g1, g2) -> {
+                        // 销量降序排列
+                        return Integer.compare(
+                                g2.getSales() != null ? g2.getSales() : 0,
+                                g1.getSales() != null ? g1.getSales() : 0
+                        );
+                    })
+                    .map(GoodsCardVO::convertGoodsCardVO)
+                    .collect(Collectors.toList());
+    }
+
+    @Getter
+    @Builder
+    private static class SkuSaveContext {
+        private Long goodsId;
+        private List<SkuDTO> skus;
+        private Map<String, Long> specNameMap;
+        private Map<String, Long> specValueMap;
+        private String goodsName;
+        private String mainImageUrl;
+        private Long storeId;
     }
 }

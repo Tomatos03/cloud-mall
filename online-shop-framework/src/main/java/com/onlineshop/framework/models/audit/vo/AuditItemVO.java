@@ -41,11 +41,6 @@ public class AuditItemVO {
     private String snapshot;
 
     /**
-     * 排序号
-     */
-    private Integer sort;
-
-    /**
      * 审批人ID
      */
     private Long auditorId;

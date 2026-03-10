@@ -1,17 +1,11 @@
 package com.onlineshop.framework.models.search.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.onlineshop.framework.models.goods.spu.Goods;
-import com.onlineshop.framework.models.goods.spu.IGoodsService;
-import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
-import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
-import com.onlineshop.framework.models.search.enums.SortType;
-import com.onlineshop.framework.models.search.index.GoodsIndex;
-import com.onlineshop.framework.models.search.repository.GoodsIndexRepository;
-import com.onlineshop.framework.models.search.service.IGoodsEsService;
-import com.onlineshop.framework.utils.PageUtil;
-import com.onlineshop.framework.utils.money.Money;
+import co.elastic.clients.json.JsonData;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +19,18 @@ import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.onlineshop.framework.models.goods.spu.Goods;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.dto.GoodsSearchDTO;
+import com.onlineshop.framework.models.goods.spu.vo.GoodsCardVO;
+import com.onlineshop.framework.models.search.enums.SortType;
+import com.onlineshop.framework.models.search.index.GoodsIndex;
+import com.onlineshop.framework.models.search.repository.GoodsIndexRepository;
+import com.onlineshop.framework.models.search.service.IGoodsEsService;
+import com.onlineshop.framework.utils.PageUtil;
+import com.onlineshop.framework.utils.money.Money;
 
 /**
  * 商品搜索服务实现
@@ -160,7 +163,7 @@ public class GoodsEsService implements IGoodsEsService {
             );
         }
 
-        if (searchDTO.getKeyword() != null) {
+        if (StringUtils.hasText(searchDTO.getKeyword())) {
             queryBuilder = queryBuilder.withQuery(builder -> builder
                     .multiMatch(multiMatchBuilder -> multiMatchBuilder
                             .fields("name^3", "sellPoint^2")
@@ -169,30 +172,36 @@ public class GoodsEsService implements IGoodsEsService {
             );
         }
 
-        if (searchDTO.getMinPrice() != null) {
+        Long minPriceCents = parsePriceToCents(searchDTO.getMinPrice());
+        if (minPriceCents != null) {
             queryBuilder = queryBuilder.withFilter(builder -> builder
                     .range(rangeBuilder -> rangeBuilder
-                            .term(numberBuilder -> numberBuilder
+                            .untyped(untypedBuilder -> untypedBuilder
                                     .field("minPrice")
-                                    .gte(Money.ofYuan(searchDTO.getMinPrice())
-                                              .toYuanString()
-                                    )
+                                    .gte(JsonData.of(minPriceCents))
                             ))
             );
         }
 
-        if (searchDTO.getMaxPrice() != null) {
+        Long maxPriceCents = parsePriceToCents(searchDTO.getMaxPrice());
+        if (maxPriceCents != null) {
             queryBuilder = queryBuilder.withFilter(builder -> builder
                     .range(rangeBuilder -> rangeBuilder
-                            .term(numberBuilder -> numberBuilder
+                            .untyped(untypedBuilder -> untypedBuilder
                                     .field("maxPrice")
-                                    .lte(Money.ofYuan(searchDTO.getMaxPrice())
-                                              .toYuanString()
-                                    )
+                                    .lte(JsonData.of(maxPriceCents))
                             ))
             );
         }
         return queryBuilder.build();
+    }
+
+    private Long parsePriceToCents(String priceYuan) {
+        if (!StringUtils.hasText(priceYuan)) {
+            return null;
+        }
+        return Money.ofYuan(priceYuan.trim())
+                    .getCents();
     }
 
     private void setSortType(@NonNull Query query, @NonNull SortType type) {

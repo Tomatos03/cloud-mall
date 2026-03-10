@@ -1,19 +1,19 @@
 package com.onlineshop.framework.models.audit.dto;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * 秒杀活动审核项目DTO
- * 代表一个审核批次中的单个秒杀活动审核项目
- * 包含申请加入活动的商品列表
- * 
+ * 代表一个审核批次中的单个秒杀商品审核项目
+ * <p>
  * 设计说明：
  * - 对应 AuditItem 表，存储在 snapshot 字段中
- * - 包含秒杀活动和商品的完整信息
+ * - 批次级活动信息由 Audit.bizPid 表示
  * - 审核员基于此信息做出批准或拒绝决策
  *
  * @author Tomatos
@@ -22,36 +22,38 @@ import java.util.List;
 @Data
 public class SeckillGoodsAuditItemDTO {
     /**
-     * 秒杀活动ID
-     * 所有商品都参与这个活动
+     * SKU ID（秒杀申请绑定具体 SKU）
      */
-    private Long activityId;
+    @NotNull
+    private Long skuId;
 
     /**
-     * 商品列表
-     * - 必填，至少包含1个商品
-     * - 所有商品共享同一个 activityId
-     * - 支持N个商品批量申请
+     * 商品名称（提交审核时自动填充）
      */
-    private List<SeckillGoodsItem> items;
+    private String goodsName;
 
-    private class SeckillGoodsItem implements Serializable {
+    /**
+     * 商品主图（提交审核时自动填充）
+     */
+    private String mainImageUrl;
 
-        private static final long serialVersionUID = 1L;
+    private String specSnapshot; // 规格快照（提交审核时自动填充）
 
-        /**
-         * 商品ID
-         */
-        private Long goodsId;
+    private Long storeId;
 
-        /**
-         * 秒杀价格
-         */
-        private BigDecimal seckillPrice;
+    private Long originPrice;
 
-        /**
-         * 秒杀库存
-         */
-        private Integer stock;
-    }
+    /**
+     * 秒杀价格
+     */
+    @NotNull
+    @DecimalMin(value = "0.01")
+    private BigDecimal seckillPrice;
+
+    /**
+     * 秒杀库存
+     */
+    @NotNull
+    @Min(value = 1)
+    private Integer stock;
 }

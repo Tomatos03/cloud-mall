@@ -13,10 +13,10 @@ import java.util.List;
 
 /**
  * 订单关闭消息补偿定时任务
- *
+ * <p>
  * 功能：定时扫描消息发送失败的订单，重新发送订单关闭消息
  * 这是一个兜底方案，确保超时订单最终一定会被关闭
- *
+ * <p>
  * 执行频率：每10分钟执行一次
  *
  * @author : Tomatos
@@ -43,11 +43,10 @@ public class OrderTimeoutCloseTask {
 
     private List<Order> queryTimeoutUnPaidOrders() {
         return orderService.lambdaQuery()
-                           .eq(Order::getStatus,
-                               OrderStatus.CREATED) // 状态为CREATED
+                           .eq(Order::getStatus, OrderStatus.CREATED) // 状态为CREATED
                            .le(Order::getCreateTime, LocalDateTime.now()
-                                                                  .minusMinutes(
-                                                                          30)) // 创建时间早于30分钟前
+                                                                  .minusMinutes(30)
+                           )
                            .list();
     }
 }

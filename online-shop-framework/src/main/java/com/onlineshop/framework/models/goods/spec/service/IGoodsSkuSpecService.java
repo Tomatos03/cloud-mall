@@ -34,14 +34,6 @@ public interface IGoodsSkuSpecService extends IService<GoodsSkuSpec> {
     boolean addSpecToSku(Long skuId, Long specId, Long specValueId);
 
     /**
-     * 批量为SKU添加规格
-     *
-     * @param specList 规格列表
-     * @return 是否成功
-     */
-    boolean batchAddSpecToSku(List<GoodsSkuSpec> specList);
-
-    /**
      * 删除SKU的规格关联
      *
      * @param skuId SKU ID

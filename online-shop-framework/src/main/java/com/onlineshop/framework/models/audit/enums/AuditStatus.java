@@ -15,7 +15,7 @@ import java.util.Arrays;
  * APPROVED("APPROVED", "已通过") - 所有项都通过
  * REJECTED("REJECTED", "已拒绝") - 所有项都拒绝
  * PARTIAL("PARTIAL", "部分通过") - 部分项通过，部分项拒绝
- * WITHDRAWN("WITHDRAWN", "已撤销") - 申请人已撤销该批次
+ * REVOKED("REVOKED", "已撤销") - 申请人已撤销该批次
  */
 @AllArgsConstructor
 @Getter
@@ -43,7 +43,7 @@ public enum AuditStatus {
     /**
      * 已撤销
      */
-    WITHDRAWN("WITHDRAWN", "已撤销");
+    REVOKED("REVOKED", "已撤销");
 
     private final String code;
     private final String name;

@@ -45,8 +45,8 @@ public interface IAuditAppService {
      * 撤销审核申请（仅限待审核状态）
      * 撤销审核批次和其下所有项目，将其状态改为已撤销
      *
-     * @param auditId 审核批次ID
+     * @param auditNo 审核批次编号
      * @throws com.onlineshop.framework.exception.BizException 当审核批次不存在或状态不符合要求时
      */
-    void withdrawAudit(Long auditId);
+    void withdrawAudit(String auditNo);
 }

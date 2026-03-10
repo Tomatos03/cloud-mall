@@ -1,12 +1,12 @@
 package com.onlineshop.framework.models.seckill.dto;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
 
 /**
  * 秒杀商品数据传输对象
@@ -19,7 +19,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SeckillGoodsDTO implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     /**
@@ -28,24 +27,29 @@ public class SeckillGoodsDTO implements Serializable {
     private Long id;
 
     /**
-     * 活动ID
+     * 审核项ID
      */
-    private Long activityId;
+    private Long auditItemId;
 
     /**
-     * 审核记录ID
+     * 状态（商家查询时为审核状态：PENDING/APPROVED/REJECTED）
      */
-    private Long auditId;
+    private String status;
 
     /**
-     * 商品ID
+     * SKU ID
      */
-    private Long productId;
+    private Long skuId;
 
     /**
-     * 商家ID
+     * 商品名称
      */
-    private Long merchantId;
+    private String goodsName;
+
+    /**
+     * 商品主图URL
+     */
+    private String mainImageUrl;
 
     /**
      * 秒杀价格
@@ -56,9 +60,4 @@ public class SeckillGoodsDTO implements Serializable {
      * 秒杀库存
      */
     private Integer stock;
-
-    /**
-     * 已售数量
-     */
-    private Integer soldCount;
 }

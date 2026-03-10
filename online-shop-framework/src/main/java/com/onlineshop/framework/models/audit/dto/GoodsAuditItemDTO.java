@@ -23,7 +23,7 @@ import java.util.List;
 @Data
 public class GoodsAuditItemDTO {
     /**
-     * 商品ID (更新商品时使用，新增时为null)
+     * 商品ID
      */
     private Long goodsId;
 
@@ -53,7 +53,6 @@ public class GoodsAuditItemDTO {
     /**
      * 单位名称
      */
-    @NotBlank(message = "单位名称不能为空")
     private String unitName;
     
     /**
@@ -81,11 +80,13 @@ public class GoodsAuditItemDTO {
      */
     @NotNull(message = "店铺ID不能为空")
     private Long storeId;
+
+    private Long minPrice;
+    private Long maxPrice;
     
     /**
      * 店铺名称
      */
-    @NotBlank(message = "店铺名称不能为空")
     private String storeName;
     
     /**

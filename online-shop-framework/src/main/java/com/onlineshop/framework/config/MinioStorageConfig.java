@@ -30,7 +30,7 @@ public class MinioStorageConfig {
      */
     @Bean
     public MinioClient minioClient() {
-        log.info("开始创建 MinioClient 对象...");
+        log.debug("开始创建 MinioClient 对象...");
         
         FileProperties.Minio minioConfig = fileProperties.getMinio();
         
@@ -39,7 +39,7 @@ public class MinioStorageConfig {
                 .credentials(minioConfig.getAccessKey(), minioConfig.getSecretKey())
                 .build();
         
-        log.info("MinioClient 创建成功，连接地址: {}", minioConfig.getUrl());
+        log.info("MinioClient 创建成功");
         return client;
     }
 }

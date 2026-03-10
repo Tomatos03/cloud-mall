@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.audit.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -54,15 +55,6 @@ public class AuditItemService extends ServiceImpl<AuditItemMapper, AuditItem> im
      * 将AuditItem转换为AuditItemVO
      */
     private AuditItemVO convertToVO(AuditItem item) {
-        AuditItemVO vo = new AuditItemVO();
-        vo.setId(item.getId());
-        vo.setBizId(item.getBizId());
-        vo.setStatus(item.getStatus());
-        vo.setReason(item.getReason());
-        vo.setSnapshot(item.getSnapshot());
-        vo.setAuditorId(item.getAuditorId());
-        vo.setAuditorName(item.getAuditorName());
-        vo.setAuditTime(item.getAuditTime());
-        return vo;
+        return BeanUtil.copyProperties(item, AuditItemVO.class);
     }
 }

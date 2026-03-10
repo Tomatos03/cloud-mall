@@ -35,7 +35,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAuditService {
-
     @Autowired
     private IAuditItemService auditItemService;
 
@@ -57,13 +56,22 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
         return auditItemService.getAuditById(auditId);
     }
 
-    // ==================== 批次创建 ====================
+    @Override
+    public List<AuditItemVO> getAuditByNo(String auditNo) {
+        log.info("查询审核批次详情，批次编号: {}", auditNo);
+        Audit audit = this.lambdaQuery()
+                          .eq(Audit::getAuditNo, auditNo)
+                          .one();
+        AssertUtils.notNull(audit, BizErrorCode.AUDIT_NOT_EXIST);
+        return auditItemService.getAuditById(audit.getId());
+    }
 
     @Override
-    public Audit createAuditBatch(String bizType, int itemCount) {
+    public Audit createAuditBatch(String bizType, Long bizPid, int itemCount) {
         Audit audit = Audit.builder()
                            .auditNo(IDNumber.generateAuditNo())
                            .bizType(bizType)
+                           .bizPid(bizPid)
                            .status(AuditStatus.PENDING.getCode())
                            .totalCount(itemCount)
                            .approvedCount(0)
@@ -114,8 +122,6 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
                 log.info("批次 {} 部分通过部分拒绝，状态更新为 PARTIAL", auditId);
             }
         }
-        // 否则保持 PENDING（表示还有未审批的项）
-
         updateById(audit);
     }
 
@@ -139,6 +145,7 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
         LambdaQueryWrapper<Audit> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(queryDTO.getStatus() != null, Audit::getStatus, queryDTO.getStatus());
         wrapper.eq(queryDTO.getApplicantId() != null, Audit::getApplicantId, queryDTO.getApplicantId());
+        wrapper.eq(queryDTO.getBizPid() != null, Audit::getBizPid, queryDTO.getBizPid());
         wrapper.orderByDesc(Audit::getCreateTime);
         return wrapper;
     }

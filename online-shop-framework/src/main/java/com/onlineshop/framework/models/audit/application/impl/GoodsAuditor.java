@@ -3,7 +3,9 @@ package com.onlineshop.framework.models.audit.application.impl;
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.event.goods.SyncGoodsToEsEvent;
 import com.onlineshop.framework.models.audit.application.AbstractAuditor;
+import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.dto.GoodsAuditItemDTO;
+import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.entity.AuditItem;
 import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import com.onlineshop.framework.models.audit.enums.AuditItemStatus;
@@ -11,12 +13,14 @@ import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
 import com.onlineshop.framework.models.goods.application.GoodsPublishCommand;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
+import com.onlineshop.framework.models.goods.sku.SkuDTO;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.unit.IUnitService;
 import com.onlineshop.framework.models.goods.unit.Unit;
 import com.onlineshop.framework.models.store.IStoreService;
 import com.onlineshop.framework.models.store.Store;
 import com.onlineshop.framework.utils.AssertUtils;
+import com.onlineshop.framework.utils.money.Money;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,7 +46,8 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
     private final IStoreService storeService;
 
     @Override
-    protected void validateAndFill(Collection<GoodsAuditItemDTO> items) {
+    protected void validateAndFill(AuditSubmitDTO<GoodsAuditItemDTO> submitDTO) {
+        Collection<GoodsAuditItemDTO> items = submitDTO.getItems();
         log.info("验证和填充商品审核项，共 {} 个", items.size());
 
         for (GoodsAuditItemDTO goods : items) {
@@ -59,6 +64,8 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
             Store store = storeService.getById(goods.getStoreId());
             AssertUtils.notNull(store, BizErrorCode.STORE_NOT_EXIST);
             goods.setStoreName(store.getName());
+
+            fillPriceRange(goods);
         }
         
         log.info("商品审核项验证和填充完成");
@@ -73,11 +80,12 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
      * 2. 对于通过的项：发布商品
      * 3. 对于拒绝的项：仅记录（可选业务处理）
      *
-     * @param auditId 审核批次ID
+     * @param audit 审核批次
      * @param items   批次中的所有项（已按审核决策更新状态）
      */
     @Override
-    protected void onProcessed(Long auditId, List<AuditItem> items) {
+    protected void onProcessed(Audit audit, List<AuditItem> items) {
+        Long auditId = audit.getId();
         log.info("处理商品审核结果，批次ID: {}，项数: {}", auditId, items.size());
 
         for (AuditItem item : items) {
@@ -114,5 +122,26 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
                                   .specifications(item.getSpecifications())
                                   .skus(item.getSkus())
                                   .build();
+    }
+
+    /**
+     * 计算并填充商品SKU价格区间（单位：分）
+     */
+    private void fillPriceRange(GoodsAuditItemDTO item) {
+        AssertUtils.notEmpty(item.getSkus(), BizErrorCode.SKUS_CANNOT_BE_EMPTY);
+
+        Long minPrice = null;
+        Long maxPrice = null;
+        for (SkuDTO sku : item.getSkus()) {
+            long currentPrice = Money.ofYuan(sku.getPrice()).getCents();
+            if (minPrice == null || currentPrice < minPrice) {
+                minPrice = currentPrice;
+            }
+            if (maxPrice == null || currentPrice > maxPrice) {
+                maxPrice = currentPrice;
+            }
+        }
+        item.setMinPrice(minPrice);
+        item.setMaxPrice(maxPrice);
     }
 }

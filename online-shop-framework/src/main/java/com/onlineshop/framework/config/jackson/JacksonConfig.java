@@ -1,5 +1,6 @@
 package com.onlineshop.framework.config.jackson;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
@@ -29,6 +30,7 @@ public class JacksonConfig {
                     LocalDateTime.class,
                     new LocalDateTimeSerializer(formatter)
             );
+            builder.serializationInclusion(JsonInclude.Include.NON_NULL);
             // 添加 BigDecimal 序列化为字符串
             builder.serializerByType(
                     BigDecimal.class,

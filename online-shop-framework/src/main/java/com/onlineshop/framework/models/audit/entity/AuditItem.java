@@ -8,8 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 /**
  * 审核项目表
  * 
@@ -59,17 +57,12 @@ public class AuditItem {
     private String snapshot;
 
     /**
-     * 审批人ID
+     * 上一条审核明细ID（用于串联审核版本）
      */
-    private Long auditorId;
+    private Long prevItemId;
 
     /**
-     * 审批人姓名
+     * 是否为最新审核记录: 1=是, 0=否
      */
-    private String auditorName;
-
-    /**
-     * 审批时间
-     */
-    private LocalDateTime auditTime;
+    private Integer isLatest;
 }

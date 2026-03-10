@@ -18,11 +18,10 @@ public class AuditParamsDTO extends PageParamsDTO {
      * 被审核对象类型
      */
     private String bizType;
-
     /**
-     * 被审核对象ID
+     * 业务父ID（如秒杀活动ID）
      */
-    private Long bizId;
+    private Long bizPid;
 
     private String status;
 
@@ -30,9 +29,4 @@ public class AuditParamsDTO extends PageParamsDTO {
      * 申请人ID
      */
     private Long applicantId;
-
-    /**
-     * 审核人ID
-     */
-    private Long auditorId;
 }

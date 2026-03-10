@@ -35,15 +35,23 @@ public interface IAuditService extends IService<Audit> {
     List<AuditItemVO> getAuditById(Long auditId);
 
     /**
+     * 根据批次编号获取审核批次详情
+     *
+     * @param auditNo 审核批次编号
+     * @return 审核项目列表
+     * @throws BizException 当审核批次不存在时
+     */
+    List<AuditItemVO> getAuditByNo(String auditNo);
+
+    /**
      * 创建审核批次
      *
      * @param bizType 业务类型
-     * @param applicantId 申请人ID
-     * @param applicantName 申请人名称
+     * @param bizPid 业务父ID（如秒杀活动ID）
      * @param itemCount 项数量
      * @return 创建的Audit对象
      */
-    Audit createAuditBatch(String bizType,  int itemCount);
+    Audit createAuditBatch(String bizType, Long bizPid, int itemCount);
 
     /**
      * 重新推算批次状态

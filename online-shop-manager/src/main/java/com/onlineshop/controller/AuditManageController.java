@@ -8,6 +8,7 @@ import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.audit.vo.AuditItemVO;
 import com.onlineshop.framework.models.audit.vo.AuditListItemVO;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,20 @@ public class AuditManageController {
     public IPage<AuditListItemVO> pageQuery(AuditParamsDTO auditQueryDTO) {
         log.info("分页查询审核记录，页码: {}, 每页数量: {}", auditQueryDTO.getPage(), auditQueryDTO.getPageSize());
         return auditService.pageQuery(auditQueryDTO);
+    }
+
+    /**
+     * 获取审核详情
+     * GET /merchant/audit/{auditNo}/detail
+     * 按审核批次编号查询审核项目列表
+     *
+     * @param auditNo 审核批次编号
+     * @return 审核项目列表（包含reason、snapshot、status等字段）
+     */
+    @GetMapping("/{auditNo}/detail")
+    public List<AuditItemVO> getDetailByAuditNo(@PathVariable @NotBlank String auditNo) {
+        log.debug("管理员按审核编号查询审核详情，审核批次编号: {}", auditNo);
+        return auditService.getAuditByNo(auditNo);
     }
 
     /**

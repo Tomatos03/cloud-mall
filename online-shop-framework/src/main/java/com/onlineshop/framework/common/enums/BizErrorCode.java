@@ -181,7 +181,7 @@ public enum BizErrorCode {
     SECKILL_STOCK_EXCEEDS_PRODUCT_STOCK(92013, "秒杀库存不能超过商品库存"),
     ACTIVITY_MUST_ADVANCE_24_HOURS(92014, "秒杀活动必须提前24小时以上"),
     ACTIVITY_DURATION_MUST_BE_ONE_HOUR(92015, "秒杀活动时长必须为1小时"),
-    PRODUCT_ALREADY_IN_SECKILL(92016, "该商品已参加秒杀活动，无法重复参加"),
+    GOODS_ALREADY_IN_SECKILL_ACTIVITY(92016, "该商品已参加秒杀活动，无法重复参加"),
     PRODUCT_NOT_ACTIVE(92017, "商品未上架，无法参加秒杀"),
     INVALID_TIME_RANGE(92018, "开始时间必须早于结束时间"),
     PRODUCT_ID_REQUIRED(92019, "商品ID不能为空"),
@@ -194,7 +194,9 @@ public enum BizErrorCode {
     INVALID_ACTIVITY_STATUS(92026, "活动状态无效，仅报名中的活动可参加"),
     ACTIVITY_MAX_ITEMS_REACHED(92027, "该活动已达到最大商品数限制"),
     ITEMS_REQUIRED(92028, "商品列表不能为空"),
-    ITEMS_EMPTY(92029, "商品列表不能为空，至少需要1个商品");
+    ITEMS_EMPTY(92029, "商品列表不能为空，至少需要1个商品"),
+    SECKILL_GOODS_NOT_FOUND(92030, "秒杀商品不存在")
+    ;
 
     final int code;
     final String errorMessage;

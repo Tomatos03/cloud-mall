@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityParamsDTO;
-import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;
 import com.onlineshop.framework.models.seckill.entity.SeckillActivity;
 import com.onlineshop.framework.models.seckill.vo.SeckillActivityVO;
 
@@ -79,12 +78,4 @@ public interface SeckillActivityService extends IService<SeckillActivity> {
      * @return 审核申请列表
      */
     IPage<?> listAuditApplies(SeckillActivityParamsDTO params);
-
-    /**
-     * 获取活动中所有已审核通过的秒杀商品
-     *
-     * @param params 秒杀商品查询参数
-     * @return 已审核通过的秒杀商品分页数据
-     */
-    IPage<?> getApprovedGoodsInActivity(SeckillGoodsParamsDTO params);
 }

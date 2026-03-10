@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.onlineshop.framework.models.audit.application.AbstractAuditor;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.dto.StoreRegisterAuditItemDTO;
+import com.onlineshop.framework.models.audit.entity.Audit;
 import com.onlineshop.framework.models.audit.entity.AuditItem;
 import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import com.onlineshop.framework.models.audit.enums.AuditItemStatus;
@@ -14,7 +15,6 @@ import com.onlineshop.framework.models.system.user.IUserService;
 import com.onlineshop.framework.models.system.user.entity.User;
 import com.onlineshop.framework.models.system.user.entity.UserQualification;
 import com.onlineshop.framework.models.system.user.mapper.UserQualificationMapper;
-import com.onlineshop.framework.support.JsonSupport;
 import com.onlineshop.framework.utils.IDNumber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +49,7 @@ public class StoreRegisterAuditor extends AbstractAuditor<StoreRegisterAuditItem
     }
 
     @Override
-    protected void validateAndFill(Collection<StoreRegisterAuditItemDTO> items) {
+    protected void validateAndFill(AuditSubmitDTO<StoreRegisterAuditItemDTO> submitDTO) {
         // 店铺注册审核请求验证
     }
 
@@ -61,11 +61,12 @@ public class StoreRegisterAuditor extends AbstractAuditor<StoreRegisterAuditItem
      * 2. 对于通过的项：创建店铺、保存资质、添加商家账户类型
      * 3. 对于拒绝的项：仅记录拒绝原因
      *
-     * @param auditId 审核批次ID
+     * @param audit 审核批次
      * @param items   批次中的所有项（已按审核决策更新状态）
      */
     @Override
-    protected void onProcessed(Long auditId, List<AuditItem> items) {
+    protected void onProcessed(Audit audit, List<AuditItem> items) {
+        Long auditId = audit.getId();
         log.info("处理店铺注册审核结果，批次ID: {}，项数: {}", auditId, items.size());
 
         for (AuditItem item : items) {

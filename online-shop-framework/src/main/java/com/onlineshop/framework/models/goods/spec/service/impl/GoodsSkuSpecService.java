@@ -36,11 +36,6 @@ public class GoodsSkuSpecService extends ServiceImpl<GoodsSkuSpecMapper, GoodsSk
     }
 
     @Override
-    public boolean batchAddSpecToSku(List<GoodsSkuSpec> specList) {
-        return saveBatch(specList);
-    }
-
-    @Override
     public int removeBySkuId(Long skuId) {
         return baseMapper.delete(new QueryWrapper<GoodsSkuSpec>()
                                          .eq("sku_id", skuId));
