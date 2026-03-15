@@ -24,7 +24,7 @@ public class AuditItemService extends ServiceImpl<AuditItemMapper, AuditItem> im
     // ==================== 查询方法 ====================
 
     @Override
-    public List<AuditItem> queryByAuditId(Long auditId) {
+    public List<AuditItem> queryAuditItems(Long auditId) {
         log.info("查询审核项目列表，批次ID: {}", auditId);
         LambdaQueryWrapper<AuditItem> wrapper = new LambdaQueryWrapper<AuditItem>()
                 .eq(AuditItem::getAuditId, auditId);
@@ -34,7 +34,7 @@ public class AuditItemService extends ServiceImpl<AuditItemMapper, AuditItem> im
     @Override
     public List<AuditItemVO> getAuditById(Long auditId) {
         log.info("查询审核项目VO列表，批次ID: {}", auditId);
-        List<AuditItem> items = queryByAuditId(auditId);
+        List<AuditItem> items = queryAuditItems(auditId);
         return items.stream()
                     .map(this::convertToVO)
                     .collect(Collectors.toList());

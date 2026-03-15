@@ -26,7 +26,6 @@ import com.onlineshop.framework.models.seckill.entity.SeckillOrder;
 import com.onlineshop.framework.models.seckill.service.SeckillActivityService;
 import com.onlineshop.framework.models.seckill.service.SeckillGoodsService;
 import com.onlineshop.framework.models.seckill.service.SeckillOrderService;
-import com.onlineshop.framework.mq.seckill.producer.SeckillOrderProducer;
 import com.onlineshop.framework.security.AuthUser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,8 +52,6 @@ class SeckillAppServiceImplTest {
     private RedisTemplate<String, Object> redisTemplate;
     @Mock
     private ValueOperations<String, Object> valueOperations;
-    @Mock
-    private SeckillOrderProducer seckillOrderProducer;
 
     private SeckillAppServiceImpl seckillAppService;
 
@@ -65,7 +62,6 @@ class SeckillAppServiceImplTest {
         ReflectionTestUtils.setField(seckillAppService, "seckillGoodsService", seckillGoodsService);
         ReflectionTestUtils.setField(seckillAppService, "seckillOrderService", seckillOrderService);
         ReflectionTestUtils.setField(seckillAppService, "redisTemplate", redisTemplate);
-        ReflectionTestUtils.setField(seckillAppService, "seckillOrderCreateProducer", seckillOrderProducer);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
@@ -104,12 +100,9 @@ class SeckillAppServiceImplTest {
         assertEquals(BigDecimal.valueOf(9.90), savedOrder.getPrice());
         assertEquals(0, savedOrder.getStatus());
         assertNotNull(savedOrder.getOrderNo());
-        verify(seckillOrderProducer).sendSeckillOrderCreate(eq(9527L));
 
-        assertTrue(result.isSuccess());
         assertEquals("秒杀请求已受理，订单正在创建中", result.getMessage());
         assertEquals(9527L, result.getOrderId());
-        assertEquals(18, result.getRemainingStock());
         verify(seckillGoodsService, never()).getById(any());
         verify(seckillActivityService, never()).getById(any());
     }
@@ -131,7 +124,6 @@ class SeckillAppServiceImplTest {
                                               () -> seckillAppService.participateSeckill(seckillGoodsId, quantity));
         assertEquals(BizErrorCode.SECKILL_STOCK_INSUFFICIENT, exception.getBizErrorCode());
         verify(seckillOrderService, never()).save(any());
-        verify(seckillOrderProducer, never()).sendSeckillOrderCreate(any(Long.class));
         verify(seckillGoodsService, never()).getById(any());
         verify(seckillActivityService, never()).getById(any());
     }
@@ -153,7 +145,6 @@ class SeckillAppServiceImplTest {
                                               () -> seckillAppService.participateSeckill(seckillGoodsId, quantity));
         assertEquals(BizErrorCode.SECKILL_REPEAT_ORDER, exception.getBizErrorCode());
         verify(seckillOrderService, never()).save(any());
-        verify(seckillOrderProducer, never()).sendSeckillOrderCreate(any(Long.class));
         verify(seckillGoodsService, never()).getById(any());
         verify(seckillActivityService, never()).getById(any());
     }

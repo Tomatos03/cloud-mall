@@ -62,8 +62,8 @@ public class AuditAppService implements IAuditAppService {
     @Override
     public void submitAuditDecisions(AuditDecisionDTO batchDecision, String type) {
         AbstractAuditor<?> auditor = auditorFactory.getAuditor(type);
-        auditor.handleDecisions(batchDecision.getAuditId(), batchDecision.getDecisions());
-        log.info("批量审核决策处理完成，审核批次ID: {}", batchDecision.getAuditId());
+        auditor.handleDecisions(batchDecision.getAuditNo(), batchDecision.getDecisions());
+        log.info("批量审核决策处理完成，审核批次ID: {}", batchDecision.getAuditNo());
     }
 
     /**

@@ -39,7 +39,7 @@ public class WebTokenAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
         String requestUri = request.getRequestURI();
-        log.info("Method[{}], URI: {}", request.getMethod(), requestUri);
+        log.info("{} {}", request.getMethod(), requestUri);
         try {
             String token;
             ParsedToken parsedToken;

@@ -23,6 +23,8 @@ public class TransactionCommitSendMQEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onTransactionCommitSendMQEvent(TransactionCommitSendMQEvent event) {
+        // https://github.com/apache/rocketmq-spring/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98
+        // desination规定格式: topicName:tagName
         String destination = event.getTopic() + ":" + event.getTag();
         Object message = event.getMessage();
         if (message instanceof Message<?> springMessage) {

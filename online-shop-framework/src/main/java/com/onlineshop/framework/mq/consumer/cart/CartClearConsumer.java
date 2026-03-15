@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @RocketMQMessageListener(
         topic = "${mq.topic.cart}",
         selectorExpression = MQTag.CART_CLEAR,
-        consumerGroup = "${rocketmq.consumer.group}"
+        consumerGroup = "${mq.group.cart}"
 )
 public class CartClearConsumer implements RocketMQListener<ClearCartEvent> {
     private final ICartService cartService;

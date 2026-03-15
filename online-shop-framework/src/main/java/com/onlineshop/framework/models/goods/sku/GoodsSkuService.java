@@ -60,10 +60,10 @@ public class GoodsSkuService extends ServiceImpl<GoodsSkuMapper, GoodsSku> imple
                                         .ge(GoodsSku::getInventory, quantity)
                                         .update();
         if (updated) {
-            log.info("SKU库存扣减失败, skuId: {}, 库存不足", skuId);
+            log.info("SKU库存扣减成功, skuId: {}, 扣减库存: {}", skuId, quantity);
             return;
         }
-        log.info("SKU库存扣减成功, skuId: {}, 扣减库存: {}", skuId, quantity);
+        log.info("SKU库存扣减失败, skuId: {}, 库存不足", skuId);
     }
 
     @Override

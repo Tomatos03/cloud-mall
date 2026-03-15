@@ -14,8 +14,8 @@ import java.util.UUID;
  * @date : 2025/12/24
  */
 public class IDNumber {
-    private static final String PARENT_ORDER_ID_PREFIX = "P";
-    private static final String STORE_ID_PREFIX = "S";
+    private static final String ORDER_ID_PREFIX = "ORD";
+    private static final String STORE_ID_PREFIX = "STO";
     private static final String AUDIT_ID_PREFIX = "AUD";
 
     public static String generateStoreNo() {
@@ -33,11 +33,7 @@ public class IDNumber {
     public static String generateOrderNo() {
         String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-        return timestamp + uuid;
-    }
-
-    public static String generateParentOrderNo() {
-        return PARENT_ORDER_ID_PREFIX + generateOrderNo();
+        return ORDER_ID_PREFIX + timestamp + uuid;
     }
 
     /**

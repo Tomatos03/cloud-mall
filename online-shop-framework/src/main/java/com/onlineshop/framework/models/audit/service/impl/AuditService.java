@@ -91,7 +91,7 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
         Audit audit = getById(auditId);
         AssertUtils.notNull(audit, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
 
-        List<AuditItem> items = auditItemService.queryByAuditId(auditId);
+        List<AuditItem> items = auditItemService.queryAuditItems(auditId);
         AssertUtils.notEmpty(items, BizErrorCode.AUDIT_LOG_NOT_EXISTS);
 
         int totalCount = items.size();

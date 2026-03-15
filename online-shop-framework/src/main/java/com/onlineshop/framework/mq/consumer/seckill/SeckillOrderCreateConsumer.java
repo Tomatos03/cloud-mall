@@ -1,5 +1,13 @@
 package com.onlineshop.framework.mq.consumer.seckill;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.event.MQTag;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
@@ -17,13 +25,6 @@ import com.onlineshop.framework.models.seckill.service.SeckillGoodsService;
 import com.onlineshop.framework.models.seckill.service.SeckillOrderService;
 import com.onlineshop.framework.utils.AssertUtils;
 import com.onlineshop.framework.utils.money.Money;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
-import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 秒杀下单消息消费者
@@ -36,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RocketMQMessageListener(
         topic = "${mq.topic.seckill}",
         selectorExpression = MQTag.SECKILL_ORDER_CREATE,
-        consumerGroup = "${rocketmq.consumer.group}"
+        consumerGroup = "${mq.group.seckill}"
 )
 public class SeckillOrderCreateConsumer implements RocketMQListener<Long> {
     private final IGoodsSkuService goodsSkuService;
@@ -46,6 +47,7 @@ public class SeckillOrderCreateConsumer implements RocketMQListener<Long> {
     private final SeckillOrderService seckillOrderService;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void onMessage(Long seckillOrderId) {
         try {
             createOrder(seckillOrderId);
@@ -58,21 +60,7 @@ public class SeckillOrderCreateConsumer implements RocketMQListener<Long> {
     @Transactional(rollbackFor = Exception.class)
     public void createOrder(Long seckillOrderId) {
         SeckillOrder seckillOrder = seckillOrderService.getById(seckillOrderId);
-        if (seckillOrder == null) {
-            log.warn("秒杀订单不存在，忽略消息, seckillOrderId: {}", seckillOrderId);
-            return;
-        }
-
-        if (!SeckillOrderStatus.UNPAID.getCode().equals(seckillOrder.getStatus())) {
-            log.info("秒杀订单状态不是未支付，忽略消息, seckillOrderId: {}, status: {}",
-                     seckillOrderId, seckillOrder.getStatus());
-            return;
-        }
-
-        Order existedOrder = orderService.queryByOrderNo(seckillOrder.getOrderNo());
-        if (existedOrder != null) {
-            log.info("秒杀订单已完成异步建单，忽略重复消息, seckillOrderId: {}, orderNo: {}",
-                     seckillOrderId, seckillOrder.getOrderNo());
+        if (shouldSkipCreateOrder(seckillOrderId, seckillOrder)) {
             return;
         }
 
@@ -86,6 +74,36 @@ public class SeckillOrderCreateConsumer implements RocketMQListener<Long> {
         long goodsPrice = seckillPrice.getCents();
         long totalPrice = seckillPrice.mul(seckillOrder.getQuantity()).getCents();
 
+        Order order = saveOrder(seckillOrder, sku, totalPrice);
+        saveOrderItem(seckillOrder, seckillGoods, sku, order.getId(), goodsPrice, totalPrice);
+        updateGoodsSaleData(seckillOrder, seckillGoods, sku);
+
+        log.info("秒杀订单异步建单成功, seckillOrderId: {}, orderId: {}, orderNo: {}",
+                 seckillOrderId, order.getId(), order.getNo());
+    }
+
+    private boolean shouldSkipCreateOrder(Long seckillOrderId, SeckillOrder seckillOrder) {
+        if (seckillOrder == null) {
+            log.warn("秒杀订单不存在，忽略消息, seckillOrderId: {}", seckillOrderId);
+            return true;
+        }
+
+        if (!SeckillOrderStatus.UNPAID.getCode().equals(seckillOrder.getStatus())) {
+            log.info("秒杀订单状态不是未支付，忽略消息, seckillOrderId: {}, status: {}",
+                     seckillOrderId, seckillOrder.getStatus());
+            return true;
+        }
+
+        Order existedOrder = orderService.queryByOrderNo(seckillOrder.getOrderNo());
+        if (existedOrder != null) {
+            log.info("秒杀订单已完成异步建单，忽略重复消息, seckillOrderId: {}, orderNo: {}",
+                     seckillOrderId, seckillOrder.getOrderNo());
+            return true;
+        }
+        return false;
+    }
+
+    private Order saveOrder(SeckillOrder seckillOrder, GoodsSku sku, long totalPrice) {
         Order order = Order.builder()
                            .no(seckillOrder.getOrderNo())
                            .userId(seckillOrder.getUserId())
@@ -100,9 +118,17 @@ public class SeckillOrderCreateConsumer implements RocketMQListener<Long> {
                            .build();
         boolean orderSaved = orderService.save(order);
         AssertUtils.isTrue(orderSaved, BizErrorCode.ORDER_CREATE_FAILED);
+        return order;
+    }
 
+    private void saveOrderItem(SeckillOrder seckillOrder,
+                               SeckillGoods seckillGoods,
+                               GoodsSku sku,
+                               Long orderId,
+                               long goodsPrice,
+                               long totalPrice) {
         OrderItem orderItem = OrderItem.builder()
-                                       .orderId(order.getId())
+                                       .orderId(orderId)
                                        .skuId(sku.getId())
                                        .goodsId(sku.getGoodsId())
                                        .goodsName(seckillGoods.getGoodsName())
@@ -115,7 +141,9 @@ public class SeckillOrderCreateConsumer implements RocketMQListener<Long> {
                                        .build();
         boolean orderItemSaved = orderItemService.save(orderItem);
         AssertUtils.isTrue(orderItemSaved, BizErrorCode.ORDER_CREATE_FAILED);
+    }
 
+    private void updateGoodsSaleData(SeckillOrder seckillOrder, SeckillGoods seckillGoods, GoodsSku sku) {
         seckillGoodsService.lambdaUpdate()
                            .eq(SeckillGoods::getId, seckillGoods.getId())
                            .setSql("sold_count = IFNULL(sold_count, 0) + " + seckillOrder.getQuantity())
@@ -123,7 +151,5 @@ public class SeckillOrderCreateConsumer implements RocketMQListener<Long> {
 
         goodsSkuService.deductInventory(sku.getId(), seckillOrder.getQuantity());
         goodsSkuService.increaseSales(sku.getId(), seckillOrder.getQuantity());
-        log.info("秒杀订单异步建单成功, seckillOrderId: {}, orderId: {}, orderNo: {}",
-                 seckillOrderId, order.getId(), order.getNo());
     }
 }

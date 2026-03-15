@@ -150,7 +150,7 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
                 maxPrice = currentPrice;
             }
         }
-        item.setMinPrice(minPrice);
-        item.setMaxPrice(maxPrice);
+        item.setMinPrice(Money.ofCents(minPrice).toYuanString());
+        item.setMaxPrice(Money.ofCents(maxPrice).toYuanString());
     }
 }

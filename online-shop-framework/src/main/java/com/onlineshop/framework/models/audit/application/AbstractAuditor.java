@@ -126,17 +126,19 @@ public abstract class AbstractAuditor<T> {
     /**
      * 处理审核决策
      *
-     * @param auditId   审核批次ID
+     * @param auditNo   审核批次编号
      * @param decisions 该批次内所有项的决策列表
      */
-    public final void handleDecisions(Long auditId, List<AuditItemDecision> decisions) {
-        log.info("处理批量审核决策，批次ID: {}，决策数: {}", auditId, decisions.size());
-        Audit audit = auditService.getById(auditId);
+    public final void handleDecisions(String auditNo, List<AuditItemDecision> decisions) {
+        log.info("处理批量审核决策，批次编号: {}，决策数: {}", auditNo, decisions.size());
+        Audit audit = auditService.lambdaQuery()
+                                  .eq(Audit::getAuditNo, auditNo)
+                                  .one();
         AssertUtils.notNull(audit, BizErrorCode.AUDIT_NOT_EXIST);
 
         try {
             transactionTemplate.execute(status -> {
-                List<AuditItem> allItems = auditItemService.queryByAuditId(auditId);
+                List<AuditItem> allItems = auditItemService.queryAuditItems(audit.getId());
                 log.debug("查询批次项目，数量: {}", allItems.size());
 
                 Map<Long, AuditItemDecision> decisionMap = createAuditItemIdToDecisionMap(decisions);
@@ -154,18 +156,18 @@ public abstract class AbstractAuditor<T> {
                 }
 
                 auditItemService.updateBatchById(allItems);
-                log.info("批量更新项目完成，批次ID: {}，项数: {}", auditId, allItems.size());
+                log.info("批量更新项目完成，批次编号: {}，项数: {}", auditNo, allItems.size());
 
-                auditService.recalculateAuditStatus(auditId);
-                log.info("批次状态推算完成，批次ID: {}", auditId);
+                auditService.recalculateAuditStatus(audit.getId());
+                log.info("批次状态推算完成，批次编号: {}", auditNo);
 
                 onProcessed(audit, allItems);
                 return null;
             });
 
-            log.info("审核决策落库成功，批次ID: {}", auditId);
+            log.info("审核决策落库成功，批次编号: {}", auditNo);
         } catch (Exception e) {
-            log.error("审核决策落库失败，批次ID: {}", auditId, e);
+            log.error("审核决策落库失败，批次编号: {}", auditNo, e);
             throw e;
         }
     }

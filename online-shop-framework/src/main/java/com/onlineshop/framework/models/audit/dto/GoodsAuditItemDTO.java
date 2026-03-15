@@ -81,8 +81,8 @@ public class GoodsAuditItemDTO {
     @NotNull(message = "店铺ID不能为空")
     private Long storeId;
 
-    private Long minPrice;
-    private Long maxPrice;
+    private String minPrice;
+    private String maxPrice;
     
     /**
      * 店铺名称

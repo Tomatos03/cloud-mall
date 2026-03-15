@@ -25,7 +25,7 @@ public class AuditDecisionDTO {
      * 审核批次ID
      */
     @NotNull(message = "审核批次ID不能为空")
-    private Long auditId;
+    private String auditNo;
 
     /**
      * 该批次内所有项的决策列表

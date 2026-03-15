@@ -17,7 +17,7 @@ public interface IAuditItemService extends IService<AuditItem> {
      * @param auditId 批次ID
      * @return 项列表
      */
-    List<AuditItem> queryByAuditId(Long auditId);
+    List<AuditItem> queryAuditItems(Long auditId);
 
     /**
      * 根据批次ID查询所有项的VO

@@ -88,9 +88,9 @@ public class AuditManageController {
             @Valid @RequestBody AuditDecisionDTO decisionDTO,
             @PathVariable String type
     ) {
-        log.info("提交审核决策，审核批次ID: {}, 业务类型: {}, 决策数量: {}", 
-                 decisionDTO.getAuditId(), type, decisionDTO.getDecisions().size());
+        log.info("提交审核决策，审核批次ID: {}, 业务类型: {}, 决策数量: {}",
+                 decisionDTO.getAuditNo(), type, decisionDTO.getDecisions().size());
         auditAppService.submitAuditDecisions(decisionDTO, type);
-        log.info("审核决策提交完成，审核批次ID: {}", decisionDTO.getAuditId());
+        log.info("审核决策提交完成，审核批次ID: {}", decisionDTO.getAuditNo());
     }
 }

@@ -51,8 +51,6 @@ rocketmq:
     group: online-mall-group
     send-message-timeout: 3000
     namespace:
-  consumer:
-    group: order_timeout_cancel_group
   name-server: ${app.rocketmq.name-server}
 
 mq:
@@ -61,6 +59,11 @@ mq:
     seckill: "seckill_topic"
     cart: "cart_topic"
     goods: "goods_topic"
+  group:
+    order: "order_timeout_cancel_group"
+    seckill: "seckill_order_create_group"
+    cart: "cart_clear_group"
+    goods: "goods_group"
 
 jwt:
   secret: ${app.jwt.secret}

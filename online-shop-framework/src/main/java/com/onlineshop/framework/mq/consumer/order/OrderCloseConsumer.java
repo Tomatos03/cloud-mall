@@ -25,7 +25,7 @@ import com.onlineshop.framework.models.order.service.IOrderService;
 @RocketMQMessageListener(
         topic = "${mq.topic.order}",
         selectorExpression = MQTag.ORDER_TIMEOUT_CANCEL,
-        consumerGroup = "${rocketmq.consumer.group}"
+        consumerGroup = "${mq.group.order}"
 )
 @ConditionalOnProperty(name = "rocketmq.name-server")
 public class OrderCloseConsumer implements RocketMQListener<Long> {

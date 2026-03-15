@@ -301,7 +301,7 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
                                    .sum();
 
         Order.OrderBuilder orderBuilder = Order.builder()
-                                               .no(IDNumber.generateParentOrderNo())
+                                               .no(IDNumber.generateOrderNo())
                                                .userId(AuthUserUtils.getUserId())
                                                .totalPrice(totalPrice)
                                                .quantity(subOrders.size())
