@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.onlineshop.controller.dto.GoodsStatusUpdateDTO;
+import com.onlineshop.framework.models.goods.application.GoodsStatusUpdateDTO;
 import com.onlineshop.framework.models.audit.application.impl.GoodsAuditor;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.dto.GoodsAuditItemDTO;

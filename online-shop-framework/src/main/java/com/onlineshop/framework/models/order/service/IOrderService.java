@@ -14,19 +14,19 @@ import java.util.List;
 public interface IOrderService extends IService<Order> {
     Order queryByOrderNo(String orderNo);
 
-    Order queryUserOrderByOrderNo(String orderNo);
+    Order queryUserOrder(String orderNo);
 
-    Order queryByOrderNoAndStoreIds(String orderNo, List<Long> storeIds);
+    Order queryOrder(String orderNo, List<Long> storeIds);
 
     List<Order> querySubOrders(Long parentId);
 
-    boolean updateOrderStatus(Order order, OrderStatus newStatus);
+    boolean updateOrderStatus(String orderNo, OrderStatus newStatus);
 
-    void savePayOrder(Order payOrder);
+    boolean updateOrderStatus(Order order, OrderStatus newStatus);
 
     void saveOrders(List<Order> orders);
 
     List<Order> queryShippedOrders();
 
-    List<Order> queryTimeoutCreatedOrders(LocalDateTime deadline);
+    List<Order> queryTimeoutOrders(LocalDateTime deadline);
 }

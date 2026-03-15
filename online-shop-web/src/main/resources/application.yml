@@ -56,12 +56,11 @@ rocketmq:
   name-server: ${app.rocketmq.name-server}
 
 mq:
-  orders:
-    timeout-seconds: 1800
-    cancel-topic: "order_cancel_topic"
-    auto-cancel-after-minutes: 30
-    auto-confirm-after-days: 14
-    confirm-topic: "order_confirm_topic"
+  topic:
+    order: "order_topic"
+    seckill: "seckill_topic"
+    cart: "cart_topic"
+    goods: "goods_topic"
 
 jwt:
   secret: ${app.jwt.secret}

@@ -49,6 +49,13 @@ public interface ICartService {
     void removeCartItems(Collection<Long> ids);
 
     /**
+     * 指定用户批量删除购物车项
+     * @param userId 用户ID
+     * @param ids SKU ID 列表
+     */
+    void removeCartItems(Long userId, Collection<Long> ids);
+
+    /**
      * 清空购物车
      */
     void clearCart();

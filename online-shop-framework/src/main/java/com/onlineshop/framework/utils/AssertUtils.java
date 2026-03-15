@@ -1,10 +1,10 @@
 package com.onlineshop.framework.utils;
 
-import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.exception.BizException;
-
 import java.util.Collection;
 import java.util.Objects;
+
+import com.onlineshop.framework.common.enums.BizErrorCode;
+import com.onlineshop.framework.exception.BizException;
 
 /**
  * 断言工具类

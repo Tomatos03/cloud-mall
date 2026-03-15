@@ -2,15 +2,12 @@ package com.onlineshop.framework.models.goods.spu;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.onlineshop.framework.models.audit.enums.AuditStatus;
-import com.onlineshop.framework.models.category.Category;
-import com.onlineshop.framework.models.category.ICategoryService;
-import com.onlineshop.framework.models.goods.spu.vo.GoodsVO;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
+import com.onlineshop.framework.utils.AssertUtils;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import com.onlineshop.framework.utils.image.ImageUtil;
 import com.onlineshop.framework.utils.money.Money;
@@ -19,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 @Service
@@ -91,18 +90,10 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> implements IGo
 
     @Override
     public void increaseSales(Long goodsId, Integer quantity) {
-        Goods goods = getById(goodsId);
-        if (goods != null) {
-            goods.setSales(goods.getSales() + quantity);
-            updateById(goods);
-        }
-    }
-
-    @Override
-    public void updateGoodsAuditStatus(Long goodsId, AuditStatus status) {
-        lambdaUpdate().eq(Goods::getId, goodsId)
-                      .set(Goods::getAuditStatus, status.getCode())
-                      .update();
+        boolean updated = lambdaUpdate().eq(Goods::getId, goodsId)
+                                        .setSql("sales = IFNULL(sales, 0) + " + quantity)
+                                        .update();
+        AssertUtils.isTrue(updated, BizErrorCode.GOODS_UPDATE_FAILED);
     }
 
     @Override

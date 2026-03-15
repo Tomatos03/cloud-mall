@@ -20,14 +20,15 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        return !returnType.getParameterType().equals(Result.class);
+        Class<?> parameterType = returnType.getParameterType();
+        // 如果返回值已经是Result类型或者String类型，则不进行包装，直接返回
+        // 这样设计对于String对象在Controller类返回的时候可以选择是否包装成Result对象，保持灵活性
+        return !Result.class.isAssignableFrom(parameterType)
+                && !String.class.isAssignableFrom(parameterType);
     }
 
     @Override
     public Object beforeBodyWrite(@Nullable Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
-        if (body instanceof Boolean && Boolean.FALSE.equals(body)) {
-            return Result.error("操作失败");
-        }
         return Result.success(body);
     }
 }

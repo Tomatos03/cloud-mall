@@ -19,13 +19,13 @@ public class GlobalExceptionHandler {
     private final static String INTERNAL_ERROR = "服务器内部错误, 请联系管理员";
 
     @ExceptionHandler(BizException.class)
-    public Result handleBusinessException(BizException e) {
+    public Result<Void> handleBusinessException(BizException e) {
         BizErrorCode bizError = e.getBizErrorCode();
         return Result.error(bizError.getErrorMessage(), bizError.getCode());
     }
 
     @ExceptionHandler(Exception.class)
-    public Result handleException(Exception e) {
+    public Result<Void> handleException(Exception e) {
         log.error("服务器内部异常", e);
         return Result.error(INTERNAL_ERROR);
     }

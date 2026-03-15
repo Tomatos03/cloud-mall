@@ -36,6 +36,15 @@ rocketmq:
     group: order_timeout_cancel_group
   name-server: ${app.rocketmq.name-server}
 
+mq:
+  topic:
+    order: "order_topic"
+    seckill: "seckill_topic"
+    cart: "cart_topic"
+    goods: "goods_topic"
+  seckill:
+    create-topic: "seckill_order_create_topic"
+
 jwt:
   secret: ${app.jwt.secret}
   expire: 86400000  # 24小时（毫秒）

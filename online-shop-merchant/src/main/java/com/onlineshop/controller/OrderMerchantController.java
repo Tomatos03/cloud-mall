@@ -59,9 +59,9 @@ public class OrderMerchantController {
      * @return 操作是否成功
      */
     @PutMapping("/{orderNo}/cancel")
-    public boolean cancelOrder(@PathVariable String orderNo, @RequestBody OrderCancelDTO cancelDTO) {
+    public void cancelOrder(@PathVariable String orderNo, @RequestBody OrderCancelDTO cancelDTO) {
         cancelDTO.setOrderNo(orderNo);
-        return orderAppService.cancelOrder(cancelDTO);
+        orderAppService.cancelOrder(cancelDTO);
     }
 
     /**

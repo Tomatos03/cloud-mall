@@ -77,8 +77,8 @@ public class OrderManageController {
      */
     @PostMapping("/cancel")
     @PreAuthorize("hasAuthority('order:edit')")
-    public boolean cancelOrder(@RequestBody OrderCancelDTO cancelDTO) {
-        return orderAppService.cancelOrder(cancelDTO);
+    public void cancelOrder(@RequestBody OrderCancelDTO cancelDTO) {
+        orderAppService.cancelOrder(cancelDTO);
     }
 
     /**

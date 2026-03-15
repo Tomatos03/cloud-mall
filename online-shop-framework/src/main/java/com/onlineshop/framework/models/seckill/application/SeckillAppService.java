@@ -24,11 +24,10 @@ public interface SeckillAppService {
      * 用户购买指定秒杀商品，协调限流、库存检查、订单生成等操作
      *
      * @param seckillGoodsId 秒杀商品ID
-     * @param userId 用户ID
      * @param quantity 购买数量
      * @return 秒杀参与结果
      */
-    SeckillParticipateResultVO participateSeckill(Long seckillGoodsId, Long userId, Integer quantity);
+    SeckillParticipateResultVO participateSeckill(Long seckillGoodsId, Integer quantity);
 
     /**
      * 查询活动中的秒杀商品（分页）

@@ -1,14 +1,5 @@
 package com.onlineshop.framework.models.goods.sku;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -30,6 +21,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -55,6 +50,31 @@ public class GoodsSkuService extends ServiceImpl<GoodsSkuMapper, GoodsSku> imple
         baseMapper.delete(
                 new LambdaQueryWrapper<GoodsSku>().eq(GoodsSku::getGoodsId, goodsId)
         );
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deductInventory(Long skuId, Integer quantity) {
+        boolean updated = lambdaUpdate().eq(GoodsSku::getId, skuId)
+                                        .setSql("inventory = inventory - " + quantity)
+                                        .ge(GoodsSku::getInventory, quantity)
+                                        .update();
+        if (updated) {
+            log.info("SKU库存扣减失败, skuId: {}, 库存不足", skuId);
+            return;
+        }
+        log.info("SKU库存扣减成功, skuId: {}, 扣减库存: {}", skuId, quantity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void increaseSales(Long skuId, Integer quantity) {
+        boolean updated = lambdaUpdate()
+                .eq(GoodsSku::getId, skuId)
+                .setSql("sales = IFNULL(sales, 0) + " + quantity)
+                .update();
+        AssertUtils.isTrue(updated, BizErrorCode.GOODS_UPDATE_FAILED);
+        log.info("SKU销量增加成功, skuId: {}, 增加销量: {}", skuId, quantity);
     }
 
     @Override
@@ -91,28 +111,6 @@ public class GoodsSkuService extends ServiceImpl<GoodsSkuMapper, GoodsSku> imple
 
         return skuPage.convert(sku -> convertToPageItem(sku, goodsMap.get(sku.getGoodsId()),
                                                         skuSpecMap.get(sku.getId()), specValueMap));
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void deductInventoryAndIncreaseSales(Long skuId, Integer quantity) {
-        GoodsSku sku = baseMapper.selectById(skuId);
-        if (sku == null || sku.getInventory() < quantity) {
-            log.warn("SKU不存在或库存不足, skuId: {}, inventory: {}, quantity: {}",
-                     skuId, sku != null ? sku.getInventory() : null, quantity);
-            return;
-        }
-
-        // 扣减库存
-        sku.setInventory(sku.getInventory() - quantity);
-        // 增加销量
-        sku.setSales(sku.getSales() + quantity);
-
-        boolean result = updateById(sku);
-        if (result) {
-            log.info("SKU库存扣减和销量更新成功, skuId: {}, 扣减库存: {}, 增加销量: {}",
-                     skuId, quantity, quantity);
-        }
     }
 
     private Map<Long, List<GoodsSkuSpec>> querySkuSpecMap(List<GoodsSku> skus) {
@@ -176,7 +174,8 @@ public class GoodsSkuService extends ServiceImpl<GoodsSkuMapper, GoodsSku> imple
 
     private String convertYuanPrice(Long cents) {
         if (cents == null) {
-            return Money.ofCents(0).toYuanString();
+            return Money.ofCents(0)
+                        .toYuanString();
         }
         return Money.ofCents(cents)
                     .toYuanString();

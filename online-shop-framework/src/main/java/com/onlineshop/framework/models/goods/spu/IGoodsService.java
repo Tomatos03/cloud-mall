@@ -2,7 +2,6 @@ package com.onlineshop.framework.models.goods.spu;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.onlineshop.framework.models.audit.enums.AuditStatus;
 import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
 
 import java.io.Serializable;
@@ -38,8 +37,6 @@ public interface IGoodsService extends IService<Goods> {
      * @param quantity 增加数量
      */
     void increaseSales(Long goodsId, Integer quantity);
-
-    void updateGoodsAuditStatus(Long goodsId, AuditStatus auditStatus);
 
     /**
      * 批量查询多个分类下的商品（包括子分类）

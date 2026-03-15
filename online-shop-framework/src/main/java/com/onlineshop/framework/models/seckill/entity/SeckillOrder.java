@@ -1,16 +1,18 @@
 package com.onlineshop.framework.models.seckill.entity;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * 秒杀订单表
@@ -30,25 +32,7 @@ public class SeckillOrder implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 秒杀商品ID（外键关联seckill_goods表）
-     */
-    private Long seckillGoodsId;
-
-    /**
-     * 秒杀活动ID（冗余存储，可通过seckillGoodsId关联获取）
-     */
-    private Long activityId;
-
-    /**
-     * 商品ID（冗余存储）
-     */
-    private Long productId;
-
-    /**
-     * 订单ID
-     */
-    private Long orderId;
+    private Long goodsId;
 
     /**
      * 用户ID
@@ -56,9 +40,14 @@ public class SeckillOrder implements Serializable {
     private Long userId;
 
     /**
-     * 秒杀价格
+     * 订单号（唯一）
      */
-    private BigDecimal seckillPrice;
+    private String orderNo;
+
+    /**
+     * 秒杀价格（单位：元）
+     */
+    private BigDecimal price;
 
     /**
      * 购买数量
@@ -66,22 +55,24 @@ public class SeckillOrder implements Serializable {
     private Integer quantity;
 
     /**
-     * 秒杀订单状态：CREATED-待支付 PAID-待发货 SHIPPED-待收货 FINISHED-已完成 CANCELED-已取消 CLOSED-已关闭
+     * 秒杀订单状态：0-未支付，1-已支付，2-已取消
      */
-    private String status;
-
-    /**
-     * 取消原因
-     */
-    private String cancelReason;
+    private Integer status;
 
     /**
      * 创建时间
      */
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+
+    /**
+     * 支付时间
+     */
+    private LocalDateTime payTime;
 
     /**
      * 更新时间
      */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 }

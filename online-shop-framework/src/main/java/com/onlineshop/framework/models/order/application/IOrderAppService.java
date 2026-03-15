@@ -1,7 +1,7 @@
 package com.onlineshop.framework.models.order.application;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.cart.CartType;
+import com.onlineshop.framework.models.cart.PurchaseMode;
 import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
@@ -15,7 +15,7 @@ import com.onlineshop.framework.models.order.vo.OrderVO;
  * 负责订单相关业务流程编排
  */
 public interface IOrderAppService {
-    OrderCreateResultDTO createOrder(TradeDTO tradeDTO, CartType cartType);
+    OrderCreateResultDTO createOrder(TradeDTO tradeDTO, PurchaseMode purchaseMode);
 
     IPage<OrderAggregateVO> pageQueryOrdersForClient(OrderParamsDTO queryDTO);
 
@@ -27,9 +27,9 @@ public interface IOrderAppService {
 
     Order queryOrder(Long orderId);
 
-    boolean cancelOrder(OrderCancelDTO cancelDTO);
+    void cancelOrder(OrderCancelDTO cancelDTO);
 
-    boolean finishOrder(String orderNo);
+    void finishOrder(String orderNo);
 
     IPage<OrderVO> pageQueryOrdersForAdmin(OrderParamsDTO queryDTO);
 
@@ -41,5 +41,5 @@ public interface IOrderAppService {
 
     int autoReceiveShippedOrders();
 
-    int closeTimeoutCreatedOrders();
+    int closeTimeoutOrders();
 }

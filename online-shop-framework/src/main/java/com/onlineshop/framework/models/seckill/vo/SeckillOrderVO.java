@@ -20,19 +20,14 @@ public class SeckillOrderVO implements Serializable {
     private Long id;
 
     /**
-     * 秒杀活动ID
+     * 秒杀商品ID
      */
-    private Long seckillId;
+    private Long goodsId;
 
     /**
-     * 商品ID
+     * 订单号
      */
-    private Long productId;
-
-    /**
-     * 订单ID
-     */
-    private Long orderId;
+    private String orderNo;
 
     /**
      * 用户ID
@@ -42,7 +37,7 @@ public class SeckillOrderVO implements Serializable {
     /**
      * 秒杀价格
      */
-    private BigDecimal seckillPrice;
+    private BigDecimal price;
 
     /**
      * 购买数量

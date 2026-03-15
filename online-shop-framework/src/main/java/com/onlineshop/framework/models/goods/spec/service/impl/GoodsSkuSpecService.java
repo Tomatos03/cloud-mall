@@ -21,37 +21,9 @@ public class GoodsSkuSpecService extends ServiceImpl<GoodsSkuSpecMapper, GoodsSk
     }
 
     @Override
-    public List<GoodsSkuSpec> listBySpecValueId(Long specValueId) {
-        return baseMapper.selectList(new QueryWrapper<GoodsSkuSpec>()
-                                             .eq("spec_value_id", specValueId));
-    }
-
-    @Override
-    public boolean addSpecToSku(Long skuId, Long specId, Long specValueId) {
-        GoodsSkuSpec spec = new GoodsSkuSpec();
-        spec.setSkuId(skuId);
-        spec.setSpecId(specId);
-        spec.setSpecValueId(specValueId);
-        return save(spec);
-    }
-
-    @Override
-    public int removeBySkuId(Long skuId) {
-        return baseMapper.delete(new QueryWrapper<GoodsSkuSpec>()
-                                         .eq("sku_id", skuId));
-    }
-
-    @Override
-    public int removeBySkuIdAndSpecId(Long skuId, Long specId) {
-        return baseMapper.delete(new QueryWrapper<GoodsSkuSpec>()
-                                         .eq("sku_id", skuId)
-                                         .eq("spec_id", specId));
-    }
-
-    @Override
-    public int removeBySkuIds(List<Long> skuIds) {
-        return baseMapper.delete(new QueryWrapper<GoodsSkuSpec>()
-                                         .in("sku_id", skuIds));
+    public void removeBySkuIds(List<Long> skuIds) {
+        baseMapper.delete(new QueryWrapper<GoodsSkuSpec>()
+                                  .in("sku_id", skuIds));
     }
 
     @Override

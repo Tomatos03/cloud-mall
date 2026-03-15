@@ -88,6 +88,12 @@ public enum BizErrorCode {
     // 已废弃或很少使用
     USER_ID_IS_NULL(50011, "用户ID不能为空"),  // 拦截器保证非空，不再使用
     GOODS_INVENTORY_NOT_ENOUGH(50019, "SKU库存不足"),
+    ORDER_CREATE_ADDRESS_NOT_EXIST(50020, "下单地址不存在"),
+    ORDER_CREATE_ITEMS_EMPTY(50021, "下单商品项不能为空"),
+    ORDER_CREATE_STORE_NOT_EXIST(50022, "下单店铺不存在"),
+    ORDER_CREATE_SKU_NOT_AVAILABLE(50023, "下单SKU不存在或已下架"),
+    ORDER_CREATE_SKU_STORE_MISMATCH(50024, "下单SKU不属于当前店铺"),
+    ORDER_CREATE_SKU_INVENTORY_NOT_ENOUGH(50025, "下单SKU库存不足"),
 
     // ==================== 购物车相关错误码 (60xxx) ====================
     UNKNOW_CART_TYPE(60000, "未知的购物车类型"),
@@ -195,7 +201,8 @@ public enum BizErrorCode {
     ACTIVITY_MAX_ITEMS_REACHED(92027, "该活动已达到最大商品数限制"),
     ITEMS_REQUIRED(92028, "商品列表不能为空"),
     ITEMS_EMPTY(92029, "商品列表不能为空，至少需要1个商品"),
-    SECKILL_GOODS_NOT_FOUND(92030, "秒杀商品不存在")
+    SECKILL_GOODS_NOT_FOUND(92030, "秒杀商品不存在"),
+    SECKILL_REPEAT_ORDER(92031, "同一商品不可重复秒杀")
     ;
 
     final int code;

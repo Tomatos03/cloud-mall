@@ -1,7 +1,9 @@
 package com.onlineshop.framework.models.audit.application.impl;
 
 import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.event.goods.SyncGoodsToEsEvent;
+import com.onlineshop.framework.event.MQTag;
+import com.onlineshop.framework.event.MQTopicProperties;
+import com.onlineshop.framework.event.TransactionCommitSendMQEvent;
 import com.onlineshop.framework.models.audit.application.AbstractAuditor;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.dto.GoodsAuditItemDTO;
@@ -40,7 +42,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
     private final IGoodsAppService goodsAppService;
-    private final ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final MQTopicProperties mqTopicProperties;
     private final ICategoryService categoryService;
     private final IUnitService unitService;
     private final IStoreService storeService;
@@ -94,7 +97,13 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
                 GoodsAuditItemDTO goodsItem = parseSnapshot(item.getSnapshot(), GoodsAuditItemDTO.class);
                 GoodsPublishCommand command = convertToGoodsPublishCommand(goodsItem);
                 Goods goods = goodsAppService.publishGoods(command);
-                eventPublisher.publishEvent(SyncGoodsToEsEvent.builder().goods(goods).build());
+                applicationEventPublisher.publishEvent(
+                        new TransactionCommitSendMQEvent(
+                                mqTopicProperties.getGoods(),
+                                MQTag.GOODS_SYNC_TO_ES,
+                                goods
+                        )
+                );
             }
         }
 

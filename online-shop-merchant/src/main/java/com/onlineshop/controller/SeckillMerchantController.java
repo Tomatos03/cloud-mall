@@ -1,30 +1,30 @@
 package com.onlineshop.controller;
 
-import java.util.List;
-
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.onlineshop.framework.models.audit.application.impl.SeckillGoodsAuditor;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.dto.SeckillGoodsAuditItemDTO;
 import com.onlineshop.framework.models.audit.enums.AuditBizType;
+import com.onlineshop.framework.common.aspect.ratelimit.RateLimit;
 import com.onlineshop.framework.models.seckill.application.SeckillAppService;
+import com.onlineshop.framework.models.seckill.application.vo.SeckillParticipateResultVO;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityParamsDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;
 import com.onlineshop.framework.models.seckill.service.SeckillActivityService;
 import com.onlineshop.framework.models.seckill.vo.SeckillActivityVO;
 import com.onlineshop.framework.utils.AuthUserUtils;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 商家秒杀活动控制器
@@ -36,6 +36,7 @@ import com.onlineshop.framework.utils.AuthUserUtils;
 @Slf4j
 @RestController
 @RequestMapping("/seckill")
+@Validated
 @RequiredArgsConstructor
 public class SeckillMerchantController {
     private final SeckillAppService seckillAppService;
@@ -72,8 +73,8 @@ public class SeckillMerchantController {
      * 申请商品参与秒杀活动
      * POST /merchant/seckill/activities/{id}/goods
      *
-     * @param id       活动ID
-     * @param items    批量申请参数
+     * @param id    活动ID
+     * @param items 批量申请参数
      */
     @PostMapping("/activities/{id}/goods")
     public void applyActivityGoods(@PathVariable Long id, @Valid @RequestBody List<SeckillGoodsAuditItemDTO> items) {
@@ -101,5 +102,26 @@ public class SeckillMerchantController {
         params.setActivityId(id);
         params.setMerchantId(AuthUserUtils.getUserId());
         return seckillAppService.pageSeckillActivityGoods(params);
+    }
+
+    /**
+     * 秒杀下单（预扣库存 + MQ异步建单）
+     * POST /merchant/seckill/activities/{activityId}/goods/{goodsId}/order
+     *
+     * @param activityId 活动ID
+     * @param goodsId    秒杀商品ID
+     * @param quantity   购买数量，默认1
+     * @return 秒杀受理结果
+     */
+    @PostMapping("/activities/{activityId}/goods/{goodsId}/order")
+    @RateLimit(keyPrefix = "seckill:rate_limit:", periodSeconds = 60, count = 10)
+    public SeckillParticipateResultVO createSeckillOrder(
+            @PathVariable @NotNull @Positive Long activityId,
+            @PathVariable @NotNull @Positive Long goodsId,
+            @RequestParam(defaultValue = "1") @NotNull @Min(1) Integer quantity
+    ) {
+        log.info("秒杀下单请求，活动ID: {}, 秒杀商品ID: {}, 用户ID: {}, 数量: {}",
+                 activityId, goodsId, AuthUserUtils.getUserId(), quantity);
+        return seckillAppService.participateSeckill(goodsId, quantity);
     }
 }

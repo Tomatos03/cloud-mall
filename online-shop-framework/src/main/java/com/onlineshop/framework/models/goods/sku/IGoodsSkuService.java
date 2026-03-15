@@ -29,13 +29,22 @@ public interface IGoodsSkuService extends IService<GoodsSku> {
      */
     void removeByGoodsId(Long goodsId);
     /**
-     * 扣减库存并增加销量
-     * 同时执行库存扣减和销量增加操作
+     * 扣减SKU库存
      *
      * @param skuId    SKU ID
-     * @param quantity 扣减/增加数量
+     * @param inventory 当前库存
+     * @param quantity 扣减数量
      */
-    void deductInventoryAndIncreaseSales(Long skuId, Integer quantity);
+    void deductInventory(Long skuId, Integer quantity);
+
+    /**
+     * 增加SKU销量
+     *
+     * @param skuId    SKU ID
+     * @param inventory 当前库存
+     * @param quantity 增加数量
+     */
+    void increaseSales(Long skuId, Integer quantity);
 
     /**
      * 分页查询当前商家的SKU列表

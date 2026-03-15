@@ -1,9 +1,11 @@
 package com.onlineshop.framework.event.cart;
 
+import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
+import lombok.NoArgsConstructor;
 
 /**
  * 清空购物车事件
@@ -13,6 +15,9 @@ import java.util.List;
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ClearCartEvent {
+    private Long userId;
     private List<Long> skuIds;
 }

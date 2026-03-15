@@ -1,7 +1,7 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.cart.CartType;
+import com.onlineshop.framework.models.cart.PurchaseMode;
 import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
@@ -39,7 +39,7 @@ public class OrderWebController {
      */
     @PostMapping("/create/{cartType}")
     public OrderCreateResultDTO createOrder(@RequestBody TradeDTO tradeDTO, @PathVariable String cartType) {
-        return orderAppService.createOrder(tradeDTO, CartType.of(cartType));
+        return orderAppService.createOrder(tradeDTO, PurchaseMode.of(cartType));
     }
 
     /**
@@ -78,8 +78,8 @@ public class OrderWebController {
      * @return 是否成功
      */
     @PostMapping("/cancel")
-    public boolean cancelOrder(@RequestBody OrderCancelDTO cancelDTO) {
-        return orderAppService.cancelOrder(cancelDTO);
+    public void cancelOrder(@RequestBody OrderCancelDTO cancelDTO) {
+        orderAppService.cancelOrder(cancelDTO);
     }
 
     /**
@@ -91,7 +91,7 @@ public class OrderWebController {
      * @return 是否成功
      */
     @PostMapping("/confirm/{orderNo}")
-    public boolean confirmReceipt(@PathVariable String orderNo) {
-        return orderAppService.finishOrder(orderNo);
+    public void confirmReceipt(@PathVariable String orderNo) {
+        orderAppService.finishOrder(orderNo);
     }
 }

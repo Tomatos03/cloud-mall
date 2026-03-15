@@ -32,18 +32,19 @@ import java.util.List;
 public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOrderService {
     @Override
     public Order queryByOrderNo(String orderNo) {
-        return lambdaQuery().eq(Order::getNo, orderNo).one();
+        return lambdaQuery().eq(Order::getNo, orderNo)
+                            .one();
     }
 
     @Override
-    public Order queryUserOrderByOrderNo(String orderNo) {
+    public Order queryUserOrder(String orderNo) {
         return lambdaQuery().eq(Order::getNo, orderNo)
                             .eq(Order::getUserId, AuthUserUtils.getUserId())
                             .one();
     }
 
     @Override
-    public Order queryByOrderNoAndStoreIds(String orderNo, List<Long> storeIds) {
+    public Order queryOrder(String orderNo, List<Long> storeIds) {
         if (CollUtil.isEmpty(storeIds)) {
             return null;
         }
@@ -55,18 +56,28 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
 
     @Override
     public List<Order> querySubOrders(Long parentId) {
-        return lambdaQuery().eq(Order::getParentId, parentId).list();
+        return lambdaQuery().eq(Order::getParentId, parentId)
+                            .list();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateOrderStatus(String orderNo, OrderStatus newStatus) {
+        return doUpdateOrderStatus(queryByOrderNo(orderNo), newStatus);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean updateOrderStatus(Order order, OrderStatus newStatus) {
+        return doUpdateOrderStatus(order, newStatus);
+    }
+
+    private boolean doUpdateOrderStatus(Order order, OrderStatus newStatus) {
         AssertUtils.notNull(order, BizErrorCode.ORDER_NOT_EXIST);
 
         String oldStatus = order.getStatus();
-        if (!OrderStatusMachine.validateTransition(OrderStatus.of(oldStatus), newStatus)) {
-            return false;
-        }
+        AssertUtils.isTrue(OrderStatusMachine.validateTransition(OrderStatus.of(oldStatus), newStatus),
+                           BizErrorCode.INVALID_ORDER_STATUS);
 
         order.setStatus(newStatus.getCode());
         syncUpdateParentOrSubOrderStatus(order);
@@ -76,19 +87,6 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
                              .set(Order::getStatus, newStatus.getCode())
                              .set(StrUtil.isNotBlank(order.getReason()), Order::getReason, order.getReason())
                              .update();
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void savePayOrder(Order payOrder) {
-        if (!OrderType.PARENT.getCode().equals(payOrder.getOrderType())) {
-            return;
-        }
-
-        if (!save(payOrder)) {
-            log.error("支付订单保存失败");
-            throw new BizException(BizErrorCode.ORDER_CREATE_FAILED);
-        }
     }
 
     @Override
@@ -106,11 +104,12 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
 
     @Override
     public List<Order> queryShippedOrders() {
-        return lambdaQuery().eq(Order::getStatus, OrderStatus.SHIPPED.getCode()).list();
+        return lambdaQuery().eq(Order::getStatus, OrderStatus.SHIPPED.getCode())
+                            .list();
     }
 
     @Override
-    public List<Order> queryTimeoutCreatedOrders(LocalDateTime deadline) {
+    public List<Order> queryTimeoutOrders(LocalDateTime deadline) {
         return lambdaQuery().eq(Order::getStatus, OrderStatus.CREATED.getCode())
                             .le(Order::getCreateTime, deadline)
                             .list();
@@ -144,7 +143,8 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         }
 
         boolean allSameStatus = querySubOrders(parentOrder.getId()).stream()
-                                                                    .allMatch(o -> o.getStatus().equals(order.getStatus()));
+                                                                   .allMatch(o -> o.getStatus()
+                                                                                   .equals(order.getStatus()));
         parentOrder.setStatus(allSameStatus ? order.getStatus() : ParentOrderStatus.PROCESSING.getCode());
         updateById(parentOrder);
     }

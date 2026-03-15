@@ -1,6 +1,6 @@
 package com.onlineshop.framework.models.cart;
 
-import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.collection.CollUtil;
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.cart.dto.AddCartItemDTO;
@@ -227,34 +227,13 @@ public class CartService implements ICartService {
     @Override
     @CacheEvict(value = "cart", key = "#root.target.getUserIdForCache()")
     public void removeCartItems(Collection<Long> ids) {
-        if (CollectionUtil.isEmpty(ids)) {
-            return;
-        }
+        removeCartItemsByUserId(AuthUserUtils.getUserId(), ids);
+    }
 
-        Long userId = AuthUserUtils.getUserId();
-        String cartKey = getCartKey(userId);
-        Map<Object, Object> cartData = redisTemplate.opsForHash()
-                                                    .entries(cartKey);
-        HashSet<Long> deleteIdsSet = new HashSet<>(ids);
-
-        // 查找并删除匹配的项
-        List<Object> fieldsToDelete = new ArrayList<>();
-        for (Map.Entry<Object, Object> entry : cartData.entrySet()) {
-            try {
-                CartStoreItemVO itemVO = (CartStoreItemVO) entry.getValue();
-                if (deleteIdsSet.contains(itemVO.getSkuId())) {
-                    fieldsToDelete.add(entry.getKey());
-                }
-            } catch (Exception e) {
-                log.error("解析购物车数据失败: {}", entry.getKey(), e);
-            }
-        }
-
-        // 批量删除
-        if (!fieldsToDelete.isEmpty()) {
-            redisTemplate.opsForHash()
-                         .delete(cartKey, fieldsToDelete.toArray());
-        }
+    @Override
+    @CacheEvict(value = "cart", key = "#p0")
+    public void removeCartItems(Long userId, Collection<Long> ids) {
+        removeCartItemsByUserId(userId, ids);
     }
 
     /**
@@ -346,6 +325,33 @@ public class CartService implements ICartService {
      */
     private String getFieldKey(Long storeId, Long goodsId, Long skuId) {
         return "storeId:" + storeId + ":goodsId:" + goodsId + ":skuId:" + skuId;
+    }
+
+    private void removeCartItemsByUserId(Long userId, Collection<Long> ids) {
+        if (userId == null || CollUtil.isEmpty(ids)) {
+            return;
+        }
+
+        String cartKey = getCartKey(userId);
+        Map<Object, Object> cartData = redisTemplate.opsForHash()
+                                                    .entries(cartKey);
+        HashSet<Long> deleteIdsSet = new HashSet<>(ids);
+        List<Object> fieldsToDelete = new ArrayList<>();
+        for (Map.Entry<Object, Object> entry : cartData.entrySet()) {
+            try {
+                CartStoreItemVO itemVO = (CartStoreItemVO) entry.getValue();
+                if (deleteIdsSet.contains(itemVO.getSkuId())) {
+                    fieldsToDelete.add(entry.getKey());
+                }
+            } catch (Exception e) {
+                log.error("解析购物车数据失败: {}", entry.getKey(), e);
+            }
+        }
+
+        if (CollUtil.isNotEmpty(fieldsToDelete)) {
+            redisTemplate.opsForHash()
+                         .delete(cartKey, fieldsToDelete.toArray());
+        }
     }
 
     /**

@@ -2,7 +2,6 @@ package com.onlineshop.framework.models.order.application;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,37 +13,27 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.onlineshop.framework.models.order.strategy.OrderBuildStrategy;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.event.cart.ClearCartEvent;
-import com.onlineshop.framework.event.order.OrderTimeoutCancelEvent;
-import com.onlineshop.framework.models.address.Address;
-import com.onlineshop.framework.models.address.IAddressService;
-import com.onlineshop.framework.models.cart.CartType;
+import com.onlineshop.framework.models.cart.PurchaseMode;
+import com.onlineshop.framework.models.goods.sku.GoodsSku;
 import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.order.application.creator.OrderCreatorFactory;
 import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
-import com.onlineshop.framework.models.order.dto.TradeShopDTO;
-import com.onlineshop.framework.models.order.dto.TradeShopItemDTO;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.entity.OrderItem;
 import com.onlineshop.framework.models.order.enums.OrderStatus;
 import com.onlineshop.framework.models.order.enums.OrderType;
 import com.onlineshop.framework.models.order.service.IOrderItemService;
 import com.onlineshop.framework.models.order.service.IOrderService;
-import com.onlineshop.framework.models.order.strategy.OrderBuildStrategy.OrderBuildResult;
-import com.onlineshop.framework.models.order.strategy.OrderStrategyContext;
-import com.onlineshop.framework.models.order.strategy.OrderValidateStrategy;
 import com.onlineshop.framework.models.order.vo.OrderAggregateVO;
 import com.onlineshop.framework.models.order.vo.OrderVO;
 import com.onlineshop.framework.models.order.vo.StoreOrderItemVO;
@@ -66,31 +55,19 @@ import com.onlineshop.framework.utils.money.MoneyUtil;
 @Service
 @RequiredArgsConstructor
 public class OrderAppService implements IOrderAppService {
-    private final OrderStrategyContext orderStrategyContext;
+    private final OrderCreatorFactory orderCreatorFactory;
     private final IOrderService orderService;
     private final IOrderItemService orderItemService;
-    private final IAddressService addressService;
     private final IStoreService storeService;
     private final IGoodsService goodsService;
     private final IGoodsSkuService goodsSkuService;
-    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public OrderCreateResultDTO createOrder(TradeDTO tradeDTO, CartType cartType) {
-        Address address = loadValidateAddress(tradeDTO);
-
-        OrderValidateStrategy validateStrategy = orderStrategyContext.getValidateStrategy(cartType);
-        validateStrategy.validate(tradeDTO);
-
-        OrderBuildStrategy buildStrategy = orderStrategyContext.getBuildStrategy(cartType);
-        OrderBuildResult orderBuildResult = buildStrategy.buildOrders(tradeDTO, address);
-        AssertUtils.notNull(orderBuildResult, BizErrorCode.ORDER_CREATE_FAILED);
-
-        OrderCreateResultDTO result = processOrderAggregate(orderBuildResult);
+    public OrderCreateResultDTO createOrder(TradeDTO tradeDTO, PurchaseMode purchaseMode) {
+        OrderCreateResultDTO result = orderCreatorFactory.getOrderCreator(purchaseMode)
+                                                         .create(tradeDTO);
         log.info("订单创建成功, orderNo: {}", result.getOrderNo());
-        pushCleanCartGoodsEvent(tradeDTO.getTradeItems());
-        pushOrderTimeoutCancelEvent(orderBuildResult.getPayOrder());
         return result;
     }
 
@@ -115,9 +92,8 @@ public class OrderAppService implements IOrderAppService {
         }
 
         log.info("支付成功（模拟）, orderNo: {}, 支付状态: 成功", orderNo);
-        Order order = orderService.queryByOrderNo(orderNo);
-        AssertUtils.notNull(order, BizErrorCode.ORDER_NOT_EXIST);
-        return orderService.updateOrderStatus(order, OrderStatus.PAID);
+        deductInventory(orderNo);
+        return orderService.updateOrderStatus(orderNo, OrderStatus.PAID);
     }
 
     @Override
@@ -125,14 +101,14 @@ public class OrderAppService implements IOrderAppService {
     public void deductInventory(String orderNo) {
         List<OrderItem> orderItems = getOrderItemsByOrderNo(orderNo);
         if (CollUtil.isEmpty(orderItems)) {
-            log.warn("订单明细为空，无需扣减库存, orderNo: {}", orderNo);
             return;
         }
 
         for (OrderItem orderItem : orderItems) {
             Long skuId = orderItem.getSkuId();
             Integer quantity = orderItem.getQuantity();
-            goodsSkuService.deductInventoryAndIncreaseSales(skuId, quantity);
+            goodsSkuService.deductInventory(skuId, quantity);
+            goodsSkuService.increaseSales(skuId, quantity);
             goodsService.increaseSales(orderItem.getGoodsId(), quantity);
         }
         log.info("订单库存扣减和销量更新完成, orderNo: {}, 明细数量: {}", orderNo, orderItems.size());
@@ -184,24 +160,16 @@ public class OrderAppService implements IOrderAppService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean cancelOrder(OrderCancelDTO cancelDTO) {
+    public void cancelOrder(OrderCancelDTO cancelDTO) {
         Order order = queryCancelableOrder(cancelDTO.getOrderNo());
-        AssertUtils.notNull(order, BizErrorCode.ORDER_NOT_EXIST);
         order.setReason(cancelDTO.getReason());
-        return orderService.updateOrderStatus(order, OrderStatus.CANCELED);
+        orderService.updateOrderStatus(order, OrderStatus.CANCELED);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean finishOrder(String orderNo) {
-        Order order = orderService.queryUserOrderByOrderNo(orderNo);
-        AssertUtils.notNull(order, BizErrorCode.ORDER_NOT_EXIST);
-        if (!orderService.updateOrderStatus(order, OrderStatus.FINISHED)) {
-            return false;
-        }
-
-        deductInventory(orderNo);
-        return true;
+    public void finishOrder(String orderNo) {
+         orderService.updateOrderStatus(orderNo, OrderStatus.FINISHED);
     }
 
     @Override
@@ -217,7 +185,6 @@ public class OrderAppService implements IOrderAppService {
     @Transactional(rollbackFor = Exception.class)
     public boolean shipOrder(String orderNo) {
         Order order = queryStoreOrder(orderNo);
-        AssertUtils.notNull(order, BizErrorCode.ORDER_NOT_EXIST);
         return orderService.updateOrderStatus(order, OrderStatus.SHIPPED);
     }
 
@@ -232,12 +199,10 @@ public class OrderAppService implements IOrderAppService {
     @Transactional(rollbackFor = Exception.class)
     public boolean autoReceiveOrder(Order order) {
         if (!DateTimeUtil.isExpired(order.getCreateTime()
-                                         .plusMinutes(30L))
-                || !OrderStatus.SHIPPED.getCode()
-                                       .equals(order.getStatus())) {
+                                         .plusMinutes(30L))) {
             return false;
         }
-        return orderService.updateOrderStatus(order, OrderStatus.FINISHED);
+        return orderService.updateOrderStatus(order.getNo(), OrderStatus.FINISHED);
     }
 
     @Override
@@ -263,9 +228,8 @@ public class OrderAppService implements IOrderAppService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int closeTimeoutCreatedOrders() {
-        List<Order> timeoutOrders = orderService.queryTimeoutCreatedOrders(LocalDateTime.now()
-                                                                                        .minusMinutes(30));
+    public int closeTimeoutOrders() {
+        List<Order> timeoutOrders = orderService.queryTimeoutOrders(LocalDateTime.now());
         if (CollUtil.isEmpty(timeoutOrders)) {
             return 0;
         }
@@ -273,10 +237,11 @@ public class OrderAppService implements IOrderAppService {
         int closedCount = 0;
         for (Order order : timeoutOrders) {
             try {
-                closeOrder(order);
+                orderService.updateOrderStatus(order, OrderStatus.CLOSED);
                 closedCount++;
             } catch (Exception e) {
                 log.error("订单关闭消息补偿发送失败，订单ID：{}", order.getId(), e);
+                throw e;
             }
         }
         return closedCount;
@@ -285,11 +250,7 @@ public class OrderAppService implements IOrderAppService {
     private Order queryStoreOrder(String orderNo) {
         Long storeId = AuthUserUtils.getStoreId();
         AssertUtils.notNull(storeId, BizErrorCode.MERCHANT_NO_SHOP);
-        return orderService.queryByOrderNoAndStoreIds(orderNo, Collections.singletonList(storeId));
-    }
-
-    private void closeOrder(Order order) {
-        orderService.updateOrderStatus(order, OrderStatus.CLOSED);
+        return orderService.queryOrder(orderNo, Collections.singletonList(storeId));
     }
 
     private Order queryCancelableOrder(String orderNo) {
@@ -301,7 +262,7 @@ public class OrderAppService implements IOrderAppService {
 
         Long userId = AuthUserUtils.getUserId();
         log.info("用户取消订单, orderNo: {}, userId: {}", orderNo, userId);
-        return orderService.queryUserOrderByOrderNo(orderNo);
+        return orderService.queryUserOrder(orderNo);
     }
 
     private List<OrderItem> getOrderItemsByOrderNo(String orderNo) {
@@ -453,74 +414,4 @@ public class OrderAppService implements IOrderAppService {
                     .sum();
     }
 
-    private @NonNull Address loadValidateAddress(TradeDTO tradeDTO) {
-        Address address = getAddress(tradeDTO);
-        AssertUtils.notNull(address, BizErrorCode.ADDRESS_NOT_EXIST);
-        return address;
-    }
-
-    private OrderCreateResultDTO processOrderAggregate(@NonNull OrderBuildStrategy.OrderBuildResult buildResults) {
-        Order payOrder = buildResults.getPayOrder();
-        orderService.savePayOrder(payOrder);
-
-        List<Order> orders = buildResults.getSubOrders()
-                                         .stream()
-                                         .peek(build -> build.getOrder()
-                                                             .setParentId(payOrder.getId()))
-                                         .map(OrderBuildStrategy.RawOrderBuild::getOrder)
-                                         .toList();
-        orderService.saveOrders(orders);
-
-        List<OrderItem> orderItems = buildResults.getSubOrders()
-                                                 .stream()
-                                                 .peek(this::supplementOrderItemOrderId)
-                                                 .map(OrderBuildStrategy.RawOrderBuild::getOrderItems)
-                                                 .flatMap(List::stream)
-                                                 .toList();
-        saveOrderItems(orderItems);
-
-        return OrderCreateResultDTO.builder()
-                                   .orderNo(payOrder.getNo())
-                                   .expireTime(payOrder.getCreateTime()
-                                                       .plusMinutes(30))
-                                   .build();
-    }
-
-    private void pushCleanCartGoodsEvent(List<TradeShopDTO> tradeItems) {
-        List<Long> skuIds = tradeItems.stream()
-                                      .map(TradeShopDTO::getTradeShopItemList)
-                                      .flatMap(Collection::stream)
-                                      .map(TradeShopItemDTO::getSkuId)
-                                      .toList();
-
-        applicationEventPublisher.publishEvent(ClearCartEvent.builder()
-                                                             .skuIds(skuIds)
-                                                             .build());
-    }
-
-    private void pushOrderTimeoutCancelEvent(Order payOrder) {
-        applicationEventPublisher.publishEvent(OrderTimeoutCancelEvent.builder()
-                                                                      .orderId(payOrder.getId())
-                                                                      .orderNo(payOrder.getNo())
-                                                                      .build());
-    }
-
-    private Address getAddress(TradeDTO tradeDTO) {
-        return addressService.lambdaQuery()
-                             .eq(Address::getId, tradeDTO.getAddressId())
-                             .eq(Address::getUserId, AuthUserUtils.getUserId())
-                             .one();
-    }
-
-    private void supplementOrderItemOrderId(OrderBuildStrategy.RawOrderBuild orderBuild) {
-        Order order = orderBuild.getOrder();
-        for (OrderItem orderItem : orderBuild.getOrderItems()) {
-            orderItem.setOrderId(order.getId());
-        }
-    }
-
-    private void saveOrderItems(List<OrderItem> orderItems) {
-        boolean isSuccess = orderItemService.saveBatchItems(orderItems);
-        AssertUtils.isTrue(isSuccess, BizErrorCode.ORDER_CREATE_FAILED);
-    }
 }

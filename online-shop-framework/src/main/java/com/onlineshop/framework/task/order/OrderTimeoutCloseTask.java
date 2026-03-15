@@ -25,7 +25,7 @@ public class OrderTimeoutCloseTask {
 
     @Scheduled(cron = "0 */10 * * * ?")
     public void compensateFailedCloseMessages() {
-        int closedCount = orderAppService.closeTimeoutCreatedOrders();
+        int closedCount = orderAppService.closeTimeoutOrders();
         log.info("订单关闭消息补偿任务完成，本次成功关闭 {} 个订单", closedCount);
     }
 }

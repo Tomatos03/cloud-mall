@@ -1,6 +1,6 @@
 package com.onlineshop.security;
 
-import com.onlineshop.framework.config.WhiteListProperties;
+import com.onlineshop.framework.security.WhiteListProperties;
 import com.onlineshop.framework.security.handler.CustomerAccessDeniedHandler;
 import com.onlineshop.framework.security.handler.CustomerAuthenticationEntryPoint;
 import com.onlineshop.security.filter.MerchantTokenAuthenticationFilter;

@@ -8,10 +8,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,7 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.event.goods.DelGoodsFromEsEvent;
+import com.onlineshop.framework.event.MQTag;
+import com.onlineshop.framework.event.MQTopicProperties;
+import com.onlineshop.framework.event.TransactionCommitSendMQEvent;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
@@ -78,6 +78,7 @@ public class GoodsAppService implements IGoodsAppService {
     private final IStoreService storeService;
     private final ICategoryService categoryService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final MQTopicProperties mqTopicProperties;
 
     /**
      * 发布商品（创建或更新）
@@ -946,9 +947,11 @@ public class GoodsAppService implements IGoodsAppService {
 
     private void publishDelGoodsFromEsEvent(Long goodsId) {
         applicationEventPublisher.publishEvent(
-                DelGoodsFromEsEvent.builder()
-                                   .goodsId(goodsId)
-                                   .build()
+                new TransactionCommitSendMQEvent(
+                        mqTopicProperties.getGoods(),
+                        MQTag.GOODS_DELETE_FROM_ES,
+                        goodsId
+                )
         );
     }
 

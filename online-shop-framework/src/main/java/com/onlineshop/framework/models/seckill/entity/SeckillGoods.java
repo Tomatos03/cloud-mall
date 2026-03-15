@@ -78,6 +78,31 @@ public class SeckillGoods implements Serializable {
     private Integer soldCount;
 
     /**
+     * 活动状态
+     */
+    private Integer activityStatus;
+
+    /**
+     * 活动日期
+     */
+    private String activityDate;
+
+    /**
+     * 活动开始小时
+     */
+    private Integer startHour;
+
+    /**
+     * 活动开始时间
+     */
+    private LocalDateTime startTime;
+
+    /**
+     * 活动结束时间
+     */
+    private LocalDateTime endTime;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;
