@@ -1,5 +1,7 @@
 package com.onlineshop.framework.models.goods.spec.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @TableName("goods_sku_spec")
 public class GoodsSkuSpec {
+    @TableId(type = IdType.AUTO)
+    private Long Id;
     
     /**
      * sku id

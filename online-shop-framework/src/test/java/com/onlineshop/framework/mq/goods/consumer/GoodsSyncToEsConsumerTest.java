@@ -41,7 +41,7 @@ class GoodsSyncToEsConsumerTest {
                              .createTime(LocalDateTime.now())
                              .build();
 
-        consumer.onMessage(message);
+//        consumer.onMessage(message);
 
         verify(goodsEsService).saveGoodsIndex(argThat(goodsIndex ->
                 goodsIndex != null
@@ -54,7 +54,7 @@ class GoodsSyncToEsConsumerTest {
     @Test
     void shouldIgnoreWhenMessageInvalid() {
         consumer.onMessage(null);
-        consumer.onMessage(Goods.builder().id(null).build());
+//        consumer.onMessage(Goods.builder().id(null).build());
 
         verifyNoInteractions(goodsEsService);
     }

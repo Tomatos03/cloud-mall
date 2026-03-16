@@ -31,7 +31,6 @@ rocketmq:
   producer:
     group: online-mall-group
     send-message-timeout: 3000
-    namespace:
   name-server: ${app.rocketmq.name-server}
 
 mq:

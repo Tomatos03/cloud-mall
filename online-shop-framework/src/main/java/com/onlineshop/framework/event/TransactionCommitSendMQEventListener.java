@@ -16,7 +16,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
  */
 @Component
 @RequiredArgsConstructor
-@ConditionalOnBean(RocketMQTemplate.class)
 public class TransactionCommitSendMQEventListener {
     private final RocketMQTemplate rocketMQTemplate;
     private final DefaultSendCallbackHandler defaultSendCallbackHandler;

@@ -1,5 +1,6 @@
 package com.onlineshop.framework.mq.consumer.goods;
 
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -27,18 +28,15 @@ import com.onlineshop.framework.models.search.service.IGoodsEsService;
         selectorExpression = MQTag.GOODS_SYNC_TO_ES,
         consumerGroup = "${mq.group.goods}"
 )
-public class GoodsSyncToEsConsumer implements RocketMQListener<Goods> {
+public class GoodsSyncToEsConsumer implements RocketMQListener<Long> {
     private final IGoodsEsService goodsEsService;
+    private final IGoodsService goodsService;
 
     @Override
-    public void onMessage(Goods message) {
-        if (message == null || message.getId() == null || message.getCreateTime() == null) {
-            log.warn("同步商品索引消息无效, message: {}", message);
-            return;
-        }
-
-        GoodsIndex goodsIndex = GoodsIndex.convertToGoodsIndex(message);
+    public void onMessage(Long goodsId) {
+        Goods goods = goodsService.getById(goodsId);
+        GoodsIndex goodsIndex = GoodsIndex.convertToGoodsIndex(goods);
         goodsEsService.saveGoodsIndex(goodsIndex);
-        log.info("同步商品索引成功, goodsId: {}", message.getId());
+        log.info("同步商品索引成功, goodsId: {}", goodsId);
     }
 }

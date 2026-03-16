@@ -70,7 +70,7 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
 
             fillPriceRange(goods);
         }
-        
+
         log.info("商品审核项验证和填充完成");
     }
 
@@ -84,7 +84,7 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
      * 3. 对于拒绝的项：仅记录（可选业务处理）
      *
      * @param audit 审核批次
-     * @param items   批次中的所有项（已按审核决策更新状态）
+     * @param items 批次中的所有项（已按审核决策更新状态）
      */
     @Override
     protected void onProcessed(Audit audit, List<AuditItem> items) {
@@ -101,7 +101,7 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
                         new TransactionCommitSendMQEvent(
                                 mqTopicProperties.getGoods(),
                                 MQTag.GOODS_SYNC_TO_ES,
-                                goods
+                                goods.getId()
                         )
                 );
             }
@@ -142,7 +142,8 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
         Long minPrice = null;
         Long maxPrice = null;
         for (SkuDTO sku : item.getSkus()) {
-            long currentPrice = Money.ofYuan(sku.getPrice()).getCents();
+            long currentPrice = Money.ofYuan(sku.getPrice())
+                                     .getCents();
             if (minPrice == null || currentPrice < minPrice) {
                 minPrice = currentPrice;
             }
@@ -150,7 +151,9 @@ public class GoodsAuditor extends AbstractAuditor<GoodsAuditItemDTO> {
                 maxPrice = currentPrice;
             }
         }
-        item.setMinPrice(Money.ofCents(minPrice).toYuanString());
-        item.setMaxPrice(Money.ofCents(maxPrice).toYuanString());
+        item.setMinPrice(Money.ofCents(minPrice)
+                              .toYuanString());
+        item.setMaxPrice(Money.ofCents(maxPrice)
+                              .toYuanString());
     }
 }
