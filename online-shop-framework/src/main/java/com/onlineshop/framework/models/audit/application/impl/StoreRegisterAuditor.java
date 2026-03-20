@@ -1,6 +1,6 @@
 package com.onlineshop.framework.models.audit.application.impl;
 
-import com.alibaba.fastjson.JSON;
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.models.audit.application.AbstractAuditor;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.dto.StoreRegisterAuditItemDTO;
@@ -15,6 +15,8 @@ import com.onlineshop.framework.models.system.user.IUserService;
 import com.onlineshop.framework.models.system.user.entity.User;
 import com.onlineshop.framework.models.system.user.entity.UserQualification;
 import com.onlineshop.framework.models.system.user.mapper.UserQualificationMapper;
+import com.onlineshop.framework.utils.AssertUtils;
+import com.onlineshop.framework.utils.AuthUserUtils;
 import com.onlineshop.framework.utils.IDNumber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +52,15 @@ public class StoreRegisterAuditor extends AbstractAuditor<StoreRegisterAuditItem
 
     @Override
     protected void validateAndFill(AuditSubmitDTO<StoreRegisterAuditItemDTO> submitDTO) {
-        // 店铺注册审核请求验证
+        AssertUtils.isFalse(AuthUserUtils.isMerchantAccount(), BizErrorCode.NO_PERMISSION);
+        Long userId = AuthUserUtils.getUserId();
+        User user = userService.getById(userId);
+        AssertUtils.notNull(user, BizErrorCode.USER_NOT_EXISTS);
+        Collection<StoreRegisterAuditItemDTO> items = submitDTO.getItems();
+
+        for (StoreRegisterAuditItemDTO item : items) {
+            item.setUserId(userId);
+        }
     }
 
     /**
@@ -74,6 +84,7 @@ public class StoreRegisterAuditor extends AbstractAuditor<StoreRegisterAuditItem
                 // 通过：创建店铺
                 try {
                     StoreRegisterAuditItemDTO storeItem = parseSnapshot(item.getSnapshot(), StoreRegisterAuditItemDTO.class);
+                    Long userId = resolveApplicantUserId(audit, storeItem);
 
                     // 创建店铺
                     String finalStoreName = storeItem.getStoreName() != null && !storeItem.getStoreName().trim().isEmpty()
@@ -82,19 +93,20 @@ public class StoreRegisterAuditor extends AbstractAuditor<StoreRegisterAuditItem
 
                     Store store = Store.builder()
                                        .no(IDNumber.generateStoreNo())
-                                       .userId(item.getId())
+                                       .userId(userId)
                                        .name(finalStoreName)
                                        .build();
 
                     storeService.save(store);
 
                     // 保存用户资质认证信息
-                    saveUserQualificationForItem(storeItem, item.getId());
+                    saveUserQualificationForItem(storeItem, userId);
 
                     // 添加商家账户类型
-                    addMerchantAccountType(item.getId());
+                    addMerchantAccountType(userId);
 
-                    log.info("店铺注册审核通过，AuditItem ID: {}，店铺ID: {}", item.getId(), store.getId());
+                    log.info("店铺注册审核通过，AuditItem ID: {}，用户ID: {}，店铺ID: {}",
+                             item.getId(), userId, store.getId());
                 } catch (Exception e) {
                     log.error("店铺注册审核通过处理失败，AuditItem ID: {}", item.getId(), e);
                     throw e;
@@ -106,6 +118,15 @@ public class StoreRegisterAuditor extends AbstractAuditor<StoreRegisterAuditItem
         }
 
         log.info("店铺注册审核结果处理完成，批次ID: {}", auditId);
+    }
+
+    private Long resolveApplicantUserId(Audit audit, StoreRegisterAuditItemDTO storeItem) {
+        Long userId = storeItem.getUserId();
+        if (userId == null) {
+            userId = audit.getApplicantId();
+        }
+        AssertUtils.notNull(userId, BizErrorCode.USER_NOT_AUTHENTICATED);
+        return userId;
     }
 
     private void addMerchantAccountType(Long userId) {

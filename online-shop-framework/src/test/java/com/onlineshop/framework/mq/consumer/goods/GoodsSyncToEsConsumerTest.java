@@ -3,11 +3,7 @@ package com.onlineshop.framework.mq.consumer.goods;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
-import org.apache.rocketmq.spring.support.RocketMQHeaders;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 
-import com.onlineshop.framework.event.MQTag;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.search.service.IGoodsEsService;
@@ -22,7 +18,7 @@ import static org.mockito.Mockito.when;
 class GoodsSyncToEsConsumerTest {
 
     @Test
-    void onMessage_shouldSyncGoodsIndex_whenTagIsSync() {
+    void onMessage_shouldSyncGoodsIndex_whenGoodsExists() {
         IGoodsEsService goodsEsService = mock(IGoodsEsService.class);
         IGoodsService goodsService = mock(IGoodsService.class);
 
@@ -32,44 +28,34 @@ class GoodsSyncToEsConsumerTest {
         goods.setCreateTime(LocalDateTime.now());
         when(goodsService.getById(1001L)).thenReturn(goods);
 
-        GoodsEsIndexConsumer consumer = new GoodsEsIndexConsumer(goodsEsService, goodsService);
-        Message<Long> message = buildMessage(MQTag.GOODS_SYNC_TO_ES, 1001L);
+        GoodsSyncToEsConsumer consumer = new GoodsSyncToEsConsumer(goodsEsService, goodsService);
 
-        assertDoesNotThrow(() -> consumer.onMessage(message));
+        assertDoesNotThrow(() -> consumer.onMessage(1001L));
         verify(goodsService).getById(1001L);
         verify(goodsEsService).saveGoodsIndex(any());
-        verify(goodsEsService, never()).deleteGoodsIndex(any());
     }
 
     @Test
-    void onMessage_shouldDeleteGoodsIndex_whenTagIsDelete() {
+    void onMessage_shouldIgnore_whenGoodsNotExists() {
         IGoodsEsService goodsEsService = mock(IGoodsEsService.class);
         IGoodsService goodsService = mock(IGoodsService.class);
-        GoodsEsIndexConsumer consumer = new GoodsEsIndexConsumer(goodsEsService, goodsService);
-        Message<Long> message = buildMessage(MQTag.GOODS_DELETE_FROM_ES, 1002L);
+        when(goodsService.getById(1002L)).thenReturn(null);
 
-        assertDoesNotThrow(() -> consumer.onMessage(message));
-        verify(goodsService, never()).getById(any());
-        verify(goodsEsService).deleteGoodsIndex(1002L);
+        GoodsSyncToEsConsumer consumer = new GoodsSyncToEsConsumer(goodsEsService, goodsService);
+
+        assertDoesNotThrow(() -> consumer.onMessage(1002L));
+        verify(goodsService).getById(1002L);
         verify(goodsEsService, never()).saveGoodsIndex(any());
     }
 
     @Test
-    void onMessage_shouldIgnoreWhenTagUnknown() {
+    void onMessage_shouldIgnore_whenGoodsIdIsNull() {
         IGoodsEsService goodsEsService = mock(IGoodsEsService.class);
         IGoodsService goodsService = mock(IGoodsService.class);
-        GoodsEsIndexConsumer consumer = new GoodsEsIndexConsumer(goodsEsService, goodsService);
-        Message<Long> message = buildMessage("unknown_tag", 1003L);
+        GoodsSyncToEsConsumer consumer = new GoodsSyncToEsConsumer(goodsEsService, goodsService);
 
-        assertDoesNotThrow(() -> consumer.onMessage(message));
+        assertDoesNotThrow(() -> consumer.onMessage(null));
         verify(goodsService, never()).getById(any());
         verify(goodsEsService, never()).saveGoodsIndex(any());
-        verify(goodsEsService, never()).deleteGoodsIndex(any());
-    }
-
-    private Message<Long> buildMessage(String tag, Long goodsId) {
-        return MessageBuilder.withPayload(goodsId)
-                             .setHeader(RocketMQHeaders.TAGS, tag)
-                             .build();
     }
 }

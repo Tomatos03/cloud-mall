@@ -20,6 +20,11 @@ import java.util.List;
 @Data
 public class StoreRegisterAuditItemDTO {
     /**
+     * 申请用户ID
+     */
+    private Long userId;
+
+    /**
      * 主体类型
      */
     private String subjectType;

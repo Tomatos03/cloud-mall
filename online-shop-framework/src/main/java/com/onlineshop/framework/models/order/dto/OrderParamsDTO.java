@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 订单查询 DTO
@@ -30,12 +31,14 @@ public class OrderParamsDTO extends PageParamsDTO {
 
     /**
      * 订单状态
+     *
      * @see OrderStatus
      */
     private String status;
-    
+
     /**
      * 订单类型：PARENT-父订单, SUB-子订单, NORMAL-普通订单
+     *
      * @see OrderType
      */
     private String orderType;

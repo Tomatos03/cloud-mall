@@ -43,7 +43,8 @@ mq:
     order: "order_timeout_cancel_group"
     seckill: "seckill_order_create_group"
     cart: "cart_clear_group"
-    goods: "goods_group"
+    goods-sync: "goods_sync_group"
+    goods-delete: "goods_delete_group"
 
 jwt:
   secret: ${app.jwt.secret}

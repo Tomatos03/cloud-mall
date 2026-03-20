@@ -67,6 +67,7 @@ public class OrderAppService implements IOrderAppService {
     public OrderCreateResultDTO createOrder(TradeDTO tradeDTO, PurchaseMode purchaseMode) {
         OrderCreateResultDTO result = orderCreatorFactory.getOrderCreator(purchaseMode)
                                                          .create(tradeDTO);
+        result.setPayQrCode(OrderCreateResultDTO.MOCK_PAY_QR_CODE);
         log.info("订单创建成功, orderNo: {}", result.getOrderNo());
         return result;
     }
@@ -229,7 +230,8 @@ public class OrderAppService implements IOrderAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int closeTimeoutOrders() {
-        List<Order> timeoutOrders = orderService.queryTimeoutOrders(LocalDateTime.now());
+        LocalDateTime timeoutDeadline = LocalDateTime.now().minusMinutes(30L);
+        List<Order> timeoutOrders = orderService.queryTimeoutOrders(timeoutDeadline);
         if (CollUtil.isEmpty(timeoutOrders)) {
             return 0;
         }

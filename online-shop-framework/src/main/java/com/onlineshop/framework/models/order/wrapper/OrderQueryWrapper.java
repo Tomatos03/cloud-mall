@@ -54,7 +54,7 @@ public class OrderQueryWrapper {
     }
 
     private static void fillAdminQueryWrapper(LambdaQueryWrapper<Order> wrapper) {
-        // 管理端可查看平台全部订单，不加数据范围条件
+        wrapper.in(Order::getOrderType, OrderType.NORMAL.getCode(), OrderType.PARENT.getCode());
     }
 
     private static void fillCommonConditions(

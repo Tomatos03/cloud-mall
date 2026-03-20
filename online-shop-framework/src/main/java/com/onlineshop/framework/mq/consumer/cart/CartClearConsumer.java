@@ -35,6 +35,8 @@ public class CartClearConsumer implements RocketMQListener<ClearCartEvent> {
             log.warn("购物车清理消息无效, message: {}", message);
             return;
         }
+        log.info("收到购物车清理消息, userId: {}, skuCount: {}",
+                 message.getUserId(), message.getSkuIds().size());
 
         try {
             cartService.removeCartItems(message.getUserId(), message.getSkuIds());

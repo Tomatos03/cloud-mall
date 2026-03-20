@@ -33,6 +33,12 @@ public class OrderCloseConsumer implements RocketMQListener<String> {
 
     @Override
     public void onMessage(String orderNo) {
+        if (orderNo == null || orderNo.isBlank()) {
+            log.warn("订单超时关闭消息无效, orderNo: {}", orderNo);
+            return;
+        }
+        log.info("收到订单超时关闭消息, orderNo: {}", orderNo);
+
         try {
             Order order = orderService.queryByOrderNo(orderNo);
             if (order == null) {
@@ -44,9 +50,11 @@ public class OrderCloseConsumer implements RocketMQListener<String> {
             boolean closed = orderService.updateOrderStatus(order, OrderStatus.CLOSED);
             if (!closed) {
                 log.info("订单状态不允许关闭或已被处理, orderNo: {}", order.getNo());
+                return;
             }
+            log.info("订单超时关闭成功, orderNo: {}", order.getNo());
         } catch (Exception e) {
-            log.error("处理订单超时取消消息异常: {}", e.getMessage());
+            log.error("处理订单超时取消消息异常, orderNo: {}", orderNo, e);
             throw new RuntimeException("订单超时取消处理失败", e);
         }
     }

@@ -367,14 +367,14 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
     private void pushOrderTimeoutCancelEvent(String orderNo) {
         Message<String> message = MessageBuilder.withPayload(orderNo)
                                                 .setHeader(RocketMQHeaders.KEYS, orderNo)
-                                                .setHeader(RocketMQHeaders.DELAY, 18)
                                                 .build();
 
         applicationEventPublisher.publishEvent(
                 new TransactionCommitSendMQEvent(
                         mqTopicProperties.getOrder(),
                         MQTag.ORDER_TIMEOUT_CANCEL,
-                        message
+                        message,
+                        18
                 )
         );
     }

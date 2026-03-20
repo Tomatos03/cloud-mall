@@ -49,6 +49,12 @@ public class SeckillOrderCreateConsumer implements RocketMQListener<Long> {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void onMessage(Long seckillOrderId) {
+        if (seckillOrderId == null) {
+            log.warn("秒杀订单创建消息无效, seckillOrderId: null");
+            return;
+        }
+        log.info("收到秒杀订单创建消息, seckillOrderId: {}", seckillOrderId);
+
         try {
             createOrder(seckillOrderId);
         } catch (Exception e) {
@@ -59,6 +65,7 @@ public class SeckillOrderCreateConsumer implements RocketMQListener<Long> {
 
     @Transactional(rollbackFor = Exception.class)
     public void createOrder(Long seckillOrderId) {
+        log.info("开始异步建秒杀订单, seckillOrderId: {}", seckillOrderId);
         SeckillOrder seckillOrder = seckillOrderService.getById(seckillOrderId);
         if (shouldSkipCreateOrder(seckillOrderId, seckillOrder)) {
             return;
