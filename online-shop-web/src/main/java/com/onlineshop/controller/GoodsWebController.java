@@ -53,6 +53,22 @@ public class GoodsWebController {
         return searchAppService.searchGoods(searchDTO);
     }
 
+    /**
+     * 店铺内商品搜索
+     *
+     * @param storeId   店铺ID
+     * @param searchDTO 搜索条件DTO
+     * @return 分页商品列表
+     */
+    @GetMapping("/store/{storeId}/search")
+    public IPage<GoodsCardVO> searchGoodsInStore(
+            @PathVariable Long storeId,
+            GoodsSearchDTO searchDTO
+    ) {
+        searchDTO.setStoreId(storeId);
+        return searchAppService.searchGoods(searchDTO);
+    }
+
     @GetMapping("/detail/{id}")
     public WebGoodsDetailVO getGoodsDetail(@PathVariable Long id) {
         return goodsAppService.getWebGoodsDetail(id);

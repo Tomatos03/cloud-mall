@@ -1,25 +1,26 @@
 package com.onlineshop.framework.models.goods.spu;
 
-import cn.hutool.core.collection.CollectionUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.onlineshop.framework.common.enums.BizErrorCode;
-import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
-import com.onlineshop.framework.utils.AssertUtils;
-import com.onlineshop.framework.utils.AuthUserUtils;
-import com.onlineshop.framework.utils.image.ImageUtil;
-import com.onlineshop.framework.utils.money.Money;
-import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
+
+import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import com.onlineshop.framework.common.enums.BizErrorCode;
+import com.onlineshop.framework.models.goods.spu.dto.GoodsPageParamsDTO;
+import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
+import com.onlineshop.framework.utils.AssertUtils;
+import com.onlineshop.framework.utils.AuthUserUtils;
+import com.onlineshop.framework.utils.image.ImageUtil;
+import com.onlineshop.framework.utils.money.Money;
 
 @Service
 @RequiredArgsConstructor
@@ -42,16 +43,13 @@ public class GoodsService extends ServiceImpl<GoodsMapper, Goods> implements IGo
     }
 
     @Override
-    public IPage<SpuVO> pageQuery(int page, int size) {
-        Page<Goods> pageObj = new Page<>(page, size);
-        return this.page(pageObj, buildQueryWrapper())
+    public IPage<SpuVO> pageGoods(GoodsPageParamsDTO queryDTO) {
+        Page<Goods> pageObj = new Page<>(queryDTO.getPage(), queryDTO.getPageSize());
+        return this.lambdaQuery()
+                   .eq(queryDTO.getStoreId() != null, Goods::getStoreId, queryDTO.getStoreId())
+                   .eq(queryDTO.getStatus() != null, Goods::getStatus, queryDTO.getStatus())
+                   .page(pageObj)
                    .convert(this::convertSpuVO);
-    }
-
-    private static LambdaQueryWrapper<Goods> buildQueryWrapper() {
-        Long storeId = AuthUserUtils.getStoreId();
-        return new LambdaQueryWrapper<Goods>()
-                .eq(storeId != null, Goods::getStoreId, AuthUserUtils.getStoreId());
     }
 
     private SpuVO convertSpuVO(Goods goods) {

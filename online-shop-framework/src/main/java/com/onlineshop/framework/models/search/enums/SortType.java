@@ -19,19 +19,19 @@ import java.util.Arrays;
 @Getter
 @AllArgsConstructor
 public enum SortType {
-    COMPREHENSIVE("COMPREHENSIVE", "综合", null, null),
+    COMPREHENSIVE("comprehensive", "综合", null, null),
 
     /** 新品优先（按 createTime 降序） */
-    NEWEST("NEWEST", "新品优先", "createTime", Sort.Direction.DESC),
+    NEWEST("newest", "新品优先", "createTime", Sort.Direction.DESC),
 
     /** 销量最高（按 sales 降序） */
-    SALES("SALES", "销量最高", "sales", Sort.Direction.DESC),
+    SALES("sales", "销量最高", "sales", Sort.Direction.DESC),
 
     /** 价格升序（按最小价格升序） */
-    PRICE_ASC("PRICE_ASC", "价格升序", "minPrice", Sort.Direction.ASC),
+    PRICE_ASC("price_asc", "价格升序", "minPrice", Sort.Direction.ASC),
 
     /** 价格降序（按最小价格降序） */
-    PRICE_DESC("PRICE_DESC", "价格降序", "minPrice", Sort.Direction.DESC);
+    PRICE_DESC("price_desc", "价格降序", "minPrice", Sort.Direction.DESC);
 
     private final String code;
     private final String description;
@@ -45,8 +45,14 @@ public enum SortType {
      * @return 对应的 SortType
      */
     public static SortType of(String code) {
+        if (code == null || code.isBlank()) {
+            return COMPREHENSIVE;
+        }
+        String normalizedCode = code.trim();
         return Arrays.stream(values())
-                .filter(type -> type.code.equalsIgnoreCase(code))
+                .filter(type -> type.code.equalsIgnoreCase(normalizedCode)
+                        || type.name()
+                                .equalsIgnoreCase(normalizedCode))
                 .findFirst()
                 .orElseThrow(() -> new BizException(BizErrorCode.UNKNOWN_SEARCH_ORDER_TYPE));
     }

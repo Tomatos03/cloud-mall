@@ -35,7 +35,9 @@ public class UserLoadService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userService.queryUserByUsername(username);
-        AssertUtils.notNull(user, BizErrorCode.USERNAME_OR_PASSWORD_ERROR);
+        if (user == null) {
+            throw new UsernameNotFoundException(BizErrorCode.USERNAME_OR_PASSWORD_ERROR.getErrorMessage());
+        }
         List<Role> roles = userService.queryRolesByUserId(user.getId());
         List<SimpleGrantedAuthority> authorities = convertSimpleGrantedAuthorityList(roles);
         AuthUser authUser = new AuthUser(user.getId(), username, user.getPassword(), authorities);
@@ -43,19 +45,6 @@ public class UserLoadService implements UserDetailsService {
 
         supplementStoreInfoForMerchant(authUser);
         return authUser;
-    }
-
-    private Set<String> parseAccountTypes(String types) {
-        return new HashSet<>(Arrays.asList(types.split(",")));
-    }
-
-    private void supplementStoreInfoForMerchant(AuthUser authUser) {
-        if (!authUser.getAvailableAccountTypes().contains(AccountType.MERCHANT.getCode())) {
-            return;
-        }
-        Store store = storeService.queryStoreByUserId(authUser.getUserId());
-        AssertUtils.notNull(store, BizErrorCode.MERCHANT_STORE_NOT_FOUND);
-        authUser.setStoreId(store.getId());
     }
 
     private List<SimpleGrantedAuthority> convertSimpleGrantedAuthorityList(List<Role> roles) {
@@ -66,5 +55,19 @@ public class UserLoadService implements UserDetailsService {
                                  )
                     )
                     .toList();
+    }
+
+    private Set<String> parseAccountTypes(String types) {
+        return new HashSet<>(Arrays.asList(types.split(",")));
+    }
+
+    private void supplementStoreInfoForMerchant(AuthUser authUser) {
+        if (!authUser.getAvailableAccountTypes()
+                     .contains(AccountType.MERCHANT.getCode())) {
+            return;
+        }
+        Store store = storeService.queryStoreByUserId(authUser.getUserId());
+        AssertUtils.notNull(store, BizErrorCode.MERCHANT_STORE_NOT_FOUND);
+        authUser.setStoreId(store.getId());
     }
 }

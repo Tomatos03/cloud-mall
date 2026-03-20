@@ -26,4 +26,5 @@ public class WebSpuVO {
     private List<String> descriptionImageUrls; // 商品描述图片列表
     private LocalDateTime createTime; // 上架时间或创建时间
     private Integer sale; // 总销量
+    private String positiveRate; // 好评率
 }

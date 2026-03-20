@@ -2,47 +2,49 @@ package com.onlineshop.framework.mq.goods.consumer;
 
 import java.time.LocalDateTime;
 
+import org.apache.rocketmq.spring.support.RocketMQHeaders;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 
+import com.onlineshop.framework.event.MQTag;
 import com.onlineshop.framework.models.goods.spu.Goods;
+import com.onlineshop.framework.models.goods.spu.IGoodsService;
 import com.onlineshop.framework.models.search.service.IGoodsEsService;
-import com.onlineshop.framework.mq.consumer.goods.GoodsSyncToEsConsumer;
+import com.onlineshop.framework.mq.consumer.goods.GoodsEsIndexConsumer;
 
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class GoodsSyncToEsConsumerTest {
-    @Mock
-    private IGoodsEsService goodsEsService;
-
-    @InjectMocks
-    private GoodsSyncToEsConsumer consumer;
 
     @Test
-    void shouldSaveGoodsIndexWhenMessageValid() {
-        Goods message = Goods.builder()
-                             .id(1L)
-                             .name("iPhone")
-                             .sellPoint("A18")
-                             .categoryIdPath("1/2/3")
-                             .storeId(11L)
-                             .storeName("Apple")
-                             .minPrice(100L)
-                             .maxPrice(200L)
-                             .sales(99)
-                             .status(Boolean.TRUE)
-                             .displayImages("img1")
-                             .createTime(LocalDateTime.now())
-                             .build();
+    void shouldSaveGoodsIndexWhenTagIsSync() {
+        IGoodsEsService goodsEsService = mock(IGoodsEsService.class);
+        IGoodsService goodsService = mock(IGoodsService.class);
+        GoodsEsIndexConsumer consumer = new GoodsEsIndexConsumer(goodsEsService, goodsService);
 
-//        consumer.onMessage(message);
+        Goods goods = Goods.builder()
+                           .id(1L)
+                           .name("iPhone")
+                           .sellPoint("A18")
+                           .categoryIdPath("1/2/3")
+                           .storeId(11L)
+                           .storeName("Apple")
+                           .minPrice(100L)
+                           .maxPrice(200L)
+                           .sales(99)
+                           .status(Boolean.TRUE)
+                           .displayImages("img1")
+                           .createTime(LocalDateTime.now())
+                           .build();
+        when(goodsService.getById(1L)).thenReturn(goods);
 
+        Message<Long> message = buildMessage(MQTag.GOODS_SYNC_TO_ES, 1L);
+        consumer.onMessage(message);
         verify(goodsEsService).saveGoodsIndex(argThat(goodsIndex ->
                 goodsIndex != null
                         && Long.valueOf(1L).equals(goodsIndex.getId())
@@ -52,10 +54,20 @@ class GoodsSyncToEsConsumerTest {
     }
 
     @Test
-    void shouldIgnoreWhenMessageInvalid() {
-        consumer.onMessage(null);
-//        consumer.onMessage(Goods.builder().id(null).build());
+    void shouldDeleteGoodsIndexWhenTagIsDelete() {
+        IGoodsEsService goodsEsService = mock(IGoodsEsService.class);
+        IGoodsService goodsService = mock(IGoodsService.class);
+        GoodsEsIndexConsumer consumer = new GoodsEsIndexConsumer(goodsEsService, goodsService);
+        Message<Long> message = buildMessage(MQTag.GOODS_DELETE_FROM_ES, 2L);
 
-        verifyNoInteractions(goodsEsService);
+        consumer.onMessage(message);
+        verify(goodsEsService).deleteGoodsIndex(2L);
+        verify(goodsService, never()).getById(2L);
+    }
+
+    private Message<Long> buildMessage(String tag, Long goodsId) {
+        return MessageBuilder.withPayload(goodsId)
+                             .setHeader(RocketMQHeaders.TAGS, tag)
+                             .build();
     }
 }

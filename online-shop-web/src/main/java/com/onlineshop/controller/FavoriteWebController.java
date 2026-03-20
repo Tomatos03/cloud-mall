@@ -32,9 +32,9 @@ public class FavoriteWebController {
         favoriteService.addFavorite(goodsId);
     }
 
-    @DeleteMapping("{id}")
-    public boolean removeFavorite(@PathVariable Long id) {
-        return favoriteService.removeById(id);
+    @DeleteMapping("{goodsId}")
+    public void removeFavorite(@PathVariable Long goodsId) {
+        favoriteService.removeFavorite(goodsId);
     }
 
     @GetMapping("/status/{goodsId}")

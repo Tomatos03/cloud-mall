@@ -2,9 +2,11 @@ package com.onlineshop.framework.utils;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
+import org.springframework.security.authentication.BadCredentialsException;
 
 /**
  * 断言工具类
@@ -55,6 +57,12 @@ public class AssertUtils {
     public static void notNull(Object obj, BizErrorCode errorCode) {
         if (obj == null) {
             throw new BizException(errorCode);
+        }
+    }
+
+    public static <X extends RuntimeException> void notNull(Object obj, Supplier<X> exceptionSupplier) {
+        if (obj == null) {
+            throw exceptionSupplier.get();
         }
     }
 

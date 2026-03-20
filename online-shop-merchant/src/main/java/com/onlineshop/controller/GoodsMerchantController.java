@@ -13,21 +13,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.onlineshop.framework.models.goods.application.GoodsStatusUpdateDTO;
 import com.onlineshop.framework.models.audit.application.impl.GoodsAuditor;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.dto.GoodsAuditItemDTO;
 import com.onlineshop.framework.models.audit.enums.AuditBizType;
+import com.onlineshop.framework.models.goods.application.GoodsStatusUpdateDTO;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
 import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
 import com.onlineshop.framework.models.goods.sku.MerchantGoodsSkuItemDTO;
 import com.onlineshop.framework.models.goods.sku.MerchantGoodsSkuParamsDTO;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.dto.GoodsPageParamsDTO;
 import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
+import com.onlineshop.framework.utils.AuthUserUtils;
 
 /**
  * 商家商品管理 Controller
@@ -85,16 +86,13 @@ public class GoodsMerchantController {
      * 分页查询商品列表
      * GET /merchant/goods
      *
-     * @param page     页码，从1开始
-     * @param pageSize 每页数量
+     * @param queryDTO 分页参数 + 状态
      * @return 分页商品列表
      */
     @GetMapping
-    public IPage<SpuVO> pageGoods(
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "pageSize", defaultValue = "10") int pageSize
-    ) {
-        return goodsService.pageQuery(page, pageSize);
+    public IPage<SpuVO> queryGoodsList(GoodsPageParamsDTO queryDTO) {
+        queryDTO.setStoreId(AuthUserUtils.getStoreId());
+        return goodsService.pageGoods(queryDTO);
     }
 
     /**

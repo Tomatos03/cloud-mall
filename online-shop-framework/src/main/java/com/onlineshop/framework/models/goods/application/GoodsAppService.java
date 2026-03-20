@@ -1,5 +1,7 @@
 package com.onlineshop.framework.models.goods.application;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +33,8 @@ import com.onlineshop.framework.models.category.Category;
 import com.onlineshop.framework.models.category.ICategoryService;
 import com.onlineshop.framework.models.category.vo.CategoryGoodsSectionVO;
 import com.onlineshop.framework.models.category.vo.CategoryTabVO;
+import com.onlineshop.framework.models.comment.GoodsComment;
+import com.onlineshop.framework.models.comment.IGoodsCommentService;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
 import com.onlineshop.framework.models.goods.application.vo.WebGoodsDetailVO;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
@@ -76,6 +80,7 @@ public class GoodsAppService implements IGoodsAppService {
     private final ISpecValueService specValueService;
     private final IGoodsSkuSpecService skuSpecService;
     private final IStoreService storeService;
+    private final IGoodsCommentService goodsCommentService;
     private final ICategoryService categoryService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final MQTopicProperties mqTopicProperties;
@@ -622,7 +627,29 @@ public class GoodsAppService implements IGoodsAppService {
                        .descriptionImageUrls(descriptionImageUrls)
                        .createTime(goods.getCreateTime())
                        .sale(goods.getSales())
+                       .positiveRate(calculatePositiveRate(goods.getId()))
                        .build();
+    }
+
+    private String calculatePositiveRate(Long goodsId) {
+        Long totalCount = goodsCommentService.lambdaQuery()
+                                             .eq(GoodsComment::getGoodsId, goodsId)
+                                             .count();
+        if (totalCount == null || totalCount == 0L) {
+            return null;
+        }
+
+        Long positiveCount = goodsCommentService.lambdaQuery()
+                                                .eq(GoodsComment::getGoodsId, goodsId)
+                                                .ge(GoodsComment::getRating, 4)
+                                                .count();
+        if (positiveCount == null) {
+            positiveCount = 0L;
+        }
+        BigDecimal rate = BigDecimal.valueOf(positiveCount)
+                                    .multiply(BigDecimal.valueOf(100))
+                                    .divide(BigDecimal.valueOf(totalCount), 0, RoundingMode.HALF_UP);
+        return rate.toPlainString() + "%";
     }
 
     // ==================== Web详情相关方法 ====================

@@ -28,6 +28,13 @@ public interface IFavoriteService extends IService<Favorite> {
     void addFavorite(Long goodsId);
 
     /**
+     * 取消收藏
+     *
+     * @param goodsId 商品id
+     */
+    void removeFavorite(Long goodsId);
+
+    /**
      * 检查某个商品是否已被当前用户收藏
      *
      * @param goodsId 商品id
@@ -35,4 +42,3 @@ public interface IFavoriteService extends IService<Favorite> {
      */
     FavoriteStatusDTO isFavorite(Long goodsId);
 }
-

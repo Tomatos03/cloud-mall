@@ -21,5 +21,5 @@ public class GoodsSearchDTO extends PageParamsDTO {
     private String minPrice;
     private String maxPrice;
     private Boolean isDesc; // 降序
-    private String sortType = "COMPREHENSIVE";
+    private String sortType = "comprehensive";
 }

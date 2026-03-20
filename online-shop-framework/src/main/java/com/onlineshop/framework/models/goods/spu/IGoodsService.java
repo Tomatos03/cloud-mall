@@ -1,12 +1,14 @@
 package com.onlineshop.framework.models.goods.spu;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.service.IService;
+
+import com.onlineshop.framework.models.goods.spu.dto.GoodsPageParamsDTO;
+import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
 
 public interface IGoodsService extends IService<Goods> {
     List<Goods> queryEnableGoodsList();
@@ -14,13 +16,12 @@ public interface IGoodsService extends IService<Goods> {
     List<Goods> queryGoodsListByIds(Collection<? extends Serializable> ids);
 
     /**
-     * 分页查询商品（管理员/商家权限，自动区分）
+     * 分页查询商品列表
      *
-     * @param page 页码，从1开始
-     * @param size 每页数量
+     * @param queryDTO 查询参数：page/pageSize/status/storeId
      * @return 分页结果
      */
-    IPage<SpuVO> pageQuery(int page, int size);
+    IPage<SpuVO> pageGoods(GoodsPageParamsDTO queryDTO);
 
     /**
      * 更新商品上下架状态

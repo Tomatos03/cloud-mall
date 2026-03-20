@@ -1,20 +1,32 @@
 package com.onlineshop.controller;
 
+import java.util.List;
+
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.category.vo.CategoryNodeVO;
+import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.onlineshop.framework.models.category.ICategoryService;
+import com.onlineshop.framework.models.category.vo.CategoryNodeVO;
 import com.onlineshop.framework.models.goods.application.IGoodsAppService;
 import com.onlineshop.framework.models.goods.application.vo.GoodsDetailVO;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.goods.spu.dto.GoodsPageParamsDTO;
 import com.onlineshop.framework.models.goods.unit.IUnitService;
 import com.onlineshop.framework.models.goods.unit.Unit;
-import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import com.onlineshop.framework.utils.AuthUserUtils;
 
 /**
  * 商品管理控制器
@@ -59,19 +71,13 @@ public class GoodsManageController {
 
     /**
      * 分页查询商品
-     * - 管理员权限：查询所有商品
-     * - 商家权限：查询自己店铺的商品
      *
-     * @param page     页码，从1开始
-     * @param pageSize 每页数量
      * @return 分页结果
      */
     @GetMapping
-    public IPage<?> getGoodsPage(
-            @RequestParam("page") int page,
-            @RequestParam("pageSize") int pageSize
-    ) {
-        return goodsService.pageQuery(page, pageSize);
+    public IPage<SpuVO> pageGoods(GoodsPageParamsDTO queryDTO) {
+        queryDTO.setStoreId(AuthUserUtils.getStoreId());
+        return goodsService.pageGoods(queryDTO);
     }
 
     /**

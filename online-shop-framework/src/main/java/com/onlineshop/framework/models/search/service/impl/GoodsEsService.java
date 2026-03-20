@@ -162,6 +162,14 @@ public class GoodsEsService implements IGoodsEsService {
                     )
             );
         }
+        if (searchDTO.getStoreId() != null) {
+            queryBuilder = queryBuilder.withFilter(builder -> builder
+                    .term(termBuilder -> termBuilder
+                            .field("storeId")
+                            .value(searchDTO.getStoreId())
+                    )
+            );
+        }
 
         if (StringUtils.hasText(searchDTO.getKeyword())) {
             queryBuilder = queryBuilder.withQuery(builder -> builder

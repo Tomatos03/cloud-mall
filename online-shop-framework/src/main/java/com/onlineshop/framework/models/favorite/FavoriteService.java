@@ -1,30 +1,38 @@
 package com.onlineshop.framework.models.favorite;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.models.favorite.dto.FavoriteParamsDTO;
 import com.onlineshop.framework.models.favorite.dto.FavoriteStatusDTO;
 import com.onlineshop.framework.models.favorite.vo.FavoriteVO;
 import com.onlineshop.framework.models.goods.spu.Goods;
 import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.utils.AssertUtils;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import com.onlineshop.framework.utils.image.ImageUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class FavoriteService extends ServiceImpl<FavoriteMapper, Favorite> implements IFavoriteService {
-    @Autowired
-    private IGoodsService goodsService;
+    private final IGoodsService goodsService;
 
     @Override
     public List<Favorite> queryLast7DaysFavoritesByGoodsIds(List<Long> goodsIds) {
+        if (CollUtil.isEmpty(goodsIds)) {
+            return Collections.emptyList();
+        }
+
         LocalDate sevenDaysAgo = LocalDate.now()
                                           .minusDays(6);
         LocalDateTime startDateTime = sevenDaysAgo.atStartOfDay();
@@ -38,23 +46,29 @@ public class FavoriteService extends ServiceImpl<FavoriteMapper, Favorite> imple
     public IPage<FavoriteVO> pageUserFavorites(FavoriteParamsDTO queryDTO) {
         Long userId = AuthUserUtils.getUserId();
 
-        LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Favorite::getUserId, userId)
-               .orderByDesc(Favorite::getAddedAt);
-
-        return this.page(new Page<>(queryDTO.getPage(), queryDTO.getPageSize()), wrapper)
+        return this.lambdaQuery()
+                   .eq(Favorite::getUserId, userId)
+                   .orderByDesc(Favorite::getAddedAt)
+                   .page(new Page<>(queryDTO.getPage(), queryDTO.getPageSize()))
                    .convert(FavoriteVO::convertFavoriteVO);
     }
 
     @Override
     public void addFavorite(Long goodsId) {
         Goods goods = goodsService.getById(goodsId);
-        if (goods == null) {
-            throw new RuntimeException("商品不存在");
-        }
+        AssertUtils.notNull(goods, BizErrorCode.GOODS_OR_SHOP_NOT_EXIST);
 
         Favorite favorite = buildFavorite(goods);
         this.save(favorite);
+    }
+
+    @Override
+    public void removeFavorite(Long goodsId) {
+        Long userId = AuthUserUtils.getUserId();
+        this.lambdaUpdate()
+            .eq(Favorite::getUserId, userId)
+            .eq(Favorite::getGoodsId, goodsId)
+            .remove();
     }
 
     @Override

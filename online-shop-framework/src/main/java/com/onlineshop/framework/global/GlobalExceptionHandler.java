@@ -4,6 +4,7 @@ import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
 import com.onlineshop.framework.utils.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -22,6 +23,14 @@ public class GlobalExceptionHandler {
     public Result<Void> handleBusinessException(BizException e) {
         BizErrorCode bizError = e.getBizErrorCode();
         return Result.error(bizError.getErrorMessage(), bizError.getCode());
+    }
+
+    /**
+     * 与Spring Security兼容的异常处理器，捕获认证失败异常并返回统一格式的错误响应
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public Result<Void> handle(BadCredentialsException e) {
+        return Result.error(e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

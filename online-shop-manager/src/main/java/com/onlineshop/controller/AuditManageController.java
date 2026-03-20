@@ -2,6 +2,7 @@ package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.models.audit.application.AuditAppService;
+import com.onlineshop.framework.models.audit.application.IAuditAppService;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
 import com.onlineshop.framework.models.audit.dto.AuditDecisionDTO;
 import com.onlineshop.framework.models.audit.service.IAuditService;
@@ -31,7 +32,7 @@ import java.util.List;
 @Slf4j
 public class AuditManageController {
     private final IAuditService auditService;
-    private final AuditAppService auditAppService;
+    private final IAuditAppService auditAppService;
 
     /**
      * 分页查询审核记录
