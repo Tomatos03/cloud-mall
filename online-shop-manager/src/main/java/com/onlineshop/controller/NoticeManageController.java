@@ -17,7 +17,7 @@ import java.util.List;
  * @since : 2025/12/20
  */
 @RestController
-@RequestMapping("/notice")
+@RequestMapping("/manager/notice")
 @PreAuthorize("hasAuthority('notice:view')")
 public class NoticeManageController {
     @Autowired

@@ -20,6 +20,7 @@
         <module>online-shop-framework</module>
         <module>online-shop-merchant</module>
         <module>im</module>
+        <module>online-shop-aggregation</module>
     </modules>
 
     <properties>
@@ -36,6 +37,24 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.onlineMall</groupId>
+                <artifactId>online-shop-manager</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.onlineMall</groupId>
+                <artifactId>online-shop-web</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.onlineMall</groupId>
+                <artifactId>online-shop-merchant</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-spring-boot-starter</artifactId>

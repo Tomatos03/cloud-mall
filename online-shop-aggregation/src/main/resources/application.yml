@@ -1,9 +1,11 @@
 server:
-  port: 7001
+  port: 7777
 
 spring:
+  profiles:
+    active: local
   application:
-    name: online-web
+    name: online-aggregation
   datasource:
     driver-class-name: ${app.datasource.driver-class-name}
     url: ${app.datasource.url}
@@ -12,16 +14,16 @@ spring:
   data:
     redis:
       host: ${app.redis.host}
-      port: 6379
+      port: ${app.redis.port:6379}
       password: ${app.redis.password}
       database: ${app.redis.database}
       timeout: 10s
       lettuce:
         pool:
-          max-active: 16       # 最大连接数
+          max-active: 16
           max-idle: 8
           min-idle: 2
-          max-wait: 10s         # 拿连接最多等多久
+          max-wait: 10s
   cache:
     type: redis
   jackson:
@@ -36,15 +38,18 @@ spring:
 
 auth:
   white-list:
-    - '/web/common/**'
-    - '/web/banner/**'
-    - '/web/category/**'
-    - '/web/user/login'
-    - '/web/user/register'
-    - '/web/goods/**'
-    - '/web/cart/**'
-    - '/web/files/**'
-    - '/web/**'
+    - '/common/**'
+    - '/banner/**'
+    - '/category/**'
+    - '/user/login'
+    - '/user/register'
+    - '/goods/**'
+    - '/cart/**'
+    - '/files/**'
+    - '/auth/**'
+    - '/api/docs/**'
+    - '/swagger-ui/**'
+    - '/**'
 
 rocketmq:
   producer:
@@ -67,7 +72,7 @@ mq:
 
 jwt:
   secret: ${app.jwt.secret}
-  expire: 86400000  # 24小时（毫秒）
+  expire: 86400000
 
 file:
   storage-type: minio

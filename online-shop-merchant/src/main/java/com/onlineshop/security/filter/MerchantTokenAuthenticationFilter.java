@@ -29,8 +29,16 @@ import java.util.Collections;
 @Slf4j
 @Component
 public class MerchantTokenAuthenticationFilter extends OncePerRequestFilter {
+    private static final String MERCHANT_API_PREFIX = "/merchant";
+
     @Autowired
     private ITokenService tokenService;
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        return !requestUri.equals(MERCHANT_API_PREFIX) && !requestUri.startsWith(MERCHANT_API_PREFIX + "/");
+    }
 
     @Override
     protected void doFilterInternal(

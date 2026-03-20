@@ -27,7 +27,7 @@ import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;
  */
 @Slf4j
 @RestController
-@RequestMapping("/seckill")
+@RequestMapping("/web/seckill")
 public class SeckillWebController {
     @Autowired
     private SeckillAppService seckillAppService;

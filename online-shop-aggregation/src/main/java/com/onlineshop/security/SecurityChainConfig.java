@@ -28,12 +28,10 @@ public class SecurityChainConfig {
     private final CustomerAccessDeniedHandler accessDeniedHandler;
     private final WhiteListProperties whiteList;
     private final CorsConfigurationSource corsConfigurationSource;
-    private final ManageTokenAuthenticationFilter tokenAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity.securityMatcher("/manager/**")
-                           .authorizeHttpRequests((authorize) -> {
+        return httpSecurity.authorizeHttpRequests((authorize) -> {
                                authorize
                                        .requestMatchers(HttpMethod.OPTIONS, "/**")
                                        .permitAll()
@@ -55,7 +53,6 @@ public class SecurityChainConfig {
                            .cors(cors -> {
                                cors.configurationSource(corsConfigurationSource);
                            })
-                           .addFilterAfter(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                            .csrf(AbstractHttpConfigurer::disable)
                            .build();
     }

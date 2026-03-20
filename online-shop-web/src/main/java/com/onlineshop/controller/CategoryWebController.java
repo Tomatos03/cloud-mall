@@ -19,7 +19,7 @@ import java.util.List;
  * @date : 2025/12/19
  */
 @RestController
-@RequestMapping("/category")
+@RequestMapping("/web/category")
 @RequiredArgsConstructor
 public class CategoryWebController {
     private final ICategoryService categoryService;

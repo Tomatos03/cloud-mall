@@ -21,7 +21,7 @@ import java.util.List;
  * 店铺相关接口
  */
 @RestController
-@RequestMapping("/store")
+@RequestMapping("/web/store")
 @RequiredArgsConstructor
 public class StoreWebController {
     private final IAuditAppService auditAppService;

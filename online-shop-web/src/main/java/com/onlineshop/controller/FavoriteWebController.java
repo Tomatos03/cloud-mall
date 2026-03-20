@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
  * @date : 2025/12/23
  */
 @RestController
-@RequestMapping("/favorites")
+@RequestMapping("/web/favorites")
 public class FavoriteWebController {
     @Autowired
     private IFavoriteService favoriteService;

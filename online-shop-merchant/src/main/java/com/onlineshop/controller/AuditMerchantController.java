@@ -22,7 +22,7 @@ import java.util.List;
  * @author : Tomatos
  * @date : 2026/3/3
  */
-@RequestMapping("/audit")
+@RequestMapping("/merchant/audit")
 @RestController
 @RequiredArgsConstructor
 @Slf4j

@@ -33,11 +33,19 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class ManageTokenAuthenticationFilter extends OncePerRequestFilter {
+    private static final String MANAGER_API_PREFIX = "/manager";
+
     @Autowired
     private ITokenService tokenService;
 
     @Autowired
     private IRoleService roleService;
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        return !requestUri.equals(MANAGER_API_PREFIX) && !requestUri.startsWith(MANAGER_API_PREFIX + "/");
+    }
 
     @Override
     protected void doFilterInternal(

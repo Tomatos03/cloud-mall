@@ -20,7 +20,7 @@ import java.util.List;
  * @date : 2025/12/22
  */
 @RestController
-@RequestMapping("/goods")
+@RequestMapping("/web/goods")
 @RequiredArgsConstructor
 public class GoodsWebController {
     private final IGoodsAppService goodsAppService;

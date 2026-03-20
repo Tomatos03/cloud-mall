@@ -15,7 +15,7 @@ import java.util.List;
  * @author : Tomatos
  * @date : 2026/2/11
  */
-@RequestMapping("/category")
+@RequestMapping("/merchant/category")
 @RestController
 @RequiredArgsConstructor
 public class CategoryMerchantController {

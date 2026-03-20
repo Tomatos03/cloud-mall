@@ -18,7 +18,7 @@ import java.util.List;
  * @date 2026/01/05
  */
 @RestController
-@RequestMapping("/units")
+@RequestMapping("/manager/units")
 @PreAuthorize("hasAuthority('unit:view')")
 public class UnitManageController {
 

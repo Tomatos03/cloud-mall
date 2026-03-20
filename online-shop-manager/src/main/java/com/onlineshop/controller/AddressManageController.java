@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
  * @date : 2025/12/22
  */
 @RestController
-@RequestMapping("/address")
+@RequestMapping("/manager/address")
 @PreAuthorize("hasAuthority('address:view')")
 public class AddressManageController {
     @Autowired

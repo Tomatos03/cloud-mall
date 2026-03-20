@@ -36,7 +36,7 @@ import com.onlineshop.framework.models.goods.spu.vo.SpuVO;
  * @author : Tomatos
  * @date : 2026/2/11
  */
-@RequestMapping("/goods")
+@RequestMapping("/merchant/goods")
 @RestController
 @RequiredArgsConstructor
 public class GoodsMerchantController {

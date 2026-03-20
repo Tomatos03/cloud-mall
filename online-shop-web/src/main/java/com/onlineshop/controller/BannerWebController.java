@@ -16,7 +16,7 @@ import java.util.List;
  * @date : 2025/12/18
  */
 @RestController
-@RequestMapping("/banner")
+@RequestMapping("/web/banner")
 public class BannerWebController {
     @Autowired
     private IBannerService bannerService;

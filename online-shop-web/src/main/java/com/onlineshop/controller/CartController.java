@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * @date : 2025/12/23
  */
 @RestController
-@RequestMapping("/cart")
+@RequestMapping("/web/cart")
 public class CartController {
 
     @Autowired

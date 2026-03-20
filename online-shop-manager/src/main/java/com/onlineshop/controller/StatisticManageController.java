@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/statistics")
+@RequestMapping("/manager/statistics")
 @PreAuthorize("hasAuthority('statistic:view')")
 public class StatisticManageController {
 

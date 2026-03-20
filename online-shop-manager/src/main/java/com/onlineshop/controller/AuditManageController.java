@@ -25,7 +25,7 @@ import java.util.List;
  * @date : 2026/1/11
  */
 @RestController
-@RequestMapping("/audit")
+@RequestMapping("/manager/audit")
 @PreAuthorize("hasAuthority('audit:view')")
 @RequiredArgsConstructor
 @Slf4j

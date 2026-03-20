@@ -24,7 +24,7 @@ import java.util.List;
  * - 商家权限：仅能管理自己店铺的商品、需要通过审核流程
  */
 @RestController
-@RequestMapping("/goods")
+@RequestMapping("/manager/goods")
 @PreAuthorize("hasAuthority('goods:view')")
 public class GoodsManageController {
     @Autowired

@@ -32,17 +32,17 @@ public class SecurityChainConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity.authorizeHttpRequests((authorize) -> {
-                               authorize
-                                       .requestMatchers(HttpMethod.OPTIONS, "/**")
-                                       .permitAll()
-                                       .requestMatchers(
-                                               whiteListProperties.getWhiteList()
-                                                                  .toArray(new String[0])
-                                       )
-                                       .permitAll()
-                                       .anyRequest()
-                                       .authenticated();
+        return httpSecurity.securityMatcher("/merchant/**")
+                           .authorizeHttpRequests((authorize) -> {
+                               authorize.requestMatchers(HttpMethod.OPTIONS, "/**")
+                                        .permitAll()
+                                        .requestMatchers(
+                                                whiteListProperties.getWhiteList()
+                                                                   .toArray(new String[0])
+                                        )
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated();
                            })
                            .exceptionHandling(exceptionHand -> {
                                exceptionHand.accessDeniedHandler(accessDeniedHandler);

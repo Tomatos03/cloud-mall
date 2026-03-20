@@ -1,9 +1,9 @@
 server:
   port: 7002
-  servlet:
-    context-path: /merchant
 
 spring:
+  application:
+    name: online-merchant
   datasource:
     driver-class-name: ${app.datasource.driver-class-name}
     url: ${app.datasource.url}
@@ -68,7 +68,7 @@ file:
 
 auth:
   white-list:
-    - /auth/**
-    - /files/**
+    - /merchant/auth/**
+    - /merchant/files/**
     - /api/docs/**
     - /swagger-ui/**

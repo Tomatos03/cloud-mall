@@ -19,7 +19,7 @@ import java.util.List;
  * @date 2025/12/17
  */
 @RestController
-@RequestMapping("/banner")
+@RequestMapping("/manager/banner")
 @PreAuthorize("hasAuthority('banner:view')")
 public class BannerManageController {
 

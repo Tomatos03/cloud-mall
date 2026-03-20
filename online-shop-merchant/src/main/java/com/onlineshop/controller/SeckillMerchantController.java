@@ -35,7 +35,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/seckill")
+@RequestMapping("/merchant/seckill")
 @Validated
 @RequiredArgsConstructor
 public class SeckillMerchantController {

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author : Tomatos
  * @date : 2025/12/20
  */
-@RequestMapping("/auth")
+@RequestMapping("/manager/auth")
 @RestController
 public class AuthManageController {
     @Autowired

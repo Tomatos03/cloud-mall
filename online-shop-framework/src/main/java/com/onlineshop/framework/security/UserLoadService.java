@@ -35,6 +35,7 @@ public class UserLoadService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userService.queryUserByUsername(username);
+        AssertUtils.notNull(user, BizErrorCode.USERNAME_OR_PASSWORD_ERROR);
         List<Role> roles = userService.queryRolesByUserId(user.getId());
         List<SimpleGrantedAuthority> authorities = convertSimpleGrantedAuthorityList(roles);
         AuthUser authUser = new AuthUser(user.getId(), username, user.getPassword(), authorities);

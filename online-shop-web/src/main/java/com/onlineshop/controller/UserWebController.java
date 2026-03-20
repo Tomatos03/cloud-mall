@@ -20,7 +20,7 @@ import java.io.IOException;
  * @date 2025/12/17
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/web/user")
 public class UserWebController {
     @Autowired
     private IAuthService authService;

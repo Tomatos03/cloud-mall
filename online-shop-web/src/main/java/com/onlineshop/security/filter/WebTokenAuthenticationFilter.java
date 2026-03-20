@@ -29,8 +29,16 @@ import java.util.Collections;
 @Slf4j
 @Component
 public class WebTokenAuthenticationFilter extends OncePerRequestFilter {
+    private static final String WEB_API_PREFIX = "/web";
+
     @Autowired
     private ITokenService tokenService;
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        return !requestUri.equals(WEB_API_PREFIX) && !requestUri.startsWith(WEB_API_PREFIX + "/");
+    }
 
     @Override
     protected void doFilterInternal(

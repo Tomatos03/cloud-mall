@@ -1,9 +1,9 @@
 server:
   port: 7000
-  servlet:
-    context-path: /manage
   
 spring:
+  application:
+    name: online-manager
   datasource:
     driver-class-name: ${app.datasource.driver-class-name}
     url: ${app.datasource.url}
@@ -48,8 +48,8 @@ mq:
 
 auth:
   white-list:
-    - '/auth/**'
-    - '/files/**'
+    - '/manager/auth/**'
+    - '/manager/files/**'
 
 jwt:
   secret: ${app.jwt.secret}
