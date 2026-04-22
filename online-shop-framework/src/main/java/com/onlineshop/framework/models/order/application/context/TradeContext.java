@@ -1,6 +1,7 @@
-package com.onlineshop.framework.models.order.application.creator;
+package com.onlineshop.framework.models.order.application.context;
 
 import com.onlineshop.framework.models.address.Address;
+import com.onlineshop.framework.models.cart.PurchaseMode;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
@@ -20,7 +21,6 @@ import java.util.Set;
 public class TradeContext {
     private final TradeDTO tradeDTO;
     private Address address;
-    private Set<Long> storeIdSet;
     private Map<Long, GoodsSku> skuMap;
     private Order payOrder;
     private List<List<OrderItem>> shopOrderItems;

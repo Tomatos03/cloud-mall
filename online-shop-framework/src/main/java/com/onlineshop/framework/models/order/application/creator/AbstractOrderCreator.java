@@ -1,16 +1,14 @@
 package com.onlineshop.framework.models.order.application.creator;
 
 import cn.hutool.core.collection.CollUtil;
-import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.event.MQTag;
 import com.onlineshop.framework.event.MQTopicProperties;
 import com.onlineshop.framework.event.TransactionCommitSendMQEvent;
 import com.onlineshop.framework.models.address.Address;
-import com.onlineshop.framework.models.address.IAddressService;
 import com.onlineshop.framework.models.cart.PurchaseMode;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
-import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
-import com.onlineshop.framework.models.goods.spu.IGoodsService;
+import com.onlineshop.framework.models.order.application.context.TradeContext;
+import com.onlineshop.framework.models.order.application.creator.validator.OrderCreateValidatorManager;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
 import com.onlineshop.framework.models.order.dto.TradeShopDTO;
@@ -21,9 +19,6 @@ import com.onlineshop.framework.models.order.enums.OrderStatus;
 import com.onlineshop.framework.models.order.enums.OrderType;
 import com.onlineshop.framework.models.order.service.IOrderItemService;
 import com.onlineshop.framework.models.order.service.IOrderService;
-import com.onlineshop.framework.models.store.IStoreService;
-import com.onlineshop.framework.models.store.Store;
-import com.onlineshop.framework.utils.AssertUtils;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import com.onlineshop.framework.utils.IDNumber;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 订单创建器抽象基类
@@ -50,18 +44,16 @@ import java.util.stream.Collectors;
 public abstract class AbstractOrderCreator implements IOrderCreator {
     protected final IOrderService orderService;
     protected final IOrderItemService orderItemService;
-    protected final IAddressService addressService;
-    protected final IGoodsService goodsService;
-    protected final IGoodsSkuService goodsSkuService;
-    protected final IStoreService storeService;
     protected final ApplicationEventPublisher applicationEventPublisher;
     protected final MQTopicProperties mqTopicProperties;
+    protected final OrderCreateValidatorManager validatorManager;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public OrderCreateResultDTO create(TradeDTO tradeDTO) {
         TradeContext tradeContext = new TradeContext(tradeDTO);
-        validateFill(tradeContext);
+        validatorManager.validate(tradeContext, getSupportPurchaseMode());
+
         buildTrade(tradeContext);
         persistTrade(tradeContext);
         afterCreateSuccess(tradeContext);
@@ -71,106 +63,10 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
         return result;
     }
 
-
     /**
      * 子类指定下单类型
      */
     public abstract PurchaseMode getSupportPurchaseMode();
-
-
-    /**
-     * 下单前校验并填充数据
-     */
-    protected final void validateFill(TradeContext tradeContext) {
-        validateFillAddress(tradeContext);
-        validateFillStore(tradeContext);
-        validateFillSKU(tradeContext);
-        validateFillAdditional(tradeContext);
-    }
-
-    private void validateFillStore(TradeContext tradeContext) {
-        TradeDTO tradeDTO = tradeContext.getTradeDTO();
-        Set<Long> storeIdSet = tradeDTO.getTradeItems()
-                                       .stream()
-                                       .map(TradeShopDTO::getStoreId)
-                                       .collect(Collectors.toSet());
-
-        Long count = storeService.lambdaQuery()
-                                 .in(Store::getId, storeIdSet)
-                                 .count();
-        AssertUtils.isTrue(count != null && count == storeIdSet.size(), BizErrorCode.ORDER_CREATE_STORE_NOT_EXIST);
-        tradeContext.setStoreIdSet(storeIdSet);
-    }
-
-
-    private void validateFillSKU(TradeContext tradeContext) {
-        TradeDTO tradeDTO = tradeContext.getTradeDTO();
-        Set<Long> skuIdSet = tradeDTO.getTradeItems()
-                                     .stream()
-                                     .map(TradeShopDTO::getTradeShopItemList)
-                                     .flatMap(Collection::stream)
-                                     .map(TradeShopItemDTO::getSkuId)
-                                     .collect(Collectors.toSet());
-        AssertUtils.notEmpty(skuIdSet, BizErrorCode.ORDER_CREATE_ITEMS_EMPTY);
-
-        Map<Long, Integer> skuDemandMap = tradeDTO.getTradeItems()
-                                                  .stream()
-                                                  .map(TradeShopDTO::getTradeShopItemList)
-                                                  .flatMap(Collection::stream)
-                                                  .collect(Collectors.toMap(
-                                                          TradeShopItemDTO::getSkuId,
-                                                          TradeShopItemDTO::getQuantity,
-                                                          Integer::sum,
-                                                          HashMap::new
-                                                  ));
-
-        List<GoodsSku> skuList = goodsSkuService.lambdaQuery()
-                                                .in(GoodsSku::getId, skuIdSet)
-                                                .eq(GoodsSku::getStatus, Boolean.TRUE)
-                                                .list();
-        AssertUtils.isTrue(skuList.size() == skuIdSet.size(), BizErrorCode.ORDER_CREATE_SKU_NOT_AVAILABLE);
-
-        Map<Long, GoodsSku> skuMap = skuList.stream()
-                                            .collect(Collectors.toMap(
-                                                    GoodsSku::getId,
-                                                    sku -> sku,
-                                                    (existing, replacement) -> existing,
-                                                    HashMap::new
-                                            ));
-
-        validateSKUStore(tradeContext, skuMap);
-        validateSKUInventory(skuMap, skuDemandMap);
-        tradeContext.setSkuMap(skuMap);
-    }
-
-    private void validateSKUStore(TradeContext tradeContext, Map<Long, GoodsSku> skuMap) {
-        TradeDTO tradeDTO = tradeContext.getTradeDTO();
-        for (TradeShopDTO shopDTO : tradeDTO.getTradeItems()) {
-            for (TradeShopItemDTO itemDTO : shopDTO.getTradeShopItemList()) {
-                GoodsSku sku = skuMap.get(itemDTO.getSkuId());
-                AssertUtils.notNull(sku, BizErrorCode.ORDER_CREATE_SKU_NOT_AVAILABLE);
-                AssertUtils.isTrue(shopDTO.getStoreId()
-                                          .equals(sku.getStoreId()), BizErrorCode.ORDER_CREATE_SKU_STORE_MISMATCH);
-            }
-        }
-    }
-
-    private void validateSKUInventory(Map<Long, GoodsSku> skuMap, Map<Long, Integer> skuDemandMap) {
-        for (Map.Entry<Long, Integer> skuDemandEntry : skuDemandMap.entrySet()) {
-            GoodsSku sku = skuMap.get(skuDemandEntry.getKey());
-            AssertUtils.isTrue(
-                    sku.getInventory() >= skuDemandEntry.getValue(),
-                    BizErrorCode.ORDER_CREATE_SKU_INVENTORY_NOT_ENOUGH
-            );
-        }
-    }
-
-
-    /**
-     * 子类扩展校验（如普通购物车校验 SKU 是否在购物车中）
-     */
-    protected void validateFillAdditional(TradeContext tradeContext) {
-    }
 
     /**
      * 子类可覆盖返回不同订单初始状态
@@ -185,16 +81,6 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
     protected void afterCreateSuccess(TradeContext tradeContext) {
         pushOrderTimeoutCancelEvent(tradeContext.getPayOrder()
                                                 .getNo());
-    }
-
-    private void validateFillAddress(TradeContext tradeContext) {
-        TradeDTO tradeDTO = tradeContext.getTradeDTO();
-        Address address = addressService.lambdaQuery()
-                                        .eq(Address::getId, tradeDTO.getAddressId())
-                                        .eq(Address::getUserId, AuthUserUtils.getUserId())
-                                        .one();
-        AssertUtils.notNull(address, BizErrorCode.ORDER_CREATE_ADDRESS_NOT_EXIST);
-        tradeContext.setAddress(address);
     }
 
 
