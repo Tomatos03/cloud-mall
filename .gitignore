@@ -41,3 +41,4 @@ build/
 
 ### Local config ###
 **/application-local.yml
+**/application-env.yml

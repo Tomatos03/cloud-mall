@@ -1,38 +1,13 @@
-server:
-  port: 7001
-
 spring:
   application:
     name: online-web
-  datasource:
-    driver-class-name: ${app.datasource.driver-class-name}
-    url: ${app.datasource.url}
-    username: ${app.datasource.username}
-    password: ${app.datasource.password}
-  data:
-    redis:
-      host: ${app.redis.host}
-      port: 6379
-      password: ${app.redis.password}
-      database: ${app.redis.database}
-      timeout: 10s
-      lettuce:
-        pool:
-          max-active: 16       # 最大连接数
-          max-idle: 8
-          min-idle: 2
-          max-wait: 10s         # 拿连接最多等多久
-  cache:
-    type: redis
-  jackson:
-    time-zone: GMT+8
-    date-format: yyyy-MM-dd HH:mm:ss
+  profiles:
+    active: dev
   elasticsearch:
-    uris: ${app.elasticsearch.uris}
-    username: ${app.elasticsearch.username}
-    password: ${app.elasticsearch.password}
-    connection-timeout: 5s
     socket-timeout: 30s
+
+server:
+  port: 7001
 
 auth:
   white-list:
@@ -45,44 +20,3 @@ auth:
     - '/web/cart/**'
     - '/web/files/**'
     - '/web/**'
-
-rocketmq:
-  producer:
-    group: online-mall-group
-    send-message-timeout: 3000
-    namespace:
-  name-server: ${app.rocketmq.name-server}
-
-mq:
-  topic:
-    order: "order_topic"
-    seckill: "seckill_topic"
-    cart: "cart_topic"
-    goods: "goods_topic"
-  group:
-    order: "order_timeout_cancel_group"
-    seckill: "seckill_order_create_group"
-    cart: "cart_clear_group"
-    goods-sync: "goods_sync_group"
-    goods-delete: "goods_delete_group"
-
-jwt:
-  secret: ${app.jwt.secret}
-  expire: 86400000  # 24小时（毫秒）
-
-file:
-  storage-type: minio
-  upload:
-    max-size: 5242880
-    allowed-extensions:
-      - jpg
-      - jpeg
-      - png
-    allowed-mime-types:
-      - image/jpeg
-      - image/png
-  minio:
-    url: ${app.minio.url}
-    access-key: ${app.minio.access-key}
-    secret-key: ${app.minio.secret-key}
-    bucket-name: ${app.minio.bucket-name}
