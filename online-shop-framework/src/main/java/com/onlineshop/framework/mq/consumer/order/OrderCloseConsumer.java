@@ -49,11 +49,7 @@ public class OrderCloseConsumer implements RocketMQListener<String> {
             }
 
             order.setReason(ORDER_CLOSE_REASON);
-            boolean closed = orderService.updateOrderStatus(order, OrderStatus.CLOSED);
-            if (!closed) {
-                log.info("订单状态不允许关闭或已被处理, orderNo: {}", order.getNo());
-                return;
-            }
+            orderService.updateOrderStatus(order, OrderStatus.CLOSED);
             couponAppService.releaseCoupon(order.getNo());
             log.info("订单超时关闭成功, orderNo: {}", order.getNo());
         } catch (Exception e) {

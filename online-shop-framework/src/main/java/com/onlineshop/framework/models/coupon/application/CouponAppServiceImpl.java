@@ -196,7 +196,8 @@ public class CouponAppServiceImpl implements ICouponAppService {
     public Map<Long, CouponCalcResult> calculateDiscount(
             Map<Long, Long> shopCouponIds,
             Map<Long, Long> shopTotalPrices,
-            Map<Long, Map<Long, Long>> shopItemPrices) {
+            Map<Long, Map<Long, Long>> shopItemPrices
+    ) {
 
         Map<Long, CouponCalcResult> results = new HashMap<>();
 

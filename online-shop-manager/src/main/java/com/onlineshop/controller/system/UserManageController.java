@@ -2,7 +2,7 @@ package com.onlineshop.controller.system;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.onlineshop.framework.common.entity.PageParamsDTO;
-import com.onlineshop.framework.models.system.application.ISystemAppService;
+import com.onlineshop.framework.application.system.ISystemAppService;
 import com.onlineshop.framework.models.system.user.IUserService;
 import com.onlineshop.framework.models.system.user.UserListItemVO;
 import com.onlineshop.framework.models.system.user.dto.UserUpdateDTO;

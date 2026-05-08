@@ -1,5 +1,6 @@
 package com.onlineshop.framework.models.order.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.models.order.entity.OrderItem;
 import com.onlineshop.framework.models.order.mapper.OrderItemMapper;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,9 +25,17 @@ import java.util.List;
 public class OrderItemService extends ServiceImpl<OrderItemMapper, OrderItem> implements IOrderItemService {
     @Override
     public List<OrderItem> listByOrderId(Long orderId) {
-        return lambdaQuery()
-                .eq(OrderItem::getOrderId, orderId)
-                .list();
+        return lambdaQuery().eq(OrderItem::getOrderId, orderId)
+                            .list();
+    }
+
+    @Override
+    public List<OrderItem> listByOrderIds(List<Long> orderIds) {
+        if (CollUtil.isEmpty(orderIds)) {
+            return Collections.emptyList();
+        }
+        return lambdaQuery().in(OrderItem::getOrderId, orderIds)
+                            .list();
     }
 
     @Override

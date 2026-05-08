@@ -1,7 +1,7 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.audit.application.IAuditAppService;
+import com.onlineshop.framework.application.audit.IAuditAppService;
 import com.onlineshop.framework.models.audit.dto.AuditParamsDTO;
 import com.onlineshop.framework.models.audit.service.IAuditService;
 import com.onlineshop.framework.models.audit.vo.AuditItemVO;

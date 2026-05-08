@@ -1,7 +1,7 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.order.application.IOrderAppService;
+import com.onlineshop.framework.application.order.IOrderAppService;
 import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
 import com.onlineshop.framework.models.order.entity.Order;
@@ -93,8 +93,8 @@ public class OrderManageController {
      */
     @PostMapping("/ship/{orderNo}")
     @PreAuthorize("hasAuthority('order:edit')")
-    public boolean shipOrder(@PathVariable String orderNo) {
-        return orderAppService.shipOrder(orderNo);
+    public void shipOrder(@PathVariable String orderNo) {
+        orderAppService.shipOrder(orderNo);
     }
 
     /**

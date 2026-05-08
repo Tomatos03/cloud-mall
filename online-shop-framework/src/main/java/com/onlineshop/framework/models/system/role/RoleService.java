@@ -9,9 +9,9 @@ import com.onlineshop.framework.models.system.resource.service.impl.ResourceServ
 import com.onlineshop.framework.models.system.role.dto.RoleFormData;
 import com.onlineshop.framework.models.system.role.dto.RolePageParamsDTO;
 import com.onlineshop.framework.models.system.role.entity.Role;
-import com.onlineshop.framework.models.system.role.entity.RoleResource;
+import com.onlineshop.framework.models.system.relation.entity.RoleResource;
 import com.onlineshop.framework.models.system.role.mapper.RoleMapper;
-import com.onlineshop.framework.models.system.role.mapper.RoleResourceMapper;
+import com.onlineshop.framework.models.system.relation.mapper.RoleResourceMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

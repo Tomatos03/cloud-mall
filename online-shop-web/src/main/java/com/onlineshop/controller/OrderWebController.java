@@ -6,7 +6,7 @@ import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
-import com.onlineshop.framework.models.order.application.IOrderAppService;
+import com.onlineshop.framework.application.order.IOrderAppService;
 import com.onlineshop.framework.models.order.vo.OrderAggregateVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,8 +65,8 @@ public class OrderWebController {
      * @return 支付是否成功
      */
     @GetMapping("/payment/status")
-    public boolean checkPaymentStatus(@RequestParam String orderNo) {
-        return orderAppService.queryPaymentStatus(orderNo);
+    public void checkPaymentStatus(@RequestParam String orderNo) throws InterruptedException {
+        orderAppService.queryPaymentStatus(orderNo);
     }
 
     /**

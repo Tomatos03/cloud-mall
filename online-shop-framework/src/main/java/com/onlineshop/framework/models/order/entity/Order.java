@@ -1,6 +1,8 @@
 package com.onlineshop.framework.models.order.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.onlineshop.framework.models.order.enums.OrderStatus;
+import com.onlineshop.framework.models.order.enums.OrderType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -100,4 +102,36 @@ public class Order {
      */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+
+    public boolean isParent() {
+        return OrderType.of(orderType).isParent();
+    }
+
+    public boolean isExpired() {
+        return this.getCreateTime().plusMinutes(30L).isAfter(LocalDateTime.now());
+    }
+
+    public boolean isCreated() {
+        return OrderStatus.of(status) == OrderStatus.CREATED;
+    }
+
+    public boolean isPaid() {
+        return OrderStatus.of(status) == OrderStatus.PAID;
+    }
+
+    public boolean isShipped() {
+        return OrderStatus.of(status) == OrderStatus.SHIPPED;
+    }
+
+    public boolean isFinished() {
+        return OrderStatus.of(status) == OrderStatus.FINISHED;
+    }
+
+    public boolean isCanceled() {
+        return OrderStatus.of(status) == OrderStatus.CANCELED;
+    }
+
+    public boolean isClosed() {
+        return OrderStatus.of(status) == OrderStatus.CLOSED;
+    }
 }

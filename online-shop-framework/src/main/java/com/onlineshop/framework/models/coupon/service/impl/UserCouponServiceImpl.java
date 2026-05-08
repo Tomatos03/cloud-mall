@@ -8,7 +8,6 @@ import com.onlineshop.framework.models.coupon.entity.CouponTemplate;
 import com.onlineshop.framework.models.coupon.entity.UserCoupon;
 import com.onlineshop.framework.models.coupon.enums.CouponUserStatus;
 import com.onlineshop.framework.models.coupon.mapper.UserCouponMapper;
-import com.onlineshop.framework.models.coupon.models.CouponStatusMachine;
 import com.onlineshop.framework.models.coupon.service.ICouponTemplateService;
 import com.onlineshop.framework.models.coupon.service.IUserCouponService;
 import com.onlineshop.framework.models.coupon.vo.UserCouponVO;
@@ -55,7 +54,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
     @Override
     public boolean lockCoupon(Long userCouponId, String orderNo) {
         UserCoupon userCoupon = getById(userCouponId);
-        CouponStatusMachine.validateLock(CouponUserStatus.of(userCoupon.getStatus()));
+        CouponUserStatus.of(userCoupon.getStatus()).validateTransferTo(CouponUserStatus.LOCKED);
 
         userCoupon.setStatus(CouponUserStatus.LOCKED.getCode());
         userCoupon.setOrderNo(orderNo);
@@ -72,7 +71,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
             return false;
         }
 
-        CouponStatusMachine.validateUse(CouponUserStatus.of(userCoupon.getStatus()));
+        CouponUserStatus.of(userCoupon.getStatus()).validateTransferTo(CouponUserStatus.USED);
         userCoupon.setStatus(CouponUserStatus.USED.getCode());
         userCoupon.setUsedTime(java.time.LocalDateTime.now());
         return updateById(userCoupon);
@@ -98,7 +97,7 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
             return false;
         }
 
-        CouponStatusMachine.validateRelease(CouponUserStatus.of(userCoupon.getStatus()));
+        CouponUserStatus.of(userCoupon.getStatus()).validateTransferTo(CouponUserStatus.UNUSED);
         userCoupon.setStatus(CouponUserStatus.UNUSED.getCode());
         userCoupon.setOrderNo(null);
         return updateById(userCoupon);

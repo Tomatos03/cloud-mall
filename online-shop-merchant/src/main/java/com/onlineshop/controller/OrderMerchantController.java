@@ -1,7 +1,7 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.order.application.IOrderAppService;
+import com.onlineshop.framework.application.order.IOrderAppService;
 import com.onlineshop.framework.models.order.dto.OrderCancelDTO;
 import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
 import com.onlineshop.framework.models.order.vo.OrderAggregateVO;
@@ -72,7 +72,7 @@ public class OrderMerchantController {
      * @return 操作是否成功
      */
     @PutMapping("/{orderNo}/ship")
-    public boolean shipOrder(@PathVariable String orderNo) {
-        return orderAppService.shipOrder(orderNo);
+    public void shipOrder(@PathVariable String orderNo) {
+        orderAppService.shipOrder(orderNo);
     }
 }

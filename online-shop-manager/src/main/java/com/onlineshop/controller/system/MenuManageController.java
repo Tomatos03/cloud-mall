@@ -1,6 +1,6 @@
 package com.onlineshop.controller.system;
 
-import com.onlineshop.framework.models.system.application.ISystemAppService;
+import com.onlineshop.framework.application.system.ISystemAppService;
 import com.onlineshop.framework.models.system.resource.dto.MenuFormData;
 import com.onlineshop.framework.models.system.resource.service.IResourceService;
 import com.onlineshop.framework.models.system.resource.vo.MenuNodeVO;

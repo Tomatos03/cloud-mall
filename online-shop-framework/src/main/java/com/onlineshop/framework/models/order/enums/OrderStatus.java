@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 订单状态枚举
@@ -16,38 +19,30 @@ import java.util.Arrays;
 @Getter
 @AllArgsConstructor
 public enum OrderStatus {
-    /**
-     * 待支付
-     */
     CREATED("CREATED", "待支付"),
-
-    /**
-     * 待发货
-     */
     PAID("PAID", "待发货"),
-
-    /**
-     * 待收货
-     */
     SHIPPED("SHIPPED", "待收货"),
-
-    /**
-     * 已完成
-     */
     FINISHED("FINISHED", "已完成"),
-
-    /**
-     * 已取消
-     */
     CANCELED("CANCELED", "已取消"),
-
-    /**
-     * 已关闭
-     */
     CLOSED("CLOSED", "已关闭");
+
+    private static final Map<OrderStatus, Set<OrderStatus>> TRANSITIONS = new EnumMap<>(OrderStatus.class);
+
+    static {
+        TRANSITIONS.put(CREATED, Set.of(PAID, CANCELED, CLOSED));
+        TRANSITIONS.put(PAID, Set.of(SHIPPED, CANCELED, CLOSED));
+        TRANSITIONS.put(SHIPPED, Set.of(FINISHED, CANCELED, CLOSED));
+        TRANSITIONS.put(FINISHED, Set.of(CLOSED));
+        TRANSITIONS.put(CANCELED, Set.of(CLOSED));
+        TRANSITIONS.put(CLOSED, Set.of());
+    }
 
     private final String code;
     private final String desc;
+
+    public boolean canTransferTo(OrderStatus target) {
+        return TRANSITIONS.getOrDefault(this, Set.of()).contains(target);
+    }
 
     public static OrderStatus of(String code) {
         return Arrays.stream(values())

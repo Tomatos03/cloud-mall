@@ -2,16 +2,20 @@ package com.onlineshop.framework.models.order.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.onlineshop.framework.common.enums.BizErrorCode;
 import com.onlineshop.framework.exception.BizException;
+import com.onlineshop.framework.models.order.dto.OrderParamsDTO;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.enums.OrderStatus;
 import com.onlineshop.framework.models.order.enums.OrderType;
 import com.onlineshop.framework.models.order.enums.ParentOrderStatus;
 import com.onlineshop.framework.models.order.mapper.OrderMapper;
 import com.onlineshop.framework.models.order.service.IOrderService;
-import com.onlineshop.framework.models.order.state.OrderStatusMachine;
+import com.onlineshop.framework.models.order.wrapper.OrderQueryWrapper;
 import com.onlineshop.framework.utils.AssertUtils;
 import com.onlineshop.framework.utils.AuthUserUtils;
 import lombok.RequiredArgsConstructor;
@@ -37,21 +41,26 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     }
 
     @Override
-    public Order queryUserOrder(String orderNo) {
+    public Order queryMyOrder(String orderNo) {
         return lambdaQuery().eq(Order::getNo, orderNo)
                             .eq(Order::getUserId, AuthUserUtils.getUserId())
                             .one();
     }
 
     @Override
-    public Order queryOrder(String orderNo, List<Long> storeIds) {
-        if (CollUtil.isEmpty(storeIds)) {
-            return null;
-        }
-
+    public Order queryStoreOrder(String orderNo, Long storeId) {
+        AssertUtils.notNull(storeId, BizErrorCode.STORE_NOT_EXIST);
         return lambdaQuery().eq(Order::getNo, orderNo)
-                            .in(Order::getStoreId, storeIds)
+                            .eq(Order::getStoreId, storeId)
                             .one();
+    }
+
+    @Override
+    public Order queryCancelableOrder(String orderNo) {
+        if (AuthUserUtils.isMerchantAccount()) {
+            return queryStoreOrder(orderNo, AuthUserUtils.getStoreId());
+        }
+        return queryMyOrder(orderNo);
     }
 
     @Override
@@ -62,31 +71,31 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean updateOrderStatus(String orderNo, OrderStatus newStatus) {
-        return doUpdateOrderStatus(queryByOrderNo(orderNo), newStatus);
+    public void updateOrderStatus(String orderNo, OrderStatus newStatus) {
+        doUpdateOrderStatus(queryByOrderNo(orderNo), newStatus);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean updateOrderStatus(Order order, OrderStatus newStatus) {
-        return doUpdateOrderStatus(order, newStatus);
+    public void updateOrderStatus(Order order, OrderStatus newStatus) {
+        doUpdateOrderStatus(order, newStatus);
     }
 
-    private boolean doUpdateOrderStatus(Order order, OrderStatus newStatus) {
+    private void doUpdateOrderStatus(Order order, OrderStatus newStatus) {
         AssertUtils.notNull(order, BizErrorCode.ORDER_NOT_EXIST);
 
         String oldStatus = order.getStatus();
-        AssertUtils.isTrue(OrderStatusMachine.validateTransition(OrderStatus.of(oldStatus), newStatus),
-                           BizErrorCode.INVALID_ORDER_STATUS);
+        OrderStatus from = OrderStatus.of(oldStatus);
+        AssertUtils.isTrue(from.canTransferTo(newStatus), BizErrorCode.INVALID_ORDER_STATUS);
 
         order.setStatus(newStatus.getCode());
         syncUpdateParentOrSubOrderStatus(order);
 
-        return lambdaUpdate().eq(Order::getStatus, oldStatus)
-                             .eq(Order::getId, order.getId())
-                             .set(Order::getStatus, newStatus.getCode())
-                             .set(StrUtil.isNotBlank(order.getReason()), Order::getReason, order.getReason())
-                             .update();
+        lambdaUpdate().eq(Order::getStatus, oldStatus)
+                      .eq(Order::getId, order.getId())
+                      .set(Order::getStatus, newStatus.getCode())
+                      .set(StrUtil.isNotBlank(order.getReason()), Order::getReason, order.getReason())
+                      .update();
     }
 
     @Override
@@ -113,6 +122,13 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
         return lambdaQuery().eq(Order::getStatus, OrderStatus.CREATED.getCode())
                             .le(Order::getCreateTime, deadline)
                             .list();
+    }
+
+    @Override
+    public IPage<Order> pageQueryOrders(OrderParamsDTO queryDTO) {
+        Page<Order> page = new Page<>(queryDTO.getPage(), queryDTO.getPageSize());
+        LambdaQueryWrapper<Order> wrapper = OrderQueryWrapper.build(queryDTO);
+        return page(page, wrapper);
     }
 
     private void syncUpdateParentOrSubOrderStatus(Order order) {

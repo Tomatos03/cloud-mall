@@ -1,7 +1,7 @@
 package com.onlineshop.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.seckill.application.SeckillAppService;
+import com.onlineshop.framework.application.seckill.SeckillAppService;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityParamsDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsDTO;

@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.onlineshop.framework.models.seckill.application.SeckillAppService;
-import com.onlineshop.framework.models.seckill.application.vo.SeckillActivityGoodsPageVO;
-import com.onlineshop.framework.models.seckill.application.vo.SeckillGoodsWebDetailVO;
+import com.onlineshop.framework.application.seckill.SeckillAppService;
+import com.onlineshop.framework.application.seckill.vo.SeckillActivityGoodsPageVO;
+import com.onlineshop.framework.application.seckill.vo.SeckillGoodsWebDetailVO;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;
 
 /**

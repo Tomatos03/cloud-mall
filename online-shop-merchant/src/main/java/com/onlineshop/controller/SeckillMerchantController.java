@@ -2,13 +2,13 @@ package com.onlineshop.controller;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.onlineshop.framework.models.audit.application.impl.SeckillGoodsAuditor;
+import com.onlineshop.framework.application.audit.auditor.SeckillGoodsAuditor;
 import com.onlineshop.framework.models.audit.dto.AuditSubmitDTO;
 import com.onlineshop.framework.models.audit.dto.SeckillGoodsAuditItemDTO;
 import com.onlineshop.framework.models.audit.enums.AuditBizType;
 import com.onlineshop.framework.common.aspect.ratelimit.RateLimit;
-import com.onlineshop.framework.models.seckill.application.SeckillAppService;
-import com.onlineshop.framework.models.seckill.application.vo.SeckillParticipateResultVO;
+import com.onlineshop.framework.application.seckill.SeckillAppService;
+import com.onlineshop.framework.application.seckill.vo.SeckillParticipateResultVO;
 import com.onlineshop.framework.models.seckill.dto.SeckillActivityParamsDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsDTO;
 import com.onlineshop.framework.models.seckill.dto.SeckillGoodsParamsDTO;

@@ -1,6 +1,6 @@
 package com.onlineshop.framework.task.order;
 
-import com.onlineshop.framework.models.order.application.IOrderAppService;
+import com.onlineshop.framework.application.order.IOrderAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,8 +46,8 @@ public class OrderAutoReceiveTask {
     public void autoReceiveOrders() {
         try {
             log.info("开始执行订单自动收货定时任务");
-            int receivedCount = orderAppService.autoReceiveShippedOrders();
-            log.info("订单自动收货定时任务完成，共自动收货 {} 个订单", receivedCount);
+            orderAppService.autoReceiveShippedOrders();
+            log.info("订单自动收货定时任务完成");
         } catch (Exception e) {
             log.error("订单自动收货定时任务执行异常", e);
         }

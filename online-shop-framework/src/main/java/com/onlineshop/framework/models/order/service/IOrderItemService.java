@@ -22,6 +22,14 @@ public interface IOrderItemService extends IService<OrderItem> {
     List<OrderItem> listByOrderId(Long orderId);
 
     /**
+     * 根据多个订单ID批量查询订单明细列表
+     *
+     * @param orderIds 订单ID列表
+     * @return 订单明细列表
+     */
+    List<OrderItem> listByOrderIds(List<Long> orderIds);
+
+    /**
      * 批量保存订单明细
      *
      * @param orderItems 订单明细列表
