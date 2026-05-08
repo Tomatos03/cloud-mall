@@ -33,6 +33,8 @@ public class OrderItem {
     private Long goodsPrice;   // 下单时商品单价（单位：分）
     private Integer quantity;     // 购买数量
     private Long totalPrice;   // 明细小计（单位：分）
+    private Long originalPrice;   // 折扣前价格（分），= goodsPrice × quantity
+    private Long discountAmount;  // 分摊到该商品的优惠（分）
     private String skuSpecs;   // SKU规格快照，格式：颜色=黑色;尺码=L（多规格值用;分隔）
     private LocalDateTime createTime;   // 创建时间
     private Boolean commentStatus; // 评价状态：0-未评价 1-已评价

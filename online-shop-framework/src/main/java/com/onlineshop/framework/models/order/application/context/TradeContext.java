@@ -2,6 +2,7 @@ package com.onlineshop.framework.models.order.application.context;
 
 import com.onlineshop.framework.models.address.Address;
 import com.onlineshop.framework.models.cart.PurchaseMode;
+import com.onlineshop.framework.models.coupon.application.vo.CouponCalcResult;
 import com.onlineshop.framework.models.order.dto.OrderCreateResultDTO;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
 import com.onlineshop.framework.models.order.dto.TradeDTO;
@@ -26,6 +27,7 @@ public class TradeContext {
     private List<List<OrderItem>> shopOrderItems;
     private List<Order> orders;
     private List<OrderItem> orderItems;
+    private Map<Long, CouponCalcResult> shopCouponResults;
 
     public OrderCreateResultDTO getCreateResult() {
         return OrderCreateResultDTO.builder()

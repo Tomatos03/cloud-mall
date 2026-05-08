@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.onlineshop.framework.event.MQTag;
 import com.onlineshop.framework.event.MQTopicProperties;
+import com.onlineshop.framework.models.coupon.application.ICouponAppService;
 import com.onlineshop.framework.event.TransactionCommitSendMQEvent;
 import com.onlineshop.framework.event.cart.ClearCartEvent;
 import com.onlineshop.framework.models.cart.ICartService;
@@ -31,14 +32,16 @@ public class CartBuyOrderCreator extends AbstractOrderCreator {
             IOrderItemService orderItemService,
             ApplicationEventPublisher applicationEventPublisher,
             MQTopicProperties mqTopicProperties,
-            OrderCreateValidatorManager validatorManager
+            OrderCreateValidatorManager validatorManager,
+            ICouponAppService couponAppService
     ) {
         super(
                 orderService,
                 orderItemService,
                 applicationEventPublisher,
                 mqTopicProperties,
-                validatorManager
+                validatorManager,
+                couponAppService
         );
     }
 
@@ -49,6 +52,7 @@ public class CartBuyOrderCreator extends AbstractOrderCreator {
 
     @Override
     protected void afterCreateSuccess(TradeContext tradeContext) {
+        super.afterCreateSuccess(tradeContext);
         pushCleanCartGoodsEvent(tradeContext.getTradeDTO()
                                             .getTradeItems());
     }

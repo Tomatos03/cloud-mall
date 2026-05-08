@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.onlineshop.framework.event.MQTag;
+import com.onlineshop.framework.models.coupon.application.ICouponAppService;
 import com.onlineshop.framework.models.order.entity.Order;
 import com.onlineshop.framework.models.order.enums.OrderStatus;
 import com.onlineshop.framework.models.order.service.IOrderService;
@@ -29,6 +30,7 @@ import com.onlineshop.framework.models.order.service.IOrderService;
 @ConditionalOnProperty(name = "rocketmq.name-server")
 public class OrderCloseConsumer implements RocketMQListener<String> {
     private final IOrderService orderService;
+    private final ICouponAppService couponAppService;
     private static final String ORDER_CLOSE_REASON = "订单超时未支付，系统自动关闭";
 
     @Override
@@ -52,6 +54,7 @@ public class OrderCloseConsumer implements RocketMQListener<String> {
                 log.info("订单状态不允许关闭或已被处理, orderNo: {}", order.getNo());
                 return;
             }
+            couponAppService.releaseCoupon(order.getNo());
             log.info("订单超时关闭成功, orderNo: {}", order.getNo());
         } catch (Exception e) {
             log.error("处理订单超时取消消息异常, orderNo: {}", orderNo, e);

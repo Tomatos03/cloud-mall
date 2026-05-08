@@ -28,6 +28,8 @@ public class OrderVO {
     private LocalDateTime createTime;
     private Integer goodsNum;
     private String totalPrice;
+    private String couponDiscount;
+    private String payAmount;
     private String buyerName;
     private Integer regionCode;
     private String detailAddress;
@@ -48,6 +50,8 @@ public class OrderVO {
                       .createTime(order.getCreateTime())
                       .goodsNum(order.getQuantity())
                       .totalPrice(Money.ofCents(order.getTotalPrice()).toYuanString())
+                      .couponDiscount(order.getCouponDiscount() != null ? Money.ofCents(order.getCouponDiscount()).toYuanString() : null)
+                      .payAmount(order.getPayAmount() != null ? Money.ofCents(order.getPayAmount()).toYuanString() : null)
                       .buyerName(order.getUserName())
                       .phone(order.getPhone())
                       .detailAddress(order.getAddress())

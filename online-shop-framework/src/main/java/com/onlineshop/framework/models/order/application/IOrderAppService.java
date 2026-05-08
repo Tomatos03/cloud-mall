@@ -42,4 +42,6 @@ public interface IOrderAppService {
     int autoReceiveShippedOrders();
 
     int closeTimeoutOrders();
+
+    void refundOrder(String orderNo);
 }

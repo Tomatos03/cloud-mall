@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.onlineshop.framework.common.enums.BizErrorCode;
+import com.onlineshop.framework.models.coupon.application.ICouponAppService;
 import com.onlineshop.framework.models.cart.PurchaseMode;
 import com.onlineshop.framework.models.goods.sku.GoodsSku;
 import com.onlineshop.framework.models.goods.sku.IGoodsSkuService;
@@ -61,6 +62,7 @@ public class OrderAppService implements IOrderAppService {
     private final IStoreService storeService;
     private final IGoodsService goodsService;
     private final IGoodsSkuService goodsSkuService;
+    private final ICouponAppService couponAppService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -94,6 +96,7 @@ public class OrderAppService implements IOrderAppService {
 
         log.info("支付成功（模拟）, orderNo: {}, 支付状态: 成功", orderNo);
         deductInventory(orderNo);
+        couponAppService.useCoupon(orderNo);
         return orderService.updateOrderStatus(orderNo, OrderStatus.PAID);
     }
 
@@ -165,6 +168,7 @@ public class OrderAppService implements IOrderAppService {
         Order order = queryCancelableOrder(cancelDTO.getOrderNo());
         order.setReason(cancelDTO.getReason());
         orderService.updateOrderStatus(order, OrderStatus.CANCELED);
+        couponAppService.releaseCoupon(order.getNo());
     }
 
     @Override
@@ -225,6 +229,38 @@ public class OrderAppService implements IOrderAppService {
             }
         }
         return receivedCount;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void refundOrder(String orderNo) {
+        Order order = orderService.queryByOrderNo(orderNo);
+        AssertUtils.notNull(order, BizErrorCode.ORDER_NOT_EXIST);
+
+        if (OrderType.PARENT.getCode().equals(order.getOrderType())) {
+            List<Order> subOrders = orderService.querySubOrders(order.getId());
+            boolean allCanceled = subOrders.stream()
+                    .allMatch(so -> OrderStatus.CANCELED.getCode().equals(so.getStatus()));
+            for (Order subOrder : subOrders) {
+                if (!OrderStatus.CANCELED.getCode().equals(subOrder.getStatus())) {
+                    orderService.updateOrderStatus(subOrder, OrderStatus.CANCELED);
+                }
+            }
+            orderService.updateOrderStatus(order, OrderStatus.CANCELED);
+
+            if (allCanceled && order.getCouponId() != null) {
+                couponAppService.releaseCoupon(order.getNo());
+                log.info("全额退款，优惠券已退还, orderNo: {}", orderNo);
+            } else {
+                log.info("部分退款，优惠券不退还, orderNo: {}", orderNo);
+            }
+        } else {
+            orderService.updateOrderStatus(order, OrderStatus.CANCELED);
+            if (order.getCouponId() != null) {
+                couponAppService.releaseCoupon(order.getNo());
+            }
+        }
+        log.info("退款完成, orderNo: {}", orderNo);
     }
 
     @Override
@@ -339,6 +375,8 @@ public class OrderAppService implements IOrderAppService {
                                .goodsPrice(Money.ofCents(item.getGoodsPrice())
                                                 .toYuanString())
                                .quantity(item.getQuantity())
+                               .originalPrice(item.getOriginalPrice() != null ? Money.ofCents(item.getOriginalPrice()).toYuanString() : null)
+                               .discountAmount(item.getDiscountAmount() != null ? Money.ofCents(item.getDiscountAmount()).toYuanString() : null)
                                .totalPrice(Money.ofCents(item.getTotalPrice())
                                                 .toYuanString())
                                .commentStatus(item.getCommentStatus())
@@ -354,6 +392,8 @@ public class OrderAppService implements IOrderAppService {
                            .status(order.getStatus())
                            .items(items)
                            .totalPrice(calculateOrderTotalPrice(items))
+                           .couponDiscount(order.getCouponDiscount() != null ? Money.ofCents(order.getCouponDiscount()).toYuanString() : null)
+                           .payAmount(order.getPayAmount() != null ? Money.ofCents(order.getPayAmount()).toYuanString() : null)
                            .count(calculateOrderGoodsTotalNum(items))
                            .build();
     }

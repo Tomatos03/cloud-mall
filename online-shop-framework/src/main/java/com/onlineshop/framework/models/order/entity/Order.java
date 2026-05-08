@@ -79,7 +79,22 @@ public class Order {
     private String orderType;
 
     private String reason;
-    
+
+    /**
+     * 使用的 user_coupon.id
+     */
+    private Long couponId;
+
+    /**
+     * 该订单分摊到的优惠金额（分）
+     */
+    private Long couponDiscount;
+
+    /**
+     * 实付金额（分）= totalPrice - couponDiscount
+     */
+    private Long payAmount;
+
     /**
      * 下单时间
      */

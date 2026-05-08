@@ -41,6 +41,8 @@ public class StoreOrderVO implements Serializable {
     private String status;
 
     private String totalPrice;   // 订单总价（单位：分）
+    private String couponDiscount;
+    private String payAmount;
     private Long count; // 商品总数量
 
     /**

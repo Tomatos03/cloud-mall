@@ -202,7 +202,22 @@ public enum BizErrorCode {
     ITEMS_REQUIRED(92028, "商品列表不能为空"),
     ITEMS_EMPTY(92029, "商品列表不能为空，至少需要1个商品"),
     SECKILL_GOODS_NOT_FOUND(92030, "秒杀商品不存在"),
-    SECKILL_REPEAT_ORDER(92031, "同一商品不可重复秒杀")
+    SECKILL_REPEAT_ORDER(92031, "同一商品不可重复秒杀"),
+
+    // ==================== 优惠券相关错误码 (93xxx) ====================
+    COUPON_NOT_EXIST(93000, "优惠券不存在"),
+    COUPON_NOT_AVAILABLE(93001, "优惠券不可用"),
+    COUPON_EXPIRED(93002, "优惠券已过期"),
+    COUPON_ALREADY_USED(93003, "优惠券已使用"),
+    COUPON_NOT_MEET_MIN_AMOUNT(93004, "未满足最低消费金额"),
+    COUPON_NOT_APPLICABLE(93005, "优惠券不适用于当前商品"),
+    COUPON_REACH_LIMIT(93006, "已达到领取上限"),
+    COUPON_STOCK_NOT_ENOUGH(93007, "优惠券库存不足"),
+    COUPON_TEMPLATE_NOT_ACTIVE(93008, "优惠券模板未生效"),
+    COUPON_CLAIM_FAILED(93009, "领取优惠券失败"),
+    COUPON_ALREADY_CLAIMED(93010, "已领取过该优惠券"),
+    COUPON_TYPE_INVALID(93011, "无效的优惠券类型"),
+    REFUND_ORDER_FAILED(93012, "退款失败")
     ;
 
     final int code;

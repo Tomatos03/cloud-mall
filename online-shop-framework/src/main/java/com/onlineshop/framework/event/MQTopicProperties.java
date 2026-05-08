@@ -18,4 +18,5 @@ public class MQTopicProperties {
     private String seckill;
     private String cart;
     private String goods;
+    private String coupon;
 }

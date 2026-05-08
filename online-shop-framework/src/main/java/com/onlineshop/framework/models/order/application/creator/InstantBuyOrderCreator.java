@@ -2,6 +2,7 @@ package com.onlineshop.framework.models.order.application.creator;
 
 import com.onlineshop.framework.event.MQTopicProperties;
 import com.onlineshop.framework.models.cart.PurchaseMode;
+import com.onlineshop.framework.models.coupon.application.ICouponAppService;
 import com.onlineshop.framework.models.order.application.creator.validator.OrderCreateValidatorManager;
 import com.onlineshop.framework.models.order.service.IOrderItemService;
 import com.onlineshop.framework.models.order.service.IOrderService;
@@ -22,14 +23,16 @@ public class InstantBuyOrderCreator extends AbstractOrderCreator {
             IOrderItemService orderItemService,
             ApplicationEventPublisher applicationEventPublisher,
             MQTopicProperties mqTopicProperties,
-            OrderCreateValidatorManager validatorManager
+            OrderCreateValidatorManager validatorManager,
+            ICouponAppService couponAppService
     ) {
         super(
                 orderService,
                 orderItemService,
                 applicationEventPublisher,
                 mqTopicProperties,
-                validatorManager
+                validatorManager,
+                couponAppService
         );
     }
 

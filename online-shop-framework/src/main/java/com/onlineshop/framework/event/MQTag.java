@@ -12,6 +12,7 @@ public final class MQTag {
     public static final String CART_CLEAR = "cart_clear";
     public static final String GOODS_SYNC_TO_ES = "goods_sync_es";
     public static final String GOODS_DELETE_FROM_ES = "goods_delete_es";
+    public static final String COUPON_EXPIRE = "coupon_expire";
 
     private MQTag() {
         throw new AssertionError("Cannot instantiate utility class");

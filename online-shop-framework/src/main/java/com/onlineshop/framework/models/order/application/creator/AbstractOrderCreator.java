@@ -1,6 +1,8 @@
 package com.onlineshop.framework.models.order.application.creator;
 
 import cn.hutool.core.collection.CollUtil;
+import com.onlineshop.framework.models.coupon.application.ICouponAppService;
+import com.onlineshop.framework.models.coupon.application.vo.CouponCalcResult;
 import com.onlineshop.framework.event.MQTag;
 import com.onlineshop.framework.event.MQTopicProperties;
 import com.onlineshop.framework.event.TransactionCommitSendMQEvent;
@@ -47,6 +49,7 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
     protected final ApplicationEventPublisher applicationEventPublisher;
     protected final MQTopicProperties mqTopicProperties;
     protected final OrderCreateValidatorManager validatorManager;
+    protected final ICouponAppService couponAppService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -79,8 +82,21 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
      * 创建成功后的扩展点
      */
     protected void afterCreateSuccess(TradeContext tradeContext) {
+        lockCoupons(tradeContext);
         pushOrderTimeoutCancelEvent(tradeContext.getPayOrder()
                                                 .getNo());
+    }
+
+    private void lockCoupons(TradeContext tradeContext) {
+        if (tradeContext.getShopCouponResults() == null) {
+            return;
+        }
+        String orderNo = tradeContext.getPayOrder().getNo();
+        for (CouponCalcResult result : tradeContext.getShopCouponResults().values()) {
+            if (result.getUserCouponId() != null) {
+                couponAppService.lockCoupon(result.getUserCouponId(), orderNo);
+            }
+        }
     }
 
 
@@ -112,11 +128,17 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
         for (TradeShopDTO shopDTO : shopList) {
             List<OrderItem> orderItems = new ArrayList<>(shopDTO.getTradeShopItemList()
                                                                 .size());
+            CouponCalcResult couponResult = tradeContext.getShopCouponResults() != null
+                    ? tradeContext.getShopCouponResults().get(shopDTO.getStoreId()) : null;
             for (TradeShopItemDTO itemDTO : shopDTO.getTradeShopItemList()) {
                 GoodsSku sku = tradeContext.getSkuMap()
                                            .get(itemDTO.getSkuId());
                 long itemTotalPrice = sku.getPrice() * itemDTO.getQuantity();
-                orderItems.add(buildOrderItem(sku, itemDTO.getQuantity(), itemTotalPrice));
+                long itemDiscount = 0;
+                if (couponResult != null && couponResult.getItemDiscounts() != null) {
+                    itemDiscount = couponResult.getItemDiscounts().getOrDefault(itemDTO.getSkuId(), 0L);
+                }
+                orderItems.add(buildOrderItem(sku, itemDTO.getQuantity(), itemTotalPrice, itemDiscount));
             }
             shopOrderItems.add(orderItems);
         }
@@ -131,12 +153,21 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
         for (int i = 0; i < shopList.size(); i++) {
             TradeShopDTO shopDTO = shopList.get(i);
             List<OrderItem> orderItems = shopOrderItems.get(i);
+            long orderTotalPrice = calOrderItemsTotalPrice(orderItems);
+            CouponCalcResult couponResult = tradeContext.getShopCouponResults() != null
+                    ? tradeContext.getShopCouponResults().get(shopDTO.getStoreId()) : null;
+            long couponDiscount = couponResult != null ? couponResult.getTotalDiscount() : 0;
+            long payAmount = orderTotalPrice - couponDiscount;
+
             Order order = buildOrder(
                     shopDTO.getStoreId(),
                     orderItems.size(),
-                    calOrderItemsTotalPrice(orderItems),
+                    orderTotalPrice,
                     tradeContext.getAddress()
             );
+            order.setCouponId(couponResult != null ? couponResult.getUserCouponId() : null);
+            order.setCouponDiscount(couponDiscount);
+            order.setPayAmount(payAmount);
             orders.add(order);
         }
         tradeContext.setOrders(orders);
@@ -167,7 +198,8 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
     private OrderItem buildOrderItem(
             GoodsSku sku,
             int quantity,
-            long totalPrice
+            long itemTotalPrice,
+            long itemDiscount
     ) {
         return OrderItem.builder()
                         .skuId(sku.getId())
@@ -176,7 +208,9 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
                         .goodsMainImageUrl(sku.getMainImageUrl())
                         .goodsPrice(sku.getPrice())
                         .quantity(quantity)
-                        .totalPrice(totalPrice)
+                        .originalPrice(itemTotalPrice)
+                        .discountAmount(itemDiscount)
+                        .totalPrice(itemTotalPrice - itemDiscount)
                         .skuSpecs(sku.getSpecSnapshot())
                         .build();
     }
@@ -185,11 +219,19 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
         long totalPrice = subOrders.stream()
                                    .mapToLong(Order::getTotalPrice)
                                    .sum();
+        long couponDiscount = subOrders.stream()
+                                       .mapToLong(o -> o.getCouponDiscount() != null ? o.getCouponDiscount() : 0)
+                                       .sum();
+        long payAmount = subOrders.stream()
+                                  .mapToLong(o -> o.getPayAmount() != null ? o.getPayAmount() : o.getTotalPrice())
+                                  .sum();
 
         Order.OrderBuilder orderBuilder = Order.builder()
                                                .no(IDNumber.generateOrderNo())
                                                .userId(AuthUserUtils.getUserId())
                                                .totalPrice(totalPrice)
+                                               .couponDiscount(couponDiscount)
+                                               .payAmount(payAmount)
                                                .quantity(subOrders.size())
                                                .status(OrderStatus.CREATED.getCode())
                                                .orderType(OrderType.PARENT.getCode());

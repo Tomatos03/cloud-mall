@@ -13,5 +13,6 @@ import java.util.List;
 @Data
 public class TradeShopDTO {
     private Long storeId;
+    private Long userCouponId;
     private List<TradeShopItemDTO> tradeShopItemList;
 }
