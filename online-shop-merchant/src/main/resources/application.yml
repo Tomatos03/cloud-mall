@@ -2,7 +2,7 @@ spring:
   application:
     name: online-merchant
   profiles:
-    active: dev
+    active: dev, env
 
 server:
   port: 7002

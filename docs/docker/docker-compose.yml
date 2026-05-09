@@ -19,12 +19,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "${MYSQL_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ../sql:/docker-entrypoint-initdb.d
     command: --default-authentication-plugin=mysql_native_password
     networks:
       - online-mall-network
@@ -50,7 +49,11 @@ services:
       retries: 10
 
   elasticsearch:
-    image: elasticsearch:7.17.10
+    build:
+      context: ./elasticsearch
+      args:
+        ELASTICSEARCH_VERSION: 8.18.8
+    image: online-mall-elasticsearch:8.18.8
     container_name: online-mall-elasticsearch
     environment:
       - discovery.type=single-node
@@ -76,6 +79,7 @@ services:
   rocketmq-namesrv:
     image: apache/rocketmq:5.1.4
     container_name: online-mall-rocketmq-namesrv
+    user: root
     command: sh mqnamesrv
     ports:
       - "${ROCKETMQ_NAMESRV_PORT}:9876"
@@ -84,13 +88,14 @@ services:
     networks:
       - online-mall-network
     healthcheck:
-      test: ["CMD", "sh", "-c", "nc -zv localhost 9876"]
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/9876'"]
       timeout: 20s
       retries: 10
 
   rocketmq-broker:
     image: apache/rocketmq:5.1.4
     container_name: online-mall-rocketmq-broker
+    user: root
     depends_on:
       rocketmq-namesrv:
         condition: service_healthy
@@ -106,7 +111,7 @@ services:
     environment:
       - NAMESRV_ADDR=rocketmq-namesrv:9876
     healthcheck:
-      test: ["CMD", "sh", "-c", "nc -zv localhost 10911"]
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/10911'"]
       timeout: 20s
       retries: 10
 
@@ -124,7 +129,3 @@ services:
       - minio_data:/data
     networks:
       - online-mall-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      timeout: 20s
-      retries: 10

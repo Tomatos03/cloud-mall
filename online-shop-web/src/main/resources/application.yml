@@ -2,7 +2,7 @@ spring:
   application:
     name: online-web
   profiles:
-    active: dev
+    active: dev, env
   elasticsearch:
     socket-timeout: 30s
 
