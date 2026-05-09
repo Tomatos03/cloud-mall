@@ -1,9 +1,9 @@
 spring:
   application:
-    name: online-im
+    name: cloud-mall-im
   datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/online_shop
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/cloud_mall?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2B8
     username: Tomatos
     password: 20030503
 server:

@@ -10,17 +10,17 @@
         <version>3.5.7</version>
     </parent>
 
-    <groupId>com.onlineMall</groupId>
-    <artifactId>online-mall</artifactId>
+    <groupId>com.cloudmall</groupId>
+    <artifactId>cloud-mall</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>online-shop-manager</module>
-        <module>online-shop-web</module>
-        <module>online-shop-framework</module>
-        <module>online-shop-merchant</module>
+        <module>cloud-mall-manager</module>
+        <module>cloud-mall-web</module>
+        <module>cloud-mall-framework</module>
+        <module>cloud-mall-merchant</module>
         <module>im</module>
-        <module>online-shop-aggregation</module>
+        <module>cloud-mall-aggregation</module>
     </modules>
 
     <properties>
@@ -38,20 +38,20 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.onlineMall</groupId>
-                <artifactId>online-shop-manager</artifactId>
+                <groupId>com.cloudmall</groupId>
+                <artifactId>cloud-mall-manager</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
-                <groupId>com.onlineMall</groupId>
-                <artifactId>online-shop-web</artifactId>
+                <groupId>com.cloudmall</groupId>
+                <artifactId>cloud-mall-web</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <dependency>
-                <groupId>com.onlineMall</groupId>
-                <artifactId>online-shop-merchant</artifactId>
+                <groupId>com.cloudmall</groupId>
+                <artifactId>cloud-mall-merchant</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 
@@ -85,11 +85,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-
-<!--        <dependency>-->
-<!--            <groupId>org.mariadb.jdbc</groupId>-->
-<!--            <artifactId>mariadb-java-client</artifactId>-->
-<!--        </dependency>-->
 
         <!-- Hutool -->
         <dependency>

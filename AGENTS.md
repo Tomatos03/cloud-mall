@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本文件用于指导 AI Agent 在 **online-mall** 仓库内进行一致、可维护的开发。
+本文件用于指导 AI Agent 在 **cloud-mall** 仓库内进行一致、可维护的开发。
 目标：**规则清晰、可执行、低冗余**。
 
 ## 1. 常用命令
@@ -13,16 +13,16 @@ mvn clean package
 
 ### 单模块构建
 ```bash
-mvn clean compile -DskipTests -pl online-shop-framework
-mvn clean compile -DskipTests -pl online-shop-manager
-mvn clean compile -DskipTests -pl online-shop-web
-mvn clean compile -DskipTests -pl online-shop-merchant
+mvn clean compile -DskipTests -pl cloud-mall-framework
+mvn clean compile -DskipTests -pl cloud-mall-manager
+mvn clean compile -DskipTests -pl cloud-mall-web
+mvn clean compile -DskipTests -pl cloud-mall-merchant
 ```
 
 ### 测试
 ```bash
 mvn test
-mvn test -pl online-shop-framework
+mvn test -pl cloud-mall-framework
 mvn test -Dtest=SeckillActivityServiceImplTest
 mvn test -Dtest=SeckillActivityServiceImplTest#testCreateActivity
 ```
@@ -34,10 +34,10 @@ mvn clean compile -DskipTests 2>&1 | tail -20
 
 ## 2. 模块结构
 
-- `online-shop-framework`：核心领域模型、服务、通用能力
-- `online-shop-manager`：管理端
-- `online-shop-web`：用户端
-- `online-shop-merchant`：商家端
+- `cloud-mall-framework`：核心领域模型、服务、通用能力
+- `cloud-mall-manager`：管理端
+- `cloud-mall-web`：用户端
+- `cloud-mall-merchant`：商家端
 - `im`：即时通讯模块
 
 ## 3. 代码风格（必须遵守）

@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: cloud-mall-manager
+  profiles:
+    active: dev, env
+
+server:
+  port: 7000
+
+auth:
+  white-list:
+    - '/manager/auth/**'
+    - '/manager/files/**'

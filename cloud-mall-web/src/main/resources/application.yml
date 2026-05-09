@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: cloud-mall-web
+  profiles:
+    active: dev, env
+  elasticsearch:
+    socket-timeout: 30s
+
+server:
+  port: 7001
+
+auth:
+  white-list:
+    - '/web/common/**'
+    - '/web/banner/**'
+    - '/web/category/**'
+    - '/web/user/login'
+    - '/web/user/register'
+    - '/web/goods/**'
+    - '/web/cart/**'
+    - '/web/files/**'
+    - '/web/**'

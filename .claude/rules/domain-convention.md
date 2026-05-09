@@ -1,6 +1,6 @@
 # Domain Package Convention
 
-Each domain under `com.onlineshop.framework.models.<domain>/` follows:
+Each domain under `com.cloudmall.framework.models.<domain>/` follows:
 - `entity/` -- MyBatis-Plus entity extending `CommonDO`
 - `mapper/` -- Mapper interfaces
 - `service/` + `service/impl/` -- Service interfaces (`I`-prefix) and implementations

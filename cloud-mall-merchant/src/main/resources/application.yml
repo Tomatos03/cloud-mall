@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: cloud-mall-merchant
+  profiles:
+    active: dev, env
+
+server:
+  port: 7002
+
+auth:
+  white-list:
+    - /merchant/auth/**
+    - /merchant/files/**
+    - /api/docs/**
+    - /swagger-ui/**

@@ -1,0 +1,28 @@
+package com.cloudmall.controller;
+
+import com.cloudmall.framework.models.notice.Notice;
+import com.cloudmall.framework.models.notice.NoticeService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+/**
+ *
+ *
+ * @author : Tomatos
+ * @date : 2026/3/3
+ */
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/web/notice")
+public class NoticeWebController {
+    private final NoticeService noticeService;
+
+    @GetMapping
+    public List<Notice> getNotice() {
+        return noticeService.list();
+    }
+}

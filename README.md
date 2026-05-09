@@ -1,16 +1,16 @@
-# online-mall
+# cloud-mall
 
-`online-mall` 是一个基于 Spring Boot 3 + MyBatis-Plus 的多端电商项目，包含用户端、管理端、商家端。
+`cloud-mall` 是一个基于 Spring Boot 3 + MyBatis-Plus 的多端电商项目，包含用户端、管理端、商家端。
 
 ## 模块结构
 
 | 模块                      | 说明                             | 默认端口 | 启动类                            |
 | ------------------------- | -------------------------------- | -------- | --------------------------------- |
-| `online-shop-framework`   | 核心领域模型、通用能力、共享组件 | -        | -                                 |
-| `online-shop-web`         | 用户端 API                       | `7001`   | `CloudMallWebApplication`         |
-| `online-shop-manager`     | 管理端 API                       | `7000`   | `CloudMallManageApplication`      |
-| `online-shop-merchant`    | 商家端 API                       | `7002`   | `CloudMallMerchantApplication`    |
-| `online-shop-aggregation` | 聚合启动模块                     | `7777`   | `CloudMallAggregationApplication` |
+| `cloud-mall-framework`   | 核心领域模型、通用能力、共享组件 | -        | -                                 |
+| `cloud-mall-web`         | 用户端 API                       | `7001`   | `CloudMallWebApplication`         |
+| `cloud-mall-manager`     | 管理端 API                       | `7000`   | `CloudMallManageApplication`      |
+| `cloud-mall-merchant`    | 商家端 API                       | `7002`   | `CloudMallMerchantApplication`    |
+| `cloud-mall-aggregation` | 聚合启动模块                     | `7777`   | `CloudMallAggregationApplication` |
 | `im`                      | 即时通讯模块                     | `7010`   | `IMApplication`                   |
 
 ## 前端UI
@@ -52,17 +52,17 @@ mvn clean compile -DskipTests
 ### 2. 启动聚合端（推荐本地联调）
 
 ```bash
-mvn -pl online-shop-aggregation spring-boot:run
+mvn -pl cloud-mall-aggregation spring-boot:run
 ```
 
-聚合端默认 `local` 配置（见 `online-shop-aggregation/src/main/resources/application.yml`）。
+聚合端默认 `local` 配置（见 `cloud-mall-aggregation/src/main/resources/application.yml`）。
 
 ### 3. 分模块启动（按需）
 
 ```bash
-mvn -pl online-shop-manager spring-boot:run -Dspring-boot.run.profiles=local
-mvn -pl online-shop-web spring-boot:run -Dspring-boot.run.profiles=local
-mvn -pl online-shop-merchant spring-boot:run -Dspring-boot.run.profiles=local
+mvn -pl cloud-mall-manager spring-boot:run -Dspring-boot.run.profiles=local
+mvn -pl cloud-mall-web spring-boot:run -Dspring-boot.run.profiles=local
+mvn -pl cloud-mall-merchant spring-boot:run -Dspring-boot.run.profiles=local
 mvn -pl im spring-boot:run
 ```
 

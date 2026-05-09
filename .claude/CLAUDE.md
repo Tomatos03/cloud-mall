@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-`online-mall` is a multi-module e-commerce platform built with Spring Boot 3 + MyBatis-Plus, serving three frontends: customer (web), admin (manager), and merchant. A separate IM module provides real-time chat via WebSocket.
+`cloud-mall` is a multi-module e-commerce platform built with Spring Boot 3 + MyBatis-Plus, serving three frontends: customer (web), admin (manager), and merchant. A separate IM module provides real-time chat via WebSocket.
 
 ## Rules
 

@@ -1,0 +1,44 @@
+package com.cloudmall.framework.application.order.creator.validator.impl;
+
+import com.cloudmall.framework.common.enums.BizErrorCode;
+import com.cloudmall.framework.application.order.context.TradeContext;
+import com.cloudmall.framework.application.order.creator.validator.IOrderCreateValidator;
+import com.cloudmall.framework.models.order.dto.TradeShopDTO;
+import com.cloudmall.framework.models.store.IStoreService;
+import com.cloudmall.framework.models.store.Store;
+import com.cloudmall.framework.utils.AssertUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Component
+public class StoreValidator implements IOrderCreateValidator {
+
+    private final IStoreService storeService;
+
+    @Autowired
+    public StoreValidator(IStoreService storeService) {
+        this.storeService = storeService;
+    }
+
+    @Override
+    public void validate(TradeContext context) {
+        Set<Long> storeIdSet = context.getTradeDTO()
+                                      .getTradeItems()
+                                      .stream()
+                                      .map(TradeShopDTO::getStoreId)
+                                      .collect(Collectors.toSet());
+
+        Long count = storeService.lambdaQuery()
+                                 .in(Store::getId, storeIdSet)
+                                 .count();
+        AssertUtils.isTrue(count == storeIdSet.size(), BizErrorCode.ORDER_CREATE_STORE_NOT_EXIST);
+    }
+
+    @Override
+    public int getOrder() {
+        return 20;
+    }
+}
