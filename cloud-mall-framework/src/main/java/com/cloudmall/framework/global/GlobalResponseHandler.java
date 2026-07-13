@@ -21,11 +21,24 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 public class GlobalResponseHandler implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        Class<?> parameterType = returnType.getParameterType();
-        // 如果返回值已经是Result类型或者String类型，则不进行包装，直接返回
-        // 这样设计对于String对象在Controller类返回的时候可以选择是否包装成Result对象，保持灵活性
-        return !Result.class.isAssignableFrom(parameterType)
-                && !String.class.isAssignableFrom(parameterType);
+        return shouldWrapResponse(returnType.getParameterType());
+    }
+
+    /**
+     * 判断返回值类型是否需要自动包装为 {@link Result}。
+     * <p>
+     * 如果返回值已经是 Result 或 String 类型，则跳过包装：
+     * <ul>
+     *   <li>Result 类型避免二次包装（防止双层 Result）</li>
+     *   <li>String 类型因 HttpMessageConverter 的特殊处理，若包装为 Result 会抛出异常</li>
+     * </ul>
+     *
+     * @param type 控制器方法的返回值类型
+     * @return true 需要包装，false 跳过包装
+     */
+    private boolean shouldWrapResponse(Class<?> type) {
+        return !Result.class.isAssignableFrom(type)
+                && !String.class.isAssignableFrom(type);
     }
 
     @Override
