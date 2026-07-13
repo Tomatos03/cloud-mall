@@ -16,7 +16,7 @@ import com.cloudmall.framework.models.store.Store;
 import com.cloudmall.framework.models.system.user.IUserService;
 import com.cloudmall.framework.models.system.user.entity.User;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +41,7 @@ public class ChatAppService implements IChatAppService {
     public IPage<ChatSessionVO> pageChatSession(PageParamsDTO paramsDTO) {
         Page<ChatSession> page = new Page<>(paramsDTO.getPage(), paramsDTO.getPageSize());
         LambdaQueryWrapper<ChatSession> wrapper = new LambdaQueryWrapper<>();
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         wrapper.eq(ChatSession::getAgentId, userId)
                .or()
                .eq(ChatSession::getBuyerId, userId)
@@ -73,7 +73,7 @@ public class ChatAppService implements IChatAppService {
 
     private static Long determineReceiverId(ChatSession chatSession) {
         return chatSession.getBuyerId()
-                          .equals(AuthUserUtils.getUserId())
+                          .equals(AuthUserContext.getUserId())
                 ? chatSession.getAgentId()
                 : chatSession.getBuyerId();
     }
@@ -83,7 +83,7 @@ public class ChatAppService implements IChatAppService {
         ChatSession chatSession = chatSessionService.getById(sessionId);
         AssertUtils.notNull(chatSession, BizErrorCode.CONVERSATION_NOT_EXIST);
 
-        Long senderId = AuthUserUtils.getUserId()
+        Long senderId = AuthUserContext.getUserId()
                                      .equals(chatSession.getBuyerId())
                 ? chatSession.getAgentId()
                 : chatSession.getBuyerId();
@@ -101,14 +101,14 @@ public class ChatAppService implements IChatAppService {
         AssertUtils.notNull(store, BizErrorCode.STORE_NOT_EXIST);
 
         Long merchantId = store.getUserId();
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         ChatSession chatSession = chatSessionService.lambdaQuery()
                                                     .eq(ChatSession::getBuyerId, userId)
                                                     .eq(ChatSession::getAgentId, merchantId)
                                                     .one();
         if (chatSession == null) {
             chatSession = ChatSession.builder()
-                                     .buyerId(AuthUserUtils.getUserId())
+                                     .buyerId(AuthUserContext.getUserId())
                                      .agentId(merchantId)
                                      .createTime(LocalDateTime.now())
                                      .build();

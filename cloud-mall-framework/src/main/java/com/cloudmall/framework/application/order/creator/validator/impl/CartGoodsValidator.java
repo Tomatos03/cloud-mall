@@ -8,7 +8,7 @@ import com.cloudmall.framework.application.order.creator.validator.IOrderCreateV
 import com.cloudmall.framework.models.order.dto.TradeShopDTO;
 import com.cloudmall.framework.models.order.dto.TradeShopItemDTO;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +34,7 @@ public class CartGoodsValidator implements IOrderCreateValidator {
 
     @Override
     public void validate(TradeContext context) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         for (TradeShopDTO shopDTO : context.getTradeDTO().getTradeItems()) {
             for (TradeShopItemDTO item : shopDTO.getTradeShopItemList()) {
                 AssertUtils.isTrue(cartService.existsInCart(userId, item.getSkuId()), BizErrorCode.GOODS_NOT_IN_CART);

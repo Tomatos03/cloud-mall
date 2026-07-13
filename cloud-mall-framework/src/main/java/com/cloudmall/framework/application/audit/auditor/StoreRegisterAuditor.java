@@ -15,7 +15,7 @@ import com.cloudmall.framework.models.system.user.entity.User;
 import com.cloudmall.framework.models.system.user.entity.UserQualification;
 import com.cloudmall.framework.models.system.user.mapper.UserQualificationMapper;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.IDNumber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +51,8 @@ public class StoreRegisterAuditor extends AbstractAuditor<StoreRegisterAuditItem
 
     @Override
     protected void validateAndFill(AuditSubmitDTO<StoreRegisterAuditItemDTO> submitDTO) {
-        AssertUtils.isFalse(AuthUserUtils.isMerchantAccount(), BizErrorCode.NO_PERMISSION);
-        Long userId = AuthUserUtils.getUserId();
+        AssertUtils.isFalse(AuthUserContext.isMerchantAccount(), BizErrorCode.NO_PERMISSION);
+        Long userId = AuthUserContext.getUserId();
         User user = userService.getById(userId);
         AssertUtils.notNull(user, BizErrorCode.USER_NOT_EXISTS);
         Collection<StoreRegisterAuditItemDTO> items = submitDTO.getItems();

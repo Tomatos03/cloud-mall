@@ -14,7 +14,7 @@ import com.cloudmall.framework.models.order.enums.OrderType;
 import com.cloudmall.framework.models.order.service.IOrderItemService;
 import com.cloudmall.framework.models.order.service.IOrderService;
 import com.cloudmall.framework.models.statistic.vo.*;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.image.ImageUtil;
 import com.cloudmall.framework.utils.money.Money;
 import lombok.RequiredArgsConstructor;
@@ -391,7 +391,7 @@ public class StatisticService implements IStatisticService {
      * @return 订单列表
      */
     private List<Order> queryLastOrders(int days, OrderStatus status) {
-        Long storeId = AuthUserUtils.getStoreId();
+        Long storeId = AuthUserContext.getStoreId();
         LocalDate startDate = LocalDate.now()
                                        .minusDays(Math.max(days - 1, 0));
         LocalDateTime startDateTime = startDate.atStartOfDay();

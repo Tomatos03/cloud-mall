@@ -20,7 +20,7 @@ import com.cloudmall.framework.models.goods.spu.Goods;
 import com.cloudmall.framework.models.goods.spu.GoodsService;
 import com.cloudmall.framework.models.store.Store;
 import com.cloudmall.framework.models.store.StoreService;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.image.ImageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +56,7 @@ public class CartService implements ICartService {
      * 用于@CacheEvict注解的SpEL表达式
      */
     public Long getUserIdForCache() {
-        return AuthUserUtils.getUserId();
+        return AuthUserContext.getUserId();
     }
 
     /**
@@ -66,7 +66,7 @@ public class CartService implements ICartService {
     @Override
     @CacheEvict(value = "cart", key = "#root.target.getUserIdForCache()")
     public CartStoreItemVO addToCart(AddCartItemDTO addCartItemDTO) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         Long skuId = addCartItemDTO.getSkuId();
 
         // 从SKU获取完整的商品和店铺信息
@@ -105,7 +105,7 @@ public class CartService implements ICartService {
      */
     @Override
     public CartVO getCart() {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         String cartKey = getCartKey(userId);
         Map<Object, Object> cartData = redisTemplate.opsForHash()
                                                     .entries(cartKey);
@@ -150,7 +150,7 @@ public class CartService implements ICartService {
     @Override
     @CacheEvict(value = "cart", key = "#root.target.getUserIdForCache()")
     public CartStoreItemVO updateCartItem(UpdateCartItemDTO request) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         Long skuId = request.getSkuId();
         String cartKey = getCartKey(userId);
 
@@ -194,7 +194,7 @@ public class CartService implements ICartService {
     @Override
     @CacheEvict(value = "cart", key = "#root.target.getUserIdForCache()")
     public void removeCartItem(Long skuId) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         String cartKey = getCartKey(userId);
         Map<Object, Object> cartData = redisTemplate.opsForHash()
                                                     .entries(cartKey);
@@ -227,7 +227,7 @@ public class CartService implements ICartService {
     @Override
     @CacheEvict(value = "cart", key = "#root.target.getUserIdForCache()")
     public void removeCartItems(Collection<Long> ids) {
-        removeCartItemsByUserId(AuthUserUtils.getUserId(), ids);
+        removeCartItemsByUserId(AuthUserContext.getUserId(), ids);
     }
 
     @Override
@@ -242,7 +242,7 @@ public class CartService implements ICartService {
     @Override
     @CacheEvict(value = "cart", key = "#root.target.getUserIdForCache()", allEntries = true)
     public void clearCart() {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         String cartKey = getCartKey(userId);
         redisTemplate.delete(cartKey);
     }

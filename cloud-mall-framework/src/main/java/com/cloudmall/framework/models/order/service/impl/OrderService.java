@@ -17,7 +17,7 @@ import com.cloudmall.framework.models.order.mapper.OrderMapper;
 import com.cloudmall.framework.models.order.service.IOrderService;
 import com.cloudmall.framework.models.order.wrapper.OrderQueryWrapper;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
     @Override
     public Order queryMyOrder(String orderNo) {
         return lambdaQuery().eq(Order::getNo, orderNo)
-                            .eq(Order::getUserId, AuthUserUtils.getUserId())
+                            .eq(Order::getUserId, AuthUserContext.getUserId())
                             .one();
     }
 
@@ -57,8 +57,8 @@ public class OrderService extends ServiceImpl<OrderMapper, Order> implements IOr
 
     @Override
     public Order queryCancelableOrder(String orderNo) {
-        if (AuthUserUtils.isMerchantAccount()) {
-            return queryStoreOrder(orderNo, AuthUserUtils.getStoreId());
+        if (AuthUserContext.isMerchantAccount()) {
+            return queryStoreOrder(orderNo, AuthUserContext.getStoreId());
         }
         return queryMyOrder(orderNo);
     }

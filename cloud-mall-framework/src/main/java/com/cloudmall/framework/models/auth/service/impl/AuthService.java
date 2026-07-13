@@ -12,7 +12,7 @@ import com.cloudmall.framework.models.system.user.IUserService;
 import com.cloudmall.framework.models.system.user.entity.User;
 import com.cloudmall.framework.security.AuthUser;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +80,7 @@ public class AuthService implements IAuthService {
 
     @Override
     public boolean changePassword(String newPassword) {
-        User user = userService.getById(AuthUserUtils.getUserId());
+        User user = userService.getById(AuthUserContext.getUserId());
         AssertUtils.notNull(user, BizErrorCode.USER_NOT_EXISTS);
 
         user.setPassword(passwordEncoder.encode(newPassword));

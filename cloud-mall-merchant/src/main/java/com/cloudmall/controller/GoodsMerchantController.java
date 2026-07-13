@@ -28,7 +28,7 @@ import com.cloudmall.framework.models.goods.sku.MerchantGoodsSkuParamsDTO;
 import com.cloudmall.framework.models.goods.spu.IGoodsService;
 import com.cloudmall.framework.models.goods.spu.dto.GoodsPageParamsDTO;
 import com.cloudmall.framework.models.goods.spu.vo.SpuVO;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 
 /**
  * 商家商品管理 Controller
@@ -91,7 +91,7 @@ public class GoodsMerchantController {
      */
     @GetMapping
     public IPage<SpuVO> queryGoodsList(GoodsPageParamsDTO queryDTO) {
-        queryDTO.setStoreId(AuthUserUtils.getStoreId());
+        queryDTO.setStoreId(AuthUserContext.getStoreId());
         return goodsService.pageGoods(queryDTO);
     }
 

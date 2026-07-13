@@ -14,7 +14,7 @@ import com.cloudmall.framework.models.seckill.dto.SeckillGoodsDTO;
 import com.cloudmall.framework.models.seckill.dto.SeckillGoodsParamsDTO;
 import com.cloudmall.framework.models.seckill.service.SeckillActivityService;
 import com.cloudmall.framework.models.seckill.vo.SeckillActivityVO;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -100,7 +100,7 @@ public class SeckillMerchantController {
         log.debug("商家查询活动商品，活动ID: {}, 页码: {}, 每页数量: {}", id, params.getPage(), params.getPageSize());
 
         params.setActivityId(id);
-        params.setMerchantId(AuthUserUtils.getUserId());
+        params.setMerchantId(AuthUserContext.getUserId());
         return seckillAppService.pageSeckillActivityGoods(params);
     }
 
@@ -121,7 +121,7 @@ public class SeckillMerchantController {
             @RequestParam(defaultValue = "1") @NotNull @Min(1) Integer quantity
     ) {
         log.info("秒杀下单请求，活动ID: {}, 秒杀商品ID: {}, 用户ID: {}, 数量: {}",
-                 activityId, goodsId, AuthUserUtils.getUserId(), quantity);
+                 activityId, goodsId, AuthUserContext.getUserId(), quantity);
         return seckillAppService.participateSeckill(goodsId, quantity);
     }
 }

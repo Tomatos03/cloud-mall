@@ -59,7 +59,7 @@ import com.cloudmall.framework.models.store.IStoreService;
 import com.cloudmall.framework.models.store.Store;
 import com.cloudmall.framework.models.store.vo.StoreInfoVO;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.image.ImageUtil;
 import com.cloudmall.framework.utils.money.Money;
 
@@ -370,7 +370,7 @@ public class GoodsAppService implements IGoodsAppService {
     public void deleteGoods(Long id) {
         Goods goods = goodsService.getById(id);
         AssertUtils.notNull(goods, BizErrorCode.GOODS_OR_SHOP_NOT_EXIST);
-        AssertUtils.isEqual(AuthUserUtils.getStoreId(), goods.getStoreId(), BizErrorCode.NO_PERMISSION);
+        AssertUtils.isEqual(AuthUserContext.getStoreId(), goods.getStoreId(), BizErrorCode.NO_PERMISSION);
 
         Set<Long> specValueIds = deleteSkusAndCollectSpecValues(id);
         deleteSpu(id);

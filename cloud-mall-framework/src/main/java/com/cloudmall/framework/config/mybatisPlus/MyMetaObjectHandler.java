@@ -1,7 +1,7 @@
 package com.cloudmall.framework.config.mybatisPlus;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -51,9 +51,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     }
 
     private String getOperateUser() {
-        if (AuthUserUtils.getAuthentication() == null) {
+        if (AuthUserContext.getAuthentication() == null) {
             return SYSTEM_USER;
         }
-        return AuthUserUtils.getUsername();
+        return AuthUserContext.getUsername();
     }
 }

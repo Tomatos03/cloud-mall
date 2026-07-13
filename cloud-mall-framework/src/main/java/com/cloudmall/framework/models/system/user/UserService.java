@@ -13,7 +13,7 @@ import com.cloudmall.framework.models.system.relation.entity.UserRoles;
 import com.cloudmall.framework.models.system.user.mapper.UserMapper;
 import com.cloudmall.framework.models.system.relation.mapper.UserRolesMapper;
 import com.cloudmall.framework.models.system.user.vo.UserInfoVO;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +71,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements IUserS
 
     @Override
     public UserInfoVO getUserInfo() {
-        User user = getById(AuthUserUtils.getUserId());
+        User user = getById(AuthUserContext.getUserId());
 
         return UserInfoVO.builder()
                          .nickname(user.getNickname())
@@ -90,7 +90,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements IUserS
     public boolean updateUserInfo(UserInfoVO userInfoVO) {
         return updateById(
                 User.builder()
-                    .id(AuthUserUtils.getUserId())
+                    .id(AuthUserContext.getUserId())
                     .nickname(userInfoVO.getNickname())
                     .avatarUrl(userInfoVO.getAvatarUrl())
                     .phone(userInfoVO.getPhone())

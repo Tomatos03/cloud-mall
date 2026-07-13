@@ -8,7 +8,7 @@ import com.cloudmall.framework.models.chat.entity.ChatMessage;
 import com.cloudmall.framework.models.chat.mapper.ChatMessageMapper;
 import com.cloudmall.framework.models.chat.service.IChatMessageService;
 import com.cloudmall.framework.models.chat.vo.MessageVO;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -74,7 +74,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageMapper, ChatMessa
     public Long countUnreadMessages(Long sessionId) {
         return lambdaQuery().eq(ChatMessage::getSessionId, sessionId)
                             .eq(ChatMessage::getIsRead, false)
-                            .ne(ChatMessage::getSenderId, AuthUserUtils.getUserId())
+                            .ne(ChatMessage::getSenderId, AuthUserContext.getUserId())
                             .count();
     }
 }

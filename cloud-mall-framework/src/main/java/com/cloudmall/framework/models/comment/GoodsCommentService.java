@@ -20,7 +20,7 @@ import com.cloudmall.framework.models.order.service.IOrderItemService;
 import com.cloudmall.framework.models.order.service.IOrderService;
 import com.cloudmall.framework.models.system.user.IUserService;
 import com.cloudmall.framework.models.system.user.entity.User;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.image.ImageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,7 +54,7 @@ public class GoodsCommentService extends ServiceImpl<GoodsCommentMapper, GoodsCo
         validateCommentNotExists(createCommentDTO.getOrderItemId());
         markOrderItemCommented(createCommentDTO);
 
-        User user = userService.getById(AuthUserUtils.getUserId());
+        User user = userService.getById(AuthUserContext.getUserId());
         Long orderId = getCommentGoodsOrderId(createCommentDTO.getOrderNo());
         GoodsComment comment = buildGoodsComment(user, createCommentDTO, orderId);
         return this.save(comment);
@@ -79,7 +79,7 @@ public class GoodsCommentService extends ServiceImpl<GoodsCommentMapper, GoodsCo
     @Override
     public IPage<GoodsCommentCardVO> pageCommentsForMerchant(int page, int size, Boolean hasReply) {
         List<Long> goodsIdList = goodsService.lambdaQuery()
-                                             .eq(Goods::getStoreId, AuthUserUtils.getStoreId())
+                                             .eq(Goods::getStoreId, AuthUserContext.getStoreId())
                                              .list()
                                              .stream()
                                              .map(Goods::getId)
@@ -267,7 +267,7 @@ public class GoodsCommentService extends ServiceImpl<GoodsCommentMapper, GoodsCo
     private Long getCommentGoodsOrderId(String orderNo) {
         return orderService.lambdaQuery()
                            .eq(Order::getNo, orderNo)
-                           .eq(Order::getUserId, AuthUserUtils.getUserId())
+                           .eq(Order::getUserId, AuthUserContext.getUserId())
                            .one()
                            .getId();
     }

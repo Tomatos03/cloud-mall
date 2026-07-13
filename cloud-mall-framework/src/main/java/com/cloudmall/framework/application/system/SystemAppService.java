@@ -11,7 +11,7 @@ import com.cloudmall.framework.models.system.role.entity.Role;
 import com.cloudmall.framework.models.system.user.IUserService;
 import com.cloudmall.framework.models.system.user.entity.User;
 import com.cloudmall.framework.models.system.user.vo.UserInfoVO;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -39,7 +39,7 @@ public class SystemAppService implements ISystemAppService {
 
     @Override
     public UserInfoVO getUserInfo() {
-        User user = userService.getById(AuthUserUtils.getUserId());
+        User user = userService.getById(AuthUserContext.getUserId());
         return UserInfoVO.builder()
                          .uid("u" + user.getId())
                          .nickname(user.getUsername())
@@ -53,7 +53,7 @@ public class SystemAppService implements ISystemAppService {
 
     @Override
     public MenuNodeVO getUserMenuTree() {
-        List<Role> roles = userService.queryRolesByUserId(AuthUserUtils.getUserId());
+        List<Role> roles = userService.queryRolesByUserId(AuthUserContext.getUserId());
         List<Resource> menuResources = roleService.getMenuResourcesByRoleIds(convertRoleId(roles));
         Map<Long, List<Resource>> map = groupingMenuNodeByParentId(menuResources);
         MenuNodeVO menuRootNode = buildMenuTreeVO(createMenuRootNode(), map);
@@ -71,7 +71,7 @@ public class SystemAppService implements ISystemAppService {
     }
 
     private List<String> queryUserResourceCodes() {
-        List<Role> userRoles = userService.queryRolesByUserId(AuthUserUtils.getUserId());
+        List<Role> userRoles = userService.queryRolesByUserId(AuthUserContext.getUserId());
         return roleService.queryResourceCodesByRoleIds(convertRoleId(userRoles));
     }
 

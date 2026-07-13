@@ -3,7 +3,7 @@ package com.cloudmall.framework.common.aspect.ratelimit;
 import java.util.concurrent.TimeUnit;
 
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -22,7 +22,7 @@ public class RateLimitAspect {
 
     @Around("@annotation(rateLimit)")
     public Object around(ProceedingJoinPoint joinPoint, RateLimit rateLimit) throws Throwable {
-        String key = rateLimit.keyPrefix() + AuthUserUtils.getUserId();
+        String key = rateLimit.keyPrefix() + AuthUserContext.getUserId();
         Long count = redisTemplate.opsForValue().increment(key);
         AssertUtils.notNull(count, rateLimit.errorCode());
 

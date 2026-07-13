@@ -14,7 +14,7 @@ import com.cloudmall.framework.models.goods.spec.service.ISpecValueService;
 import com.cloudmall.framework.models.goods.spu.Goods;
 import com.cloudmall.framework.models.goods.spu.IGoodsService;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.image.ImageUtil;
 import com.cloudmall.framework.utils.money.Money;
 import lombok.RequiredArgsConstructor;
@@ -80,7 +80,7 @@ public class GoodsSkuService extends ServiceImpl<GoodsSkuMapper, GoodsSku> imple
     @Override
     public IPage<MerchantGoodsSkuItemDTO> pageMerchantGoodsSkus(MerchantGoodsSkuParamsDTO params) {
         AssertUtils.notNull(params, BizErrorCode.INVALID_PARAM);
-        Long storeId = AuthUserUtils.getStoreId();
+        Long storeId = AuthUserContext.getStoreId();
         AssertUtils.notNull(storeId, BizErrorCode.STORE_NOT_EXIST);
 
         List<Goods> goodsList = goodsService.lambdaQuery()

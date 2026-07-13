@@ -14,7 +14,7 @@ import com.cloudmall.framework.models.order.dto.TradeShopDTO;
 import com.cloudmall.framework.models.order.dto.TradeShopItemDTO;
 import com.cloudmall.framework.models.order.service.IOrderItemService;
 import com.cloudmall.framework.models.order.service.IOrderService;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -57,7 +57,7 @@ public class CartBuyOrderCreator extends AbstractOrderCreator {
     }
 
     private void pushCleanCartGoodsEvent(List<TradeShopDTO> tradeItems) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         applicationEventPublisher.publishEvent(
                 new TransactionCommitSendMQEvent(
                         mqTopicProperties.getCart(),

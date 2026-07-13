@@ -21,7 +21,7 @@ import com.cloudmall.framework.models.coupon.service.IUserCouponService;
 import com.cloudmall.framework.models.store.IStoreService;
 import com.cloudmall.framework.models.store.Store;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -69,7 +69,7 @@ public class CouponAppServiceImpl implements ICouponAppService {
 
     @Override
     public List<CouponPoolVO> listCouponPool() {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         List<CouponTemplate> templates = couponTemplateService.lambdaQuery()
                 .eq(CouponTemplate::getStatus, CouponStatus.ACTIVE.getCode())
                 .le(CouponTemplate::getStartTime, LocalDateTime.now())
@@ -111,7 +111,7 @@ public class CouponAppServiceImpl implements ICouponAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean claimCoupon(Long templateId) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         CouponTemplate template = couponTemplateService.getById(templateId);
         AssertUtils.notNull(template, BizErrorCode.COUPON_TEMPLATE_NOT_ACTIVE);
         AssertUtils.isTrue(template.getStatus() == CouponStatus.ACTIVE.getCode(),

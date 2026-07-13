@@ -6,7 +6,7 @@ import com.cloudmall.framework.models.address.IAddressService;
 import com.cloudmall.framework.application.order.context.TradeContext;
 import com.cloudmall.framework.application.order.creator.validator.IOrderCreateValidator;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ public class AddressValidator implements IOrderCreateValidator {
         Address address = addressService.lambdaQuery()
                                         .eq(Address::getId, context.getTradeDTO()
                                                                    .getAddressId())
-                                        .eq(Address::getUserId, AuthUserUtils.getUserId())
+                                        .eq(Address::getUserId, AuthUserContext.getUserId())
                                         .one();
         AssertUtils.notNull(address, BizErrorCode.ORDER_CREATE_ADDRESS_NOT_EXIST);
         context.setAddress(address);

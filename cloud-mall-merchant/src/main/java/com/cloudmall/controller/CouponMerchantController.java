@@ -5,7 +5,7 @@ import com.cloudmall.framework.models.coupon.dto.CouponTemplateDTO;
 import com.cloudmall.framework.models.coupon.dto.CouponTemplateParamsDTO;
 import com.cloudmall.framework.models.coupon.service.ICouponTemplateService;
 import com.cloudmall.framework.models.coupon.vo.CouponTemplateVO;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +25,7 @@ public class CouponMerchantController {
 
     @PostMapping("/template")
     public CouponTemplateVO createTemplate(@RequestBody CouponTemplateDTO dto) {
-        dto.setStoreId(AuthUserUtils.getStoreId());
+        dto.setStoreId(AuthUserContext.getStoreId());
         return couponTemplateService.createTemplate(dto);
     }
 
@@ -41,7 +41,7 @@ public class CouponMerchantController {
 
     @GetMapping("/template/list")
     public IPage<CouponTemplateVO> listTemplates(CouponTemplateParamsDTO params) {
-        params.setStoreId(AuthUserUtils.getStoreId());
+        params.setStoreId(AuthUserContext.getStoreId());
         return couponTemplateService.pageQueryTemplates(params);
     }
 

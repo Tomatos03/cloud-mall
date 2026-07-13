@@ -5,7 +5,7 @@ import com.cloudmall.framework.models.auth.enums.AccountType;
 import com.cloudmall.framework.models.auth.service.ITokenService;
 import com.cloudmall.framework.models.system.role.IRoleService;
 import com.cloudmall.framework.security.AuthUser;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.ResponseWriteUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -79,7 +79,7 @@ public class ManageTokenAuthenticationFilter extends OncePerRequestFilter {
                                 null,
                                 resourceCodeAuthorities
                         );
-                AuthUserUtils.setAuthentication(authenticatedToken);
+                AuthUserContext.setAuthentication(authenticatedToken);
 
                 log.debug("用户 {} 的权限已加载，资源代码数量: {}", authUser.getUsername(),
                           resourceCodeAuthorities.size());

@@ -11,7 +11,7 @@ import com.cloudmall.framework.models.audit.enums.AuditStatus;
 import com.cloudmall.framework.models.audit.service.IAuditService;
 import com.cloudmall.framework.models.audit.service.IAuditItemService;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.common.enums.BizErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +75,7 @@ public class AuditAppService implements IAuditAppService {
     public AuditStatusDTO queryUserCreateStoreAuditStatus() {
         Audit audit = auditService.lambdaQuery()
                                   .eq(Audit::getBizType, AuditBizType.STORE_REGISTER.getCode())
-                                  .eq(Audit::getApplicantId, AuthUserUtils.getUserId())
+                                  .eq(Audit::getApplicantId, AuthUserContext.getUserId())
                                   .one();
         if (Objects.isNull(audit)) {
             return new AuditStatusDTO();
@@ -101,7 +101,7 @@ public class AuditAppService implements IAuditAppService {
         AssertUtils.notNull(audit, BizErrorCode.AUDIT_NOT_EXIST);
 
         // 2. 验证权限：只有申请人才能撤销
-        AssertUtils.isEqual(AuthUserUtils.getUserId(), audit.getApplicantId(), BizErrorCode.NO_PERMISSION);
+        AssertUtils.isEqual(AuthUserContext.getUserId(), audit.getApplicantId(), BizErrorCode.NO_PERMISSION);
 
         // 3. 验证状态：只有待审核状态才能撤销
         AssertUtils.isEqual(audit.getStatus(), AuditStatus.PENDING.getCode(), BizErrorCode.AUDIT_INVALID_STATUS);

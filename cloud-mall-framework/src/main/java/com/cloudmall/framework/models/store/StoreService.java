@@ -13,7 +13,7 @@ import com.cloudmall.framework.models.store.dto.StoreUpdateDTO;
 import com.cloudmall.framework.models.store.vo.StoreVO;
 import com.cloudmall.framework.models.system.user.IUserService;
 import com.cloudmall.framework.models.system.user.entity.User;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -49,15 +49,15 @@ public class StoreService extends ServiceImpl<StoreMapper, Store> implements ISt
 
     @Override
     public StoreVO getMyStoreInfo() {
-        Store store = queryStoreByUserId(AuthUserUtils.getUserId());
+        Store store = queryStoreByUserId(AuthUserContext.getUserId());
         return buildStoreItemVO(store);
     }
 
     @Override
     public void updateStore(StoreUpdateDTO updateDTO) {
         LambdaUpdateWrapper<Store> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(Store::getId, AuthUserUtils.getStoreId())
-                     .eq(Store::getUserId, AuthUserUtils.getUserId());
+        updateWrapper.eq(Store::getId, AuthUserContext.getStoreId())
+                     .eq(Store::getUserId, AuthUserContext.getUserId());
 
         updateWrapper.set(Objects.nonNull(updateDTO.getName()), Store::getName, updateDTO.getName());
         updateWrapper.set(Objects.nonNull(updateDTO.getInfo()), Store::getInfo, updateDTO.getInfo());
@@ -75,8 +75,8 @@ public class StoreService extends ServiceImpl<StoreMapper, Store> implements ISt
 
     @Override
     public StoreInfoDTO getMerchantInfo() {
-        Store store = queryStoreByUserId(AuthUserUtils.getUserId());
-        User user = userService.getById(AuthUserUtils.getUserId());
+        Store store = queryStoreByUserId(AuthUserContext.getUserId());
+        User user = userService.getById(AuthUserContext.getUserId());
         return StoreInfoDTO.builder()
                            .uid(user.getId()
                                     .toString())

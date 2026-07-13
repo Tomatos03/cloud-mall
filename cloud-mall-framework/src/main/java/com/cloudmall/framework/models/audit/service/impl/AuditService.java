@@ -18,7 +18,7 @@ import com.cloudmall.framework.models.audit.service.IAuditService;
 import com.cloudmall.framework.models.audit.vo.AuditItemVO;
 import com.cloudmall.framework.models.audit.vo.AuditListItemVO;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.IDNumber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,8 +76,8 @@ public class AuditService extends ServiceImpl<AuditMapper, Audit> implements IAu
                            .totalCount(itemCount)
                            .approvedCount(0)
                            .rejectedCount(0)
-                           .applicantId(AuthUserUtils.getUserId())
-                           .applicantName(AuthUserUtils.getUsername())
+                           .applicantId(AuthUserContext.getUserId())
+                           .applicantName(AuthUserContext.getUsername())
                            .createTime(LocalDateTime.now())
                            .build();
         save(audit);

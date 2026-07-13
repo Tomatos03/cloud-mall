@@ -19,7 +19,7 @@ import com.cloudmall.framework.models.favorite.vo.FavoriteVO;
 import com.cloudmall.framework.models.goods.spu.Goods;
 import com.cloudmall.framework.models.goods.spu.IGoodsService;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.image.ImageUtil;
 
 @Service
@@ -44,7 +44,7 @@ public class FavoriteService extends ServiceImpl<FavoriteMapper, Favorite> imple
 
     @Override
     public IPage<FavoriteVO> pageUserFavorites(FavoriteParamsDTO queryDTO) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
 
         return this.lambdaQuery()
                    .eq(Favorite::getUserId, userId)
@@ -64,7 +64,7 @@ public class FavoriteService extends ServiceImpl<FavoriteMapper, Favorite> imple
 
     @Override
     public void removeFavorite(Long goodsId) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         this.lambdaUpdate()
             .eq(Favorite::getUserId, userId)
             .eq(Favorite::getGoodsId, goodsId)
@@ -74,7 +74,7 @@ public class FavoriteService extends ServiceImpl<FavoriteMapper, Favorite> imple
     @Override
     public FavoriteStatusDTO isFavorite(Long goodsId) {
         Favorite favorite = this.lambdaQuery()
-                                .eq(Favorite::getUserId, AuthUserUtils.getUserId())
+                                .eq(Favorite::getUserId, AuthUserContext.getUserId())
                                 .eq(Favorite::getGoodsId, goodsId)
                                 .one();
         FavoriteStatusDTO favoriteStatusDTO = new FavoriteStatusDTO();
@@ -90,7 +90,7 @@ public class FavoriteService extends ServiceImpl<FavoriteMapper, Favorite> imple
      */
     private Favorite buildFavorite(Goods goods) {
         return Favorite.builder()
-                       .userId(AuthUserUtils.getUserId())
+                       .userId(AuthUserContext.getUserId())
                        .goodsId(goods.getId())
                        .goodsName(goods.getName())
                        .goodsMainImageUrl(ImageUtil.getMainImageUrl(goods.getDisplayImages()))

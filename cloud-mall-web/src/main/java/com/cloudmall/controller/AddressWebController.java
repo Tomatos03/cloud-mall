@@ -3,7 +3,7 @@ package com.cloudmall.controller;
 import com.cloudmall.framework.models.address.Address;
 import com.cloudmall.framework.models.address.AddressDTO;
 import com.cloudmall.framework.models.address.IAddressService;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -77,7 +77,7 @@ public class AddressWebController {
     @GetMapping("/default")
     public Address getDefaultAddress() {
         return addressService.lambdaQuery()
-                             .eq(Address::getUserId, AuthUserUtils.getUserId())
+                             .eq(Address::getUserId, AuthUserContext.getUserId())
                              .eq(Address::getIsDefault, true)
                              .one();
     }

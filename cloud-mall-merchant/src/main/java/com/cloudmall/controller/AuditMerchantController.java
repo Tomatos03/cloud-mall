@@ -6,7 +6,7 @@ import com.cloudmall.framework.models.audit.dto.AuditParamsDTO;
 import com.cloudmall.framework.models.audit.service.IAuditService;
 import com.cloudmall.framework.models.audit.vo.AuditItemVO;
 import com.cloudmall.framework.models.audit.vo.AuditListItemVO;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ public class AuditMerchantController {
      */
     @GetMapping("/page")
     public IPage<AuditListItemVO> pageQuery(AuditParamsDTO queryDTO) {
-        Long merchantId = AuthUserUtils.getUserId();
+        Long merchantId = AuthUserContext.getUserId();
         log.debug("商家查询审核列表，商家ID: {}, 页码: {}, 每页数量: {}", 
                  merchantId, queryDTO.getPage(), queryDTO.getPageSize());
         queryDTO.setApplicantId(merchantId);

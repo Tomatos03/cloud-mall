@@ -29,7 +29,7 @@ import com.cloudmall.framework.models.store.IStoreService;
 import com.cloudmall.framework.models.store.Store;
 import com.cloudmall.framework.models.store.utils.StoreUtil;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.models.order.utils.OrderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -164,13 +164,13 @@ public class OrderAppService implements IOrderAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void shipOrder(String orderNo) {
-        Order order = orderService.queryStoreOrder(orderNo, AuthUserUtils.getStoreId());
+        Order order = orderService.queryStoreOrder(orderNo, AuthUserContext.getStoreId());
         orderService.updateOrderStatus(order, OrderStatus.SHIPPED);
     }
 
     @Override
     public OrderVO queryOrderComment(String orderNo) {
-        Order order = orderService.queryStoreOrder(orderNo, AuthUserUtils.getStoreId());
+        Order order = orderService.queryStoreOrder(orderNo, AuthUserContext.getStoreId());
         AssertUtils.notNull(order, BizErrorCode.ORDER_NOT_EXIST);
         return OrderVO.buildOrderVO(order);
     }

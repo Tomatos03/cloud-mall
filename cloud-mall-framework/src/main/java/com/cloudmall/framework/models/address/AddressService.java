@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cloudmall.framework.common.enums.BizErrorCode;
 import com.cloudmall.framework.exception.BizException;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +20,13 @@ import java.util.List;
 public class AddressService extends ServiceImpl<AddressMapper, Address> implements IAddressService {
     @Override
     public void setDefaultAddress(Long addressId) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         Address address = this.lambdaQuery()
                               // TODO: 待处理
                               //                              .eq(
                               //                                      UserRole.NORMAL.getCode()
                               //                                                     .equals
-                              //                                                     (AuthUserUtils.getRole()),
+                              //                                                     (AuthUserContext.getRole()),
                               //                                      Address::getUserId,
                               //                                      userId
                               //                              )
@@ -45,7 +45,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> implemen
     public void updateAddress(Address address) {
         if (address.getIsDefault()) {
             // 先取消已有默认地址
-            cancelDefaultAddress(AuthUserUtils.getUserId());
+            cancelDefaultAddress(AuthUserContext.getUserId());
         }
         this.updateById(address);
     }
@@ -53,7 +53,7 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> implemen
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void addAddress(AddressDTO addressDTO) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         if (addressDTO.getIsDefault()) {
             cancelDefaultAddress(userId);
         }
@@ -67,14 +67,14 @@ public class AddressService extends ServiceImpl<AddressMapper, Address> implemen
         this.removeById(
                 Address.builder()
                        .id(id)
-                       .userId(AuthUserUtils.getUserId())
+                       .userId(AuthUserContext.getUserId())
                        .build()
         );
     }
 
     @Override
     public List<AddressDTO> getAddressList() {
-        return lambdaQuery().eq(Address::getUserId, AuthUserUtils.getUserId())
+        return lambdaQuery().eq(Address::getUserId, AuthUserContext.getUserId())
                             .list()
                             .stream()
                             .map(address -> BeanUtil.copyProperties(address, AddressDTO.class))

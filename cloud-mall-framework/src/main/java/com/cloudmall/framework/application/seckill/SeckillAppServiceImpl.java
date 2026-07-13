@@ -38,7 +38,7 @@ import com.cloudmall.framework.models.seckill.service.SeckillOrderService;
 import com.cloudmall.framework.models.seckill.vo.SeckillActivityVO;
 import com.cloudmall.framework.support.JsonSupport;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.IDNumber;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +109,7 @@ public class SeckillAppServiceImpl implements SeckillAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SeckillParticipateResultVO participateSeckill(Long seckillGoodsId, Integer quantity) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         log.info("用户 {} 参与秒杀商品 {}，购买数量：{}", userId, seckillGoodsId, quantity);
         SeckillGoods seckillGoods = querySeckillGoodsFromCache(seckillGoodsId);
         checkSeckillStatus(seckillGoods);

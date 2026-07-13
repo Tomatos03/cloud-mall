@@ -1,5 +1,6 @@
 package com.cloudmall.framework.support;
 
+import com.cloudmall.framework.context.BeanContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -16,7 +17,7 @@ public class JsonSupport {
         if (objectMapper == null) {
             synchronized (JsonSupport.class) {
                 if (objectMapper == null) {
-                    objectMapper = BeanSupport.getBean(ObjectMapper.class);
+                    objectMapper = BeanContext.getBean(ObjectMapper.class);
                 }
             }
         }

@@ -8,7 +8,7 @@ import com.cloudmall.framework.models.order.dto.OrderParamsDTO;
 import com.cloudmall.framework.models.order.entity.Order;
 import com.cloudmall.framework.models.order.enums.OrderType;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 
 /**
  * 订单查询条件构建器
@@ -31,7 +31,7 @@ public class OrderQueryWrapper {
     }
 
     private static void fillByAccountType(LambdaQueryWrapper<Order> wrapper) {
-        AccountType accountType = AuthUserUtils.getAccountType();
+        AccountType accountType = AuthUserContext.getAccountType();
 
         switch (accountType) {
             case NORMAL -> fillUserQueryWrapper(wrapper);
@@ -41,12 +41,12 @@ public class OrderQueryWrapper {
     }
 
     private static void fillUserQueryWrapper(LambdaQueryWrapper<Order> wrapper) {
-        wrapper.eq(Order::getUserId, AuthUserUtils.getUserId());
+        wrapper.eq(Order::getUserId, AuthUserContext.getUserId());
         wrapper.in(Order::getOrderType, OrderType.NORMAL.getCode(), OrderType.PARENT.getCode());
     }
 
     private static void fillMerchantQueryWrapper(LambdaQueryWrapper<Order> wrapper) {
-        Long storeId = AuthUserUtils.getStoreId();
+        Long storeId = AuthUserContext.getStoreId();
         AssertUtils.notNull(storeId, BizErrorCode.MERCHANT_NO_SHOP);
 
         wrapper.eq(Order::getStoreId, storeId);

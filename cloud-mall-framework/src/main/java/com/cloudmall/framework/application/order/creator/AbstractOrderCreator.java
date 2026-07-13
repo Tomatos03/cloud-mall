@@ -21,7 +21,7 @@ import com.cloudmall.framework.models.order.enums.OrderStatus;
 import com.cloudmall.framework.models.order.enums.OrderType;
 import com.cloudmall.framework.models.order.service.IOrderItemService;
 import com.cloudmall.framework.models.order.service.IOrderService;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.IDNumber;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -181,7 +181,7 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
 
     private void determinePayOrder(TradeContext tradeContext) {
         tradeContext.setPayOrder(createPayOrder(tradeContext));
-        log.info("订单构建成功, userId: {}, 订单类型: {}", AuthUserUtils.getUserId(), getSupportPurchaseMode());
+        log.info("订单构建成功, userId: {}, 订单类型: {}", AuthUserContext.getUserId(), getSupportPurchaseMode());
     }
 
     private Order createPayOrder(TradeContext tradeContext) {
@@ -228,7 +228,7 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
 
         Order.OrderBuilder orderBuilder = Order.builder()
                                                .no(IDNumber.generateOrderNo())
-                                               .userId(AuthUserUtils.getUserId())
+                                               .userId(AuthUserContext.getUserId())
                                                .totalPrice(totalPrice)
                                                .couponDiscount(couponDiscount)
                                                .payAmount(payAmount)
@@ -248,7 +248,7 @@ public abstract class AbstractOrderCreator implements IOrderCreator {
     private Order buildOrder(long storeId, int quantity, long orderTotalPrice, Address address) {
         return Order.builder()
                     .no(IDNumber.generateOrderNo())
-                    .userId(AuthUserUtils.getUserId())
+                    .userId(AuthUserContext.getUserId())
                     .storeId(storeId)
                     .quantity(quantity)
                     .totalPrice(orderTotalPrice)

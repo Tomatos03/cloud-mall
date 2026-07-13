@@ -18,7 +18,7 @@ import com.cloudmall.framework.common.enums.BizErrorCode;
 import com.cloudmall.framework.models.goods.spu.dto.GoodsPageParamsDTO;
 import com.cloudmall.framework.models.goods.spu.vo.SpuVO;
 import com.cloudmall.framework.utils.AssertUtils;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.image.ImageUtil;
 import com.cloudmall.framework.utils.money.Money;
 
@@ -27,7 +27,7 @@ import com.cloudmall.framework.utils.money.Money;
 public class GoodsService extends ServiceImpl<GoodsMapper, Goods> implements IGoodsService {
     @Override
     public List<Goods> queryEnableGoodsList() {
-        Long storeId = AuthUserUtils.getStoreId();
+        Long storeId = AuthUserContext.getStoreId();
         return lambdaQuery()
                 .eq(storeId != null, Goods::getStoreId, storeId)
                 .eq(Goods::getStatus, true)

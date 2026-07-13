@@ -6,7 +6,7 @@ import com.cloudmall.framework.models.coupon.application.vo.CouponPoolVO;
 import com.cloudmall.framework.models.coupon.dto.CouponClaimDTO;
 import com.cloudmall.framework.models.coupon.service.IUserCouponService;
 import com.cloudmall.framework.models.coupon.vo.UserCouponVO;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,7 +42,7 @@ public class CouponWebController {
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        Long userId = AuthUserUtils.getUserId();
+        Long userId = AuthUserContext.getUserId();
         return userCouponService.pageQueryUserCoupons(userId, status, page, pageSize);
     }
 }

@@ -4,7 +4,7 @@ import com.cloudmall.framework.models.auth.bo.ParsedToken;
 import com.cloudmall.framework.models.auth.enums.AccountType;
 import com.cloudmall.framework.models.auth.service.ITokenService;
 import com.cloudmall.framework.security.AuthUser;
-import com.cloudmall.framework.utils.AuthUserUtils;
+import com.cloudmall.framework.context.AuthUserContext;
 import com.cloudmall.framework.utils.ResponseWriteUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -67,7 +67,7 @@ public class MerchantTokenAuthenticationFilter extends OncePerRequestFilter {
                         null,
                         Collections.emptyList()
                 );
-                AuthUserUtils.setAuthentication(authenticatedToken);
+                AuthUserContext.setAuthentication(authenticatedToken);
             }
         } catch (Exception e) {
             log.error("解析Token异常: {}", e.getMessage());
